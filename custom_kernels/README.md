@@ -1,6 +1,6 @@
 ## Example commands to build CUDA kernels:
 
-
+dev_array.h: a helper function for allocate and release of GPU memory
 cuda_matexp.so: GPU kernel for exponentiating a matrix
 matrix_exp.so: CPU kernel for exponentiating a matrix
 
