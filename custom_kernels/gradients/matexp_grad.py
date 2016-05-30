@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.python.framework import ops
 
 @ops.RegisterGradient("MatrixExp")
-def _zero_out_grad(op, grad):
+def _matrix_exp_grad(op, grad):
     
     matrix_0_array = tf.constant(op.get_attr("matrix_0"),dtype=tf.float32)
     matrix_1_array = tf.constant(op.get_attr("matrix_1"),dtype=tf.float32)

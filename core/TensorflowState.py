@@ -1,32 +1,22 @@
+import os
+
 import numpy as np
 import tensorflow as tf
 
-from math_functions.c_to_r_mat import *
+from math_functions.c_to_r_mat import CtoRMat
 from custom_kernels.gradients.matexp_grad import *
 
-class TensorflowState():
+class TensorflowState:
     
-    def __init__(self):
-        self.sys_para = SystemParameters()
+    def __init__(self,sys_para):
+        self.sys_para = sys_para
+	user_ops_path = './custom_kernels/build'
+	self.matrix_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp.so'))
         
     def init_variables(self):
         self.tf_identity = tf.constant(self.sys_para.identity,dtype=tf.float32)
         self.tf_neg_i = tf.constant(CtoRMat(-1j*self.sys_para.identity_c),dtype=tf.float32)
         self.tf_one_minus_gaussian_evelop = tf.constant(self.sys_para.one_minus_gauss,dtype=tf.float32)
-        
-        ## power of identity matrixes
-        self.tf_i_pow=[]
-        self.tf_i_pow.append(tf.constant(CtoRMat(1*self.sys_para.identity_c),dtype=tf.float32))
-        self.tf_i_pow.append(tf.constant(CtoRMat(1j*self.sys_para.identity_c),dtype=tf.float32))
-        self.tf_i_pow.append(tf.constant(CtoRMat(-1*self.sys_para.identity_c),dtype=tf.float32))
-        self.tf_i_pow.append(tf.constant(CtoRMat(-1j*self.sys_para.identity_c),dtype=tf.float32))
-        
-        ## Bessel functions                            
-        self.tf_J0_i = tf.constant(CtoRMat(self.sys_para.J0_i*self.sys_para.identity_c),dtype=tf.float32)
-        self.tf_Jk_neg_i = []
-        for ii in range(0,self.sys_para.exp_terms):
-            self.tf_Jk_neg_i.append(tf.constant(CtoRMat(self.sys_para.Jk_neg_i[ii]*self.sys_para.identity_c),dtype=tf.float32))
-        
         
         
     def init_tf_vectors(self):
@@ -75,7 +65,7 @@ class TensorflowState():
     def get_inter_state_op(self,layer):
         # build opertor for intermediate state propagation
         # This function determines the nature of propagation
-        propagator = matrix_exp_module.matrix_exp(self.H0[layer],self.Hx[layer],self.Hz[layer],size=2*self.sys_para.state_num,
+        propagator = self.matrix_exp_module.matrix_exp(self.H0[layer],self.Hx[layer],self.Hz[layer],size=2*self.sys_para.state_num,
                                       exp_num = self.sys_para.exp_terms
                                       ,matrix_0=self.H0_flat,
                                        matrix_1=self.flat_ops[0],matrix_2=self.flat_ops[1],

@@ -1,4 +1,6 @@
 import numpy as np
+from math_functions.c_to_r_mat import CtoRMat
+import scipy.linalg as la
 
 class SystemParametersGeneral:
 
@@ -11,7 +13,6 @@ class SystemParametersGeneral:
         self.init_one_minus_gaussian_envelop()
         self.init_pulse_operator()
         self.prev_ops_weight()
-        self.Bessel_func()
 
     def init_system(self):
         self.initial_pulse = False
@@ -20,7 +21,7 @@ class SystemParametersGeneral:
         self.qubit_state_num = 4
         self.alpha = 0.224574
         self.freq_ge = 3.9225#GHz
-        self.ens = np.array([ 2*np.pi*ii*(self.freq_ge - 0.5*(ii-1)*self.alpha) for ii in arange(self.qubit_state_num)])
+        self.ens = np.array([ 2*np.pi*ii*(self.freq_ge - 0.5*(ii-1)*self.alpha) for ii in np.arange(self.qubit_state_num)])
 
         self.mode_state_num = 3
 
@@ -154,9 +155,3 @@ class SystemParametersGeneral:
             temp_ops_weight_base[:,:len(prev_ops_weight_base[0])] +=prev_ops_weight_base
             self.prev_ops_weight_base = temp_ops_weight_base
             
-    def Bessel_func(self):
-        self.J0_i = sp.special.jn(0,0+1j)
-        self.Jk_neg_i = []
-
-        for ii in range (0,self.exp_terms):
-            self.Jk_neg_i.append(sp.special.jn(ii,0-1j))
