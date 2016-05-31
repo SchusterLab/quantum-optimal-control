@@ -123,8 +123,14 @@ class ConvergenceGeneral:
 
         
         self.get_convergence()
+        i1=0
+        i2=0
+        if self.Modulation:
+            i1=1
+        if self.Interpolation:
+            i2=1
+        gs = gridspec.GridSpec(3+i1+i2+len(self.sys_para.states_concerned_list), 2)
         
-        gs = gridspec.GridSpec(3+len(self.sys_para.states_concerned_list), 2)
         
         ## cost
         plt.subplot(gs[0, :],title='Error = %.9f; Unitary Metric: %.5f; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost,
@@ -152,21 +158,47 @@ class ConvergenceGeneral:
         plt.colorbar()
         
         ## operators
-        plt.subplot(gs[2, :],title="Operators")
+        plt.subplot(gs[2, :],title="Simulation Weights")
         ops_weight = self.anly.get_ops_weight()
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*ops_weight[0]),'r',label='x')
+        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*ops_weight[0,:]),'r',label='x')
+        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*ops_weight[1,:]),'c',label='y')
         plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),(self.sys_para.qm_g1/(2*np.pi))\
-             *np.array(self.sys_para.ops_max_amp[1]*ops_weight[1]),'c',label='(g/2pi)z')
+             *np.array(self.sys_para.ops_max_amp[1]*ops_weight[2,:]),'g',label='(g/2pi)z')
         plt.title('Optimized pulse')
         plt.ylabel('Amplitude')
         plt.xlabel('Time (ns)')
         plt.legend()
         
+        index=3
+        ## Control Fields
+        if (self.Modulation == True or self.Interpolation== True):
+            plt.subplot(gs[index, :],title="X and Y Control Fields")
+            index+=1
+            xy_weight = self.anly.get_xy_weight()
+            plt.plot(np.array([self.sys_para.Dt* ii for ii in range(self.sys_para.control_steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_weight[0,:]),'r',label='x')
+            plt.plot(np.array([self.sys_para.Dt* ii for ii in range(self.sys_para.control_steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_weight[1,:]),'c',label='y')
+            plt.title('Optimized xy pulses')
+            plt.ylabel('Amplitude')
+            plt.xlabel('Time (ns)')
+            plt.legend()
+        
+        if self.Interpolation:
+            if self.Modulation:
+                
+                plt.subplot(gs[index, :],title="X and Y Interpolated Control Fields")
+                index+=1
+                xy_nocos = self.anly.get_nonmodulated_weight() 
+                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_nocos[0,:]),'r',label='x')
+                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_nocos[1,:]),'c',label='y')
+                plt.title('Optimized Interpolated xy pulses')
+                plt.ylabel('Amplitude')
+                plt.xlabel('Time (ns)')
+                plt.legend()
         ## state evolution
         inter_vecs = self.anly.get_inter_vecs()
         
         for ii in range(len(self.sys_para.states_concerned_list)):
-            plt.subplot(gs[3+ii, :],title="Evolution")
+            plt.subplot(gs[index+ii, :],title="Evolution")
 
             pop_inter_vecs = inter_vecs[ii]
             self.plot_inter_vecs_v3(pop_inter_vecs)        
