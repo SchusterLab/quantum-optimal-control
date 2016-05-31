@@ -112,6 +112,8 @@ class ConvergenceGeneral:
         
     def plot_summary(self):
         
+	plt.figure(figsize=(15,50))
+
         if not self.last_iter == 0:
             self.runtime = time.time() - self.start_time
             self.estimated_runtime = float(self.runtime * (self.max_iterations-self.last_iter) / self.last_iter)/(60*60)
