@@ -1,13 +1,17 @@
 import numpy as np
 from math_functions.c_to_r_mat import CtoRMat
 import scipy.linalg as la
+from math_functions.Get_state_index import Get_State_index
 
 class SystemParametersGeneral:
 
-    def __init__(self,total_time):
+    def __init__(self,total_time, Modulation, Interpolation, D):
         # Input variable
-        self.total_time = total_time
         
+        self.total_time = total_time
+        self.Modulation = Modulation
+        self.Interpolation = Interpolation
+        self.D = D
         self.init_system()
         self.init_operators()
         self.init_one_minus_gaussian_envelop()
@@ -46,17 +50,27 @@ class SystemParametersGeneral:
 
         self.pts_per_period = 10
         self.exp_terms = 20
+        self.subpixels = 50
+        
 
         self.dt = (1./self.mode_freq2)/self.pts_per_period
-        self.steps = int(self.total_time/self.dt)
+        if self.Interpolation:
+            self.Dt = self.dt*self.subpixels
+        else:
+            self.Dt = self.dt
+        self.steps = int(self.total_time/self.dt)+1 
+        self.control_steps = int(self.total_time/self.Dt)+1
         
         
     def init_vectors(self):
         self.initial_vectors=[]
 
         for state in self.states_concerned_list:
-            self.initial_vector_c=np.zeros(self.state_num)
-            self.initial_vector_c[state]=1
+            if self.D:
+                self.initial_vector_c= self.v_c[:,Get_State_index(state,self.dressed)]
+            else:
+                self.initial_vector_c=np.zeros(self.state_num)
+                self.initial_vector_c[state]=1
             self.initial_vector = np.append(self.initial_vector_c,self.initial_vector_c)
 
             self.initial_vectors.append(self.initial_vector)
@@ -96,9 +110,32 @@ class SystemParametersGeneral:
         self.H0_c = np.kron(H_q,np.kron(self.I_m,self.I_m)) + np.kron(self.I_q,np.kron(H_m1,self.I_m)) +\
         np.kron(self.I_q,np.kron(self.I_m,H_m2)) + self.qm_g1*np.kron(Q_x,np.kron(M_x,self.I_m)) +\
         self.qm_g2*np.kron(Q_x,np.kron(self.I_m,M_x))
+        self.w_c, self.v_c = la.eig(self.H0_c)
 
         self.H0 = CtoRMat(-1j*self.dt*self.H0_c)
         
+        self.dressed=[]
+        if self.D:
+            for ii in range (len(self.v_c)):
+                index=np.argmax(np.abs(self.v_c[:,ii]))
+                if index not in self.dressed:
+                    self.dressed.append(index)
+                else:
+                    temp= (np.abs(self.v_c[:,ii])).tolist()
+                    while index in self.dressed:
+
+                        temp.remove(max(temp))
+                        index2= np.argmax(np.array(temp))
+
+                        if index2<index:
+                            #dressed.append(index2)
+                            index=index2
+                        else:
+                            #dressed.append(index2-1)
+                            index=index2+1
+                    self.dressed.append(index)
+        
+        self.H0_diag=np.diag(self.w_c)
         self.q_identity_c = np.identity(self.qubit_state_num)
         self.m_identity_c = np.identity(self.mode_state_num)
 
@@ -110,7 +147,7 @@ class SystemParametersGeneral:
         one_minus_gauss = []
         offset = 0.0
         overall_offset = 0.01
-        for ii in range(self.ops_len):
+        for ii in range(self.ops_len+1):
             constraint_shape = np.ones(self.steps)- self.gaussian(np.linspace(-2,2,self.steps)) - offset
             constraint_shape = constraint_shape * (constraint_shape>0)
             constraint_shape = constraint_shape + overall_offset* np.ones(self.steps)
