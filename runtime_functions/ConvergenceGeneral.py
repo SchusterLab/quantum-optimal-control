@@ -112,7 +112,6 @@ class ConvergenceGeneral:
         
     def plot_summary(self):
         
-	plt.figure(figsize=(15,50))
 
         if not self.last_iter == 0:
             self.runtime = time.time() - self.start_time
@@ -172,8 +171,12 @@ class ConvergenceGeneral:
             pop_inter_vecs = inter_vecs[ii]
             self.plot_inter_vecs_v3(pop_inter_vecs)        
         
+	fig = plt.gcf()
+	fig.set_size_inches(15, 50)
+	
         display.display(plt.gcf())
         display.clear_output(wait=True)
-        
+	        
+
     def __init__(self):
-	pass
+	plt.figure()
