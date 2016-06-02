@@ -7,11 +7,16 @@ from custom_kernels.gradients.matexp_grad import *
 
 class TensorflowState:
     
-    def __init__(self,sys_para):
+    def __init__(self,sys_para,use_gpu = True):
         self.sys_para = sys_para
 	user_ops_path = './custom_kernels/build'
-	self.matrix_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp.so'))
-        
+	if use_gpu:
+		kernel_filename = 'cuda_matexp.so'
+	else:
+		kernel_filename = 'matrix_exp.so'	
+
+	self.matrix_exp_module = tf.load_op_library(os.path.join(user_ops_path,kernel_filename))        
+
     def init_variables(self):
         self.tf_identity = tf.constant(self.sys_para.identity,dtype=tf.float32)
         self.tf_neg_i = tf.constant(CtoRMat(-1j*self.sys_para.identity_c),dtype=tf.float32)
