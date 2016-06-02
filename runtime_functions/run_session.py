@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from runtime_functions.Analysis import Analysis
+import os
 
 def run_session(tfs,graph,conv,sys_para,show_plots=True,single_simulation = False):
     with tf.Session(graph=graph) as session:
@@ -30,7 +31,9 @@ def run_session(tfs,graph,conv,sys_para,show_plots=True,single_simulation = Fals
                 conv.update_convergence(l,rl,anly,show_plots)
                 
                 # Save the variables to disk.
-                save_path = tfs.saver.save(session, "./tmp/grape.ckpt")
+		this_dir = os.path.dirname(__file__)
+		tmp_path = os.path.join(this_dir,'../tmp/grape.ckpt')
+                save_path = tfs.saver.save(session, tmp_path)
                 if (iterations >= max_iterations): #(l<conv.conv_target) or (iterations>=conv.max_iterations):
                     anly.get_ops_weight()
                     anly.get_xy_weight()

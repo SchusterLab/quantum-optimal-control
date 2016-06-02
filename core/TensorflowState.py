@@ -4,12 +4,16 @@ import numpy as np
 import tensorflow as tf
 from math_functions.c_to_r_mat import CtoRMat
 from custom_kernels.gradients.matexp_grad import *
+import os
+
 
 class TensorflowState:
     
     def __init__(self,sys_para,use_gpu = True):
         self.sys_para = sys_para
-	user_ops_path = './custom_kernels/build'
+	this_dir = os.path.dirname(__file__)
+	user_ops_path = os.path.join(this_dir,'../custom_kernels/build')
+
 	if use_gpu:
 		kernel_filename = 'cuda_matexp.so'
 	else:

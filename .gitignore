@@ -1,5 +1,6 @@
 sbatch_file/*
 *.pyc
 .ipynb_checkpoints/
-data/*
-tmp/*
+data/*.npy
+tmp/*ckpt*
+tmp/checkpoint
