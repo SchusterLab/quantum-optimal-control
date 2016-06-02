@@ -10,7 +10,6 @@ from math_functions.Get_state_index import Get_State_index
 import numpy as np
 import random as rd
 import time
-from IPython import display
 
 
 '''
@@ -117,7 +116,7 @@ class Convergence(ConvergenceGeneral):
         self.Modulation = Modulation
         self.Interpolation = Interpolation
         self.rate = 0.01
-        self.update_step = 100
+        self.update_step = 10
         self.conv_target = 1e-8
         self.max_iterations = 5000
         
@@ -136,7 +135,4 @@ class Convergence(ConvergenceGeneral):
 conv = Convergence()
 
 
-try:
-    run_session(tfs,graph,conv,sys_para)
-except KeyboardInterrupt:
-    display.clear_output()
+run_session(tfs,graph,conv,sys_para,show_plots=False)

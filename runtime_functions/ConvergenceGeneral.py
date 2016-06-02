@@ -15,12 +15,16 @@ class ConvergenceGeneral:
         self.last_iter = 0
         self.accumulate_rate = 1.00
 
-    def update_convergence(self,last_cost, last_reg_cost, anly):
+    def update_convergence(self,last_cost, last_reg_cost, anly,show_plots=True):
         self.last_cost = last_cost
         self.last_reg_cost = last_reg_cost
           
         self.anly = anly
-        self.plot_summary()
+
+	if show_plots:
+        	self.plot_summary()
+	else:
+		print '###### last cost: ' + str(last_cost) + ' ######'
     
     def get_convergence(self):
         self.costs.append(self.last_cost)

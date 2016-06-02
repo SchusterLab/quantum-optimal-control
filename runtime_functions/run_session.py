@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 from runtime_functions.Analysis import Analysis
 
-def run_session(tfs,graph,conv,sys_para,single_simulation = False):
+def run_session(tfs,graph,conv,sys_para,show_plots=True,single_simulation = False):
     with tf.Session(graph=graph) as session:
         tf.initialize_all_variables().run()
         
@@ -27,7 +27,7 @@ def run_session(tfs,graph,conv,sys_para,single_simulation = False):
                 
                 # Plot convergence
                 anly = Analysis(sys_para,tfs.final_state,tfs.ops_weight,tfs.xy_weight, tfs.xy_nocos, tfs.unitary_scale,tfs.inter_vecs)
-                conv.update_convergence(l,rl,anly)
+                conv.update_convergence(l,rl,anly,show_plots)
                 
                 # Save the variables to disk.
                 save_path = tfs.saver.save(session, "./tmp/grape.ckpt")
