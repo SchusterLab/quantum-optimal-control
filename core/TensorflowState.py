@@ -15,7 +15,7 @@ class TensorflowState:
 	user_ops_path = os.path.join(this_dir,'../custom_kernels/build')
 
 	if use_gpu:
-		kernel_filename = 'cuda_matexp_v3.so'
+		kernel_filename = 'cuda_matexp_v4.so'
 	else:
 		kernel_filename = 'matrix_exp.so'	
 

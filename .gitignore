@@ -1,3 +1,4 @@
+*.swp
 sbatch_file/*
 *.pyc
 .ipynb_checkpoints/
