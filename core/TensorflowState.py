@@ -3,7 +3,7 @@ import os
 import numpy as np
 import tensorflow as tf
 from math_functions.c_to_r_mat import CtoRMat
-from custom_kernels.gradients.matexp_grad_v2 import *
+from custom_kernels.gradients.matexp_grad_v3 import *
 import os
 
 
@@ -15,7 +15,7 @@ class TensorflowState:
 	user_ops_path = os.path.join(this_dir,'../custom_kernels/build')
 
 	if use_gpu:
-		kernel_filename = 'cuda_matexp_v2.so'
+		kernel_filename = 'cuda_matexp_v3.so'
 	else:
 		kernel_filename = 'matrix_exp.so'	
 
@@ -166,11 +166,9 @@ class TensorflowState:
     def get_inter_state_op(self,layer):
         # build opertor for intermediate state propagation
         # This function determines the nature of propagation
-        propagator = self.matrix_exp_module.matrix_exp(self.Hs[:,layer],size=2*self.sys_para.state_num,
+        propagator = self.matrix_exp_module.matrix_exp(self.Hs[:,layer],size=2*self.sys_para.state_num, input_num = 3,
                                       exp_num = self.sys_para.exp_terms
-                                      ,matrix_0=self.H0_flat,
-                                       matrix_1=self.flat_ops[0],matrix_2=self.flat_ops[1],
-                                      matrix_I = self.I_flat)
+                                      ,matrix=self.H0_flat + self.flat_ops[0] + self.flat_ops[1]+self.I_flat)
         
         
         return propagator    
