@@ -198,7 +198,7 @@ class ConvergenceGeneral:
                 index+=1
                 xy_nocos = self.anly.get_nonmodulated_weight() 
                 plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_nocos[0,:]),'r',label='x')
-                plt.plot(np.array([self.sys_para.dt* ii for ii in #range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_nocos[1,:]),'c',label='y')
+                #plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_nocos[1,:]),'c',label='y')
                 plt.title('Optimized Interpolated xy pulses')
                 plt.ylabel('Amplitude')
                 plt.xlabel('Time (ns)')
