@@ -3,7 +3,7 @@ import os
 import numpy as np
 import tensorflow as tf
 from math_functions.c_to_r_mat import CtoRMat
-from custom_kernels.gradients.matexp_grad import *
+from custom_kernels.gradients.matexp_grad_v2 import *
 import os
 
 
@@ -15,7 +15,7 @@ class TensorflowState:
 	user_ops_path = os.path.join(this_dir,'../custom_kernels/build')
 
 	if use_gpu:
-		kernel_filename = 'cuda_matexp.so'
+		kernel_filename = 'cuda_matexp_v2.so'
 	else:
 		kernel_filename = 'matrix_exp.so'	
 
@@ -150,7 +150,10 @@ class TensorflowState:
         #self.Hz = tf.Variable(tf.zeros([self.sys_para.steps]))
         self.Hx = self.sys_para.ops_max_amp[0]*self.ops_weight[0,:]
         self.Hz = self.sys_para.ops_max_amp[1]*self.z_weight
-        print "Operators weight initialized."
+        
+	self.Hs = tf.pack([self.H0,self.Hx,self.Hz[0,:]])
+	
+	print "Operators weight initialized."
                 
     def init_tf_inter_states(self):
         #initialize intermediate states
@@ -163,7 +166,7 @@ class TensorflowState:
     def get_inter_state_op(self,layer):
         # build opertor for intermediate state propagation
         # This function determines the nature of propagation
-        propagator = self.matrix_exp_module.matrix_exp(self.H0[layer],self.Hx[layer],self.Hz[0,layer],size=2*self.sys_para.state_num,
+        propagator = self.matrix_exp_module.matrix_exp(self.Hs[:,layer],size=2*self.sys_para.state_num,
                                       exp_num = self.sys_para.exp_terms
                                       ,matrix_0=self.H0_flat,
                                        matrix_1=self.flat_ops[0],matrix_2=self.flat_ops[1],
