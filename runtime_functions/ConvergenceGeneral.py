@@ -170,7 +170,7 @@ class ConvergenceGeneral:
         plt.subplot(gs[2, :],title="Simulation Weights")
         ops_weight = self.anly.get_ops_weight()
         plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*ops_weight[0,:]),'r',label='x')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*ops_weight[1,:]),'c',label='y')
+        #plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*ops_weight[1,:]),'c',label='y')
         plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),(self.sys_para.qm_g1/(2*np.pi))\
              *np.array(self.sys_para.ops_max_amp[1]*ops_weight[2,:]),'g',label='(g/2pi)z')
         plt.title('Optimized pulse')
@@ -185,7 +185,7 @@ class ConvergenceGeneral:
             index+=1
             xy_weight = self.anly.get_xy_weight()
             plt.plot(np.array([self.sys_para.Dt* ii for ii in range(self.sys_para.control_steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_weight[0,:]),'r',label='x')
-            plt.plot(np.array([self.sys_para.Dt* ii for ii in range(self.sys_para.control_steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_weight[1,:]),'c',label='y')
+            #plt.plot(np.array([self.sys_para.Dt* ii for ii in range(self.sys_para.control_steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_weight[1,:]),'c',label='y')
             plt.title('Optimized xy pulses')
             plt.ylabel('Amplitude')
             plt.xlabel('Time (ns)')
@@ -198,7 +198,7 @@ class ConvergenceGeneral:
                 index+=1
                 xy_nocos = self.anly.get_nonmodulated_weight() 
                 plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_nocos[0,:]),'r',label='x')
-                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_nocos[1,:]),'c',label='y')
+                plt.plot(np.array([self.sys_para.dt* ii for ii in #range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_nocos[1,:]),'c',label='y')
                 plt.title('Optimized Interpolated xy pulses')
                 plt.ylabel('Amplitude')
                 plt.xlabel('Time (ns)')

@@ -148,7 +148,7 @@ class TensorflowState:
         self.H0 = tf.Variable(tf.ones([self.sys_para.steps]), trainable=False)
         #self.Hx = tf.Variable(tf.zeros([self.sys_para.steps]))
         #self.Hz = tf.Variable(tf.zeros([self.sys_para.steps]))
-        self.Hx = self.sys_para.ops_max_amp[0]*tf.add(self.ops_weight[0,:],self.ops_weight[1,:])
+        self.Hx = self.sys_para.ops_max_amp[0]*self.ops_weight[0,:]
         self.Hz = self.sys_para.ops_max_amp[1]*self.z_weight
         print "Operators weight initialized."
                 
