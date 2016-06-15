@@ -23,11 +23,9 @@ using namespace std;
 
 REGISTER_OP("MatrixExp")
     .Attr("size: int")
+    .Attr("input_num: int")
     .Attr("exp_num: int")
-    .Attr("matrix_0: list(float)")
-    .Attr("matrix_1: list(float)")
-    .Attr("matrix_2: list(float)")
-    .Attr("matrix_I: list(float)")
+    .Attr("matrix: list(float)")
     .Input("coeff: float")
     .Output("output: float")
     .Doc(R"doc(
@@ -39,7 +37,7 @@ output: A Tensor.
 
 void matrixMultiplication(const float* A, const float* B, float* C, const int N);
 void matrixAdd(const float* A, const float* B, const float coeff, float* C, const int N);
-void matrixPrepare(const float* A,const float* B, const float* C, const float* coeff_a, const float* coeff_b, const float* coeff_c, float* D,const int N);
+void matrixAddV2(const float* A, const float* B, const float* coeff, float* C, const int N);
 
 class MatrixExpOp : public OpKernel {
  public:
@@ -47,15 +45,11 @@ class MatrixExpOp : public OpKernel {
     OP_REQUIRES_OK(context,
                    context->GetAttr("size", &size_));
   OP_REQUIRES_OK(context,
+                   context->GetAttr("input_num", &input_num_));
+  OP_REQUIRES_OK(context,
                    context->GetAttr("exp_num", &exp_num_));
   OP_REQUIRES_OK(context,
-                   context->GetAttr("matrix_0", &matrix_0_));
-  OP_REQUIRES_OK(context,
-                   context->GetAttr("matrix_1", &matrix_1_));
-  OP_REQUIRES_OK(context,
-                   context->GetAttr("matrix_2", &matrix_2_));
-  OP_REQUIRES_OK(context,
-                   context->GetAttr("matrix_I", &matrix_I_));
+                   context->GetAttr("matrix", &matrix_));
 }
 
   void Compute(OpKernelContext* context) override {
@@ -63,7 +57,7 @@ class MatrixExpOp : public OpKernel {
     const Tensor& input_0_tensor = context->input(0);
     auto input_0 = input_0_tensor.flat<float>();
 
-    const int N = matrix_0_.size();
+    const int N = size_*size_;
 
     // Create an output tensor
     Tensor* output_tensor = NULL;
@@ -75,15 +69,11 @@ class MatrixExpOp : public OpKernel {
  
     int dim = static_cast<int>(sqrt(N));
     
-    dev_array<float> d_m0(N);
-    dev_array<float> d_m1(N);
-    dev_array<float> d_m2(N);
+    dev_array<float> d_m_ii(N);
 
-    d_m0.set(&matrix_0_[0], N);
-    d_m1.set(&matrix_1_[0], N);
-    d_m2.set(&matrix_2_[0], N);
    
     dev_array<float> d_mat(N);
+    dev_array<float> d_mat_temp(N);
     dev_array<float> d_mat_exp(N);
     dev_array<float> d_mat_exp_temp(N);
     dev_array<float> d_mat_n(N);
@@ -91,10 +81,19 @@ class MatrixExpOp : public OpKernel {
 
 
     // Call the cuda kernel launcher
-    matrixPrepare(d_m0.getData(), d_m1.getData(), d_m2.getData(),&input_0.data()[0], &input_0.data()[1],&input_0.data()[2], d_mat.getData(), dim);
+    //matrixPrepare(d_m0.getData(), d_m1.getData(), d_m2.getData(),&input_0.data()[0], &input_0.data()[1],&input_0.data()[2], d_mat.getData(), dim);
 
-    d_mat_n.set(&matrix_I_[0], N);
-    d_mat_exp.set(&matrix_I_[0], N);
+    d_mat.set(&matrix_[0], N);
+
+    for (int ii = 1; ii < input_num_; ii++) {
+      d_m_ii.set(&matrix_[ii*N], N);
+      matrixAddV2(d_mat.getData(), d_m_ii.getData(), &input_0.data()[ii], d_mat_temp.getData(), dim);
+      d_mat.set(d_mat_temp.getData(),N);
+    }
+
+
+    d_mat_n.set(&matrix_[input_num_*N], N);
+    d_mat_exp.set(&matrix_[input_num_*N], N);
 
     float inv_factorial = 1.0;
     
@@ -124,11 +123,9 @@ class MatrixExpOp : public OpKernel {
 
     private:
    int size_;
+   int input_num_;
    int exp_num_;
-   std::vector<float> matrix_0_;
-   std::vector<float> matrix_1_;
-   std::vector<float> matrix_2_;
-   std::vector<float> matrix_I_;
+   std::vector<float> matrix_;
 };
 
 REGISTER_KERNEL_BUILDER(Name("MatrixExp").Device(DEVICE_GPU), MatrixExpOp);
