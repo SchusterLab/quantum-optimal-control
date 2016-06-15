@@ -5,29 +5,45 @@ from math_functions.Get_state_index import Get_State_index
 
 class SystemParametersGeneral:
 
-    def __init__(self,H0,Hops,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,D,Modulation,Interpolation,multi_mode,maxA):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw):
         # Input variable
         
         self.H0_c = H0
         self.ops_c = Hops
         self.ops_max_amp = maxA
-        
+        self.Hnames = Hnames
+        self.multi = False
         self.total_time = total_time
-        self.steps = steps+1
-        self.states_forbidden_list = states_forbidden_list
+        self.steps = steps
+        if states_forbidden_list!= None:
+            self.states_forbidden_list = states_forbidden_list
+        else:
+            self.states_forbidden_list =[]
         self.states_concerned_list = states_concerned_list
-        self.Modulation = Modulation
-        self.Interpolation = Interpolation
-        self.D = D
+        self.Modulation = False
+        self.Interpolation = False
+        self.D = False
         self.initial_state = CtoRMat(U0)
         self.target_state = CtoRMat(U)
-        self.v_c = multi_mode['vectors']
-        self.dressed = multi_mode['dressed']
-        self.mode_state_num = multi_mode['mnum']
-        self.qubit_state_num = multi_mode['qnum']
-        self.freq_ge= multi_mode['f']
-        self.w_c = multi_mode['es']
-        self.qm_g1 = multi_mode['g1']
+        if draw != None:
+            self.draw_list = draw[0]
+            self.draw_names = draw[1]
+        else:
+            self.draw_list = []
+            self.draw_names = []
+        if multi_mode !=None:
+            self.multi = True
+            self.v_c = multi_mode['vectors']
+            self.dressed = multi_mode['dressed']
+            self.mode_state_num = multi_mode['mnum']
+            self.qubit_state_num = multi_mode['qnum']
+            self.freq_ge= multi_mode['f']
+            self.w_c = multi_mode['es']
+            self.qm_g1 = multi_mode['g1']
+            self.D = multi_mode['D']
+            self.Interpolation = multi_mode['Interpolation']
+            self.Modulation = multi_mode['Modulation']
+            self.H0_diag=np.diag(self.w_c)
         
         self.init_system()
         self.init_vectors()
@@ -82,12 +98,13 @@ class SystemParametersGeneral:
         #y_op = CtoRMat(YI)
         
         self.ops_len = len(self.ops)
+        
 
 
         self.H0 = CtoRMat(-1j*self.dt*self.H0_c)
         
         
-        self.H0_diag=np.diag(self.w_c)
+            
         self.identity_c = np.identity(self.state_num)
         
         self.identity = CtoRMat(self.identity_c)
@@ -98,7 +115,11 @@ class SystemParametersGeneral:
         one_minus_gauss = []
         offset = 0.0
         overall_offset = 0.01
-        for ii in range(self.ops_len+1):
+        if self.multi:
+            opsnum=self.ops_len+1
+        else:
+            opsnum=self.ops_len
+        for ii in range(opsnum):
             constraint_shape = np.ones(self.steps)- self.gaussian(np.linspace(-2,2,self.steps)) - offset
             constraint_shape = constraint_shape * (constraint_shape>0)
             constraint_shape = constraint_shape + overall_offset* np.ones(self.steps)
@@ -128,8 +149,8 @@ class SystemParametersGeneral:
 
         a=0.00
 
-        manual_pulse.append(gaussian_envelop * cos(np.linspace(0,self.total_time,self.steps),a,self.freq_ge))
-        manual_pulse.append(gaussian_envelop * sin(np.linspace(0,self.total_time,self.steps),a,self.freq_ge))
+        #manual_pulse.append(gaussian_envelop * cos(np.linspace(0,self.total_time,self.steps),a,self.freq_ge))
+        #manual_pulse.append(gaussian_envelop * sin(np.linspace(0,self.total_time,self.steps),a,self.freq_ge))
         manual_pulse.append(np.zeros(self.steps))
 
 

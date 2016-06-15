@@ -3,7 +3,7 @@ import os
 import numpy as np
 import tensorflow as tf
 from math_functions.c_to_r_mat import CtoRMat
-from custom_kernels.gradients.matexp_grad_v2 import *
+from custom_kernels.gradients.matexp_grad_v3 import *
 import os
 
 
@@ -109,7 +109,7 @@ class TensorflowState:
         
         
         #tf weights of operators
-        if not self.sys_para.initial_pulse:
+        if self.sys_para.multi:
             initial_guess = 0
             initial_xy_stddev = (0.1/np.sqrt(self.sys_para.control_steps))
             initial_z_stddev = (0.1/np.sqrt(self.sys_para.steps))
@@ -138,20 +138,34 @@ class TensorflowState:
 
             else:
                 self.ops_weight = tf.concat(0,[self.xy_nocos,self.z_weight],name="ops_weight")
+            self.H0 = tf.Variable(tf.ones([self.sys_para.steps]), trainable=False)
+            self.Hx = self.sys_para.ops_max_amp[0]*self.ops_weight[0,:]
+            self.Hz = self.sys_para.ops_max_amp[1]*self.z_weight
+            self.Hs = tf.pack([self.H0,self.Hx,self.Hz[0,:]])
             
         else:
-            if self.sys_para.prev_pulse:
-                self.ops_weight_base = tf.Variable(tf.constant(self.sys_para.prev_ops_weight_base,dtype=tf.float32),name="ops_weight")
-            else:
-                self.ops_weight_base = tf.Variable(tf.constant(self.sys_para.manual_pulse,dtype=tf.float32),name="ops_weight")
+            
+            self.H0 = tf.Variable(tf.ones([self.sys_para.steps]), trainable=False)
+            self.Hs_unpacked=[self.H0]
+            
+            initial_guess = 0
+                #initial_xy_stddev = (0.1/np.sqrt(self.sys_para.control_steps))
+            initial_stddev = (0.1/np.sqrt(self.sys_para.steps))
+            self.ops_weight = tf.Variable(tf.tanh(tf.truncated_normal([self.sys_para.ops_len,self.sys_para.steps],
+                                                                   mean= initial_guess ,dtype=tf.float32,
+                            stddev=initial_stddev )),name="weights")
+            
+            
+            for ii in range (self.sys_para.ops_len):
+                self.Hs_unpacked.append(self.sys_para.ops_max_amp[ii]*self.ops_weight[ii,:])
+                
+            
+            self.Hs = tf.pack(self.Hs_unpacked)
+            
         #self.ops_weight = tf.tanh(self.ops_weight_base)
-        self.H0 = tf.Variable(tf.ones([self.sys_para.steps]), trainable=False)
-        #self.Hx = tf.Variable(tf.zeros([self.sys_para.steps]))
-        #self.Hz = tf.Variable(tf.zeros([self.sys_para.steps]))
-        self.Hx = self.sys_para.ops_max_amp[0]*self.ops_weight[0,:]
-        self.Hz = self.sys_para.ops_max_amp[1]*self.z_weight
         
-	self.Hs = tf.pack([self.H0,self.Hx,self.Hz[0,:]])
+        
+	
 	
 	print "Operators weight initialized."
                 
@@ -166,9 +180,14 @@ class TensorflowState:
     def get_inter_state_op(self,layer):
         # build opertor for intermediate state propagation
         # This function determines the nature of propagation
-        propagator = self.matrix_exp_module.matrix_exp(self.Hs[:,layer],size=2*self.sys_para.state_num, input_num = 3,
+        matrix_list = self.H0_flat
+        for ii in range(self.sys_para.ops_len):
+            matrix_list = matrix_list + self.flat_ops[ii]
+        matrix_list = matrix_list + self.I_flat
+        
+        propagator = self.matrix_exp_module.matrix_exp(self.Hs[:,layer],size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
                                       exp_num = self.sys_para.exp_terms
-                                      ,matrix=self.H0_flat + self.flat_ops[0] + self.flat_ops[1]+self.I_flat)
+                                      ,matrix=matrix_list)
         
         
         return propagator    
@@ -226,7 +245,7 @@ class TensorflowState:
         # Constrain Z to have no dc value
         self.z_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
         z_reg_alpha = self.z_reg_alpha_coeff/float(self.sys_para.steps)
-        self.reg_loss = self.reg_loss + z_reg_alpha*tf.square(tf.reduce_sum(self.ops_weight[2,:]))
+        #self.reg_loss = self.reg_loss + z_reg_alpha*tf.square(tf.reduce_sum(self.ops_weight[2,:]))
         
         # Limiting the dwdt of control pulse
         self.dwdt_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
