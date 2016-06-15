@@ -5,14 +5,32 @@ from math_functions.Get_state_index import Get_State_index
 
 class SystemParametersGeneral:
 
-    def __init__(self,total_time, Modulation, Interpolation, D):
+    def __init__(self,H0,Hops,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,D,Modulation,Interpolation,multi_mode,maxA):
         # Input variable
         
+        self.H0_c = H0
+        self.ops_c = Hops
+        self.ops_max_amp = maxA
+        
         self.total_time = total_time
+        self.steps = steps+1
+        self.states_forbidden_list = states_forbidden_list
+        self.states_concerned_list = states_concerned_list
         self.Modulation = Modulation
         self.Interpolation = Interpolation
         self.D = D
+        self.initial_state = CtoRMat(U0)
+        self.target_state = CtoRMat(U)
+        self.v_c = multi_mode['vectors']
+        self.dressed = multi_mode['dressed']
+        self.mode_state_num = multi_mode['mnum']
+        self.qubit_state_num = multi_mode['qnum']
+        self.freq_ge= multi_mode['f']
+        self.w_c = multi_mode['es']
+        self.qm_g1 = multi_mode['g1']
+        
         self.init_system()
+        self.init_vectors()
         self.init_operators()
         self.init_one_minus_gaussian_envelop()
         self.init_pulse_operator()
@@ -22,44 +40,18 @@ class SystemParametersGeneral:
         self.initial_pulse = False
         self.prev_pulse = False
 
-        self.qubit_state_num = 4
-        self.alpha = 0.224574
-        self.freq_ge = 3.9225#GHz
-        self.ens = np.array([ 2*np.pi*ii*(self.freq_ge - 0.5*(ii-1)*self.alpha) for ii in np.arange(self.qubit_state_num)])
-
-        self.mode_state_num = 3
-
-        self.qm_g1 = 2*np.pi*0.1 #GHz
-        self.mode_freq1 = 6.0 #GHz
-        self.mode_ens1 = np.array([ 2*np.pi*ii*(self.mode_freq1) for ii in np.arange(self.mode_state_num)])
-
-
-        self.qm_g2 = 2*np.pi*0.1 #GHz
-        self.mode_freq2 = 6.5 #GHz
-        self.mode_ens2 = np.array([ 2*np.pi*ii*(self.mode_freq2) for ii in np.arange(self.mode_state_num)])
-
-        self.state_num = self.qubit_state_num * (self.mode_state_num**2)
-
-        
-        states_h = range(3*self.mode_state_num**2,4*self.mode_state_num**2)
-        states_gef02 = [2,self.mode_state_num**2+2,2*self.mode_state_num**2+2]
-        states_gef20 = [2*self.mode_state_num,self.mode_state_num**2+2*self.mode_state_num,2*self.mode_state_num**2+2*self.mode_state_num]
-
-        self.states_forbidden_list = states_h + states_gef02 + states_gef20
-
-
-        self.pts_per_period = 10
         self.exp_terms = 20
         self.subpixels = 50
         
 
-        self.dt = (1./self.mode_freq2)/self.pts_per_period
+        self.dt = self.total_time/self.steps
         if self.Interpolation:
             self.Dt = self.dt*self.subpixels
         else:
             self.Dt = self.dt
-        self.steps = int(self.total_time/self.dt)+1 
+        
         self.control_steps = int(self.total_time/self.Dt)+1
+        self.state_num= len(self.H0_c)
         
         
     def init_vectors(self):
@@ -79,68 +71,25 @@ class SystemParametersGeneral:
     def init_operators(self):
         # Create operator matrix in numpy array
 
-        H_q = np.diag(self.ens)
-        H_m1 = np.diag(self.mode_ens1)
-        H_m2 = np.diag(self.mode_ens2)
 
-        Q_x   = np.diag(np.sqrt(np.arange(1,self.qubit_state_num)),1)+np.diag(np.sqrt(np.arange(1,self.qubit_state_num)),-1)
-        #Q_y   = (0+1j) *(np.diag(np.sqrt(np.arange(1,self.qubit_state_num)),1)-np.diag(np.sqrt(np.arange(1,self.qubit_state_num)),-1))
-        Q_z   = np.diag(np.arange(0,self.qubit_state_num))
-
-        M_x = np.diag(np.sqrt(np.arange(1,self.mode_state_num)),1)+np.diag(np.sqrt(np.arange(1,self.mode_state_num)),-1)
-
-        self.I_q = np.identity(self.qubit_state_num)
-        self.I_m = np.identity(self.mode_state_num)
-
-        XI = np.kron(Q_x,np.kron(self.I_m,self.I_m))
-        #YI = np.kron(Q_y,np.kron(self.I_m,self.I_m))
-        ZI = np.kron(Q_z,np.kron(self.I_m,self.I_m))
-
-        self.ops = [XI,ZI]
-
-        x_op = CtoRMat(-1j*self.dt*XI)
+        
+        self.ops=[]
+        for op_c in self.ops_c:
+            op = CtoRMat(-1j*self.dt*op_c)
+            self.ops.append(op)
         #y_op = CtoRMat(YI)
-        z_op = CtoRMat(-1j*self.dt*ZI)
-
-        self.ops = [x_op,z_op]
-        self.ops_max_amp = [4.0,2*np.pi*2.0]
-
+        
         self.ops_len = len(self.ops)
 
-        self.H0_c = np.kron(H_q,np.kron(self.I_m,self.I_m)) + np.kron(self.I_q,np.kron(H_m1,self.I_m)) +\
-        np.kron(self.I_q,np.kron(self.I_m,H_m2)) + self.qm_g1*np.kron(Q_x,np.kron(M_x,self.I_m)) +\
-        self.qm_g2*np.kron(Q_x,np.kron(self.I_m,M_x))
-        self.w_c, self.v_c = la.eig(self.H0_c)
 
         self.H0 = CtoRMat(-1j*self.dt*self.H0_c)
         
-        self.dressed=[]
-        if self.D:
-            for ii in range (len(self.v_c)):
-                index=np.argmax(np.abs(self.v_c[:,ii]))
-                if index not in self.dressed:
-                    self.dressed.append(index)
-                else:
-                    temp= (np.abs(self.v_c[:,ii])).tolist()
-                    while index in self.dressed:
-
-                        temp.remove(max(temp))
-                        index2= np.argmax(np.array(temp))
-
-                        if index2<index:
-                            #dressed.append(index2)
-                            index=index2
-                        else:
-                            #dressed.append(index2-1)
-                            index=index2+1
-                    self.dressed.append(index)
         
         self.H0_diag=np.diag(self.w_c)
-        self.q_identity_c = np.identity(self.qubit_state_num)
-        self.m_identity_c = np.identity(self.mode_state_num)
-
-        self.identity_c = np.kron(self.q_identity_c,np.kron(self.m_identity_c,self.m_identity_c))
+        self.identity_c = np.identity(self.state_num)
+        
         self.identity = CtoRMat(self.identity_c)
+        
         
     def init_one_minus_gaussian_envelop(self):
         # This is used for weighting the weight so the final pulse can have more or less gaussian like
@@ -192,3 +141,4 @@ class SystemParametersGeneral:
             temp_ops_weight_base[:,:len(prev_ops_weight_base[0])] +=prev_ops_weight_base
             self.prev_ops_weight_base = temp_ops_weight_base
             
+
