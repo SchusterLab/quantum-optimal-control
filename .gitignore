@@ -5,3 +5,6 @@ sbatch_file/*
 data/*.npy
 tmp/*ckpt*
 tmp/checkpoint
+
+*.so
+*.o
