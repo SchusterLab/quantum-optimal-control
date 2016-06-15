@@ -8,3 +8,4 @@ tmp/checkpoint
 
 *.so
 *.o
+custom_kernels/build/temp/*
