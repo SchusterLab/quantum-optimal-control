@@ -1,8 +1,8 @@
 export TF_INC=$(python -c 'import tensorflow as tf; print(tf.sysconfig.get_include())')
 
-\rm ./build/*.so
-\rm ./build/*.o
+\rm -r ./build
 
+mkdir build
 cd build
 
 nvcc -std=c++11 -c -o matadd_coeff.cu.o ../matadd_coeff.cu.cc -I $TF_INC -D GOOGLE_CUDA=1 -x cu -Xcompiler -fPIC
