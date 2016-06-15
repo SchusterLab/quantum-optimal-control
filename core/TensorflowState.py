@@ -3,7 +3,7 @@ import os
 import numpy as np
 import tensorflow as tf
 from math_functions.c_to_r_mat import CtoRMat
-from custom_kernels.gradients.matexp_grad_v3 import *
+from custom_kernels.gradients.matexp_grad_v2 import *
 import os
 
 
