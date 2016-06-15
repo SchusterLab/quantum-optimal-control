@@ -5,6 +5,8 @@ cuda_matexp.so: GPU kernel for exponentiating a matrix
 cuda_matexp_v2.so: GPU kernel for exponentiating a matrix, that takes arbitrary input controls
 matrix_exp.so: CPU kernel for exponentiating a matrix
 
+### First run this
+
 TF_INC=$(python -c 'import tensorflow as tf; print(tf.sysconfig.get_include())')
 
 ### building GPU CUDA kernel:
