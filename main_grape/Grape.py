@@ -46,7 +46,7 @@ def Grape(H0,Hops,U,U0,total_time,steps,states_forbidden_list,states_concerned_l
             self.learning_rate_decay = convergence['learning_rate_decay']
 
 
-            reg_coeffs = {'alpha' : 0.01, 'z':0.01, 'dwdt':0.0001,'d2wdt2':0.001*0.0001, 'inter':100}
+            
             self.reg_alpha_coeff = reg_coeffs['alpha']
 
             self.z_reg_alpha_coeff = reg_coeffs['z']
