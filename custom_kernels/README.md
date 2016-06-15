@@ -7,7 +7,7 @@ matrix_exp.so: CPU kernel for exponentiating a matrix
 
 #### Run these commands in the folder ./build
 
-### First run this
+### First run
 
 TF_INC=$(python -c 'import tensorflow as tf; print(tf.sysconfig.get_include())')
 
