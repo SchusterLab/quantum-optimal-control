@@ -4,15 +4,15 @@ This is the packaged function:
 
 #Mandatory Arguments:
 **H0:** Drift Hamiltonian (n by n)   
-**Hops:** A list of Control Hamiltonians  
+**Hops:** A list of Control Hamiltonians  (k hamiltonians, each is n by n)  
 **Hnames:** A list of Control Hamiltonian names, same shape as Hops  
 **U:** Target Unitary (n by n)  
 **U0:** Initial Unitary (n by n)  
 **total_time:** Total Time (float)  
 **Steps:** Number of time steps (int)  
-**states_concerned_list:** Initial States (list of integers specifying the index of those states)  
+**states_concerned_list:** Initial States (list of integers specifying the indices of those states)  
 **convergence:** A dictionary (can be empty) that might include the following parameters with default values as shown:
-               convergence = {'rate':0.01, 'update_step':10, 'max_iterations':5000,
+               convergence = {'rate':0.01, 'update_step':100, 'max_iterations':5000,
                'conv_target':1e-8,'learning_rate_decay':2500}   
 
 #Optional Arguments:  
