@@ -47,10 +47,12 @@ class SystemParametersGeneral:
         self.dt = self.total_time/self.steps
         if self.Interpolation:
             self.Dt = self.dt*self.subpixels
+            self.control_steps = int(self.total_time/self.Dt)+1
         else:
             self.Dt = self.dt
+            self.control_steps = self.steps
         
-        self.control_steps = int(self.total_time/self.Dt)+1
+        
         self.state_num= len(self.H0_c)
         
         
