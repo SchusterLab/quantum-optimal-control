@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 import scipy.linalg as la
 from core.TensorflowState import TensorflowState
 from system.SystemParametersGeneral import SystemParametersGeneral
@@ -12,14 +13,24 @@ import random as rd
 import time
 from IPython import display
 
-def Grape(H0,Hops,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,convergence, reg_coeffs,D,Modulation,Interpolation,multi_mode , maxA ,use_gpu = True):
+def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence, reg_coeffs = None,multi_mode = None, maxA = None ,use_gpu = True, draw= None, forbidden = None):
+    
+    
+    if reg_coeffs == None:
+        reg_coeffs = {'alpha' : 0.01, 'z':0.01, 'dwdt':0.01,'d2wdt2':0.001*0.0001, 'inter':100}
+    if maxA == None:
+        maxAmp = 4*np.ones(len(Hops))
+    else:
+        maxAmp = maxA
+    
+            
     
     
     
     class SystemParameters(SystemParametersGeneral):
         
         def __init__(self):
-            SystemParametersGeneral.__init__(self,H0,Hops,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,D,Modulation,Interpolation,multi_mode,maxA)
+            SystemParametersGeneral.__init__(self,H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,multi_mode,maxAmp, draw)
         
     sys_para = SystemParameters()
     if use_gpu:
@@ -35,15 +46,36 @@ def Grape(H0,Hops,U,U0,total_time,steps,states_forbidden_list,states_concerned_l
         def __init__(self):
         # paramters
             self.sys_para = SystemParameters()
-            self.Modulation = Modulation
-            self.Interpolation = Interpolation
+            self.Modulation = self.sys_para.Modulation
+            self.Interpolation = self.sys_para.Interpolation
+            
+            
 
-            self.rate = convergence['rate']
-            self.update_step = convergence['update_step']
-            self.conv_target = convergence['conv_target']
-            self.max_iterations = convergence['max_iterations']
-
-            self.learning_rate_decay = convergence['learning_rate_decay']
+            if 'rate' in convergence:
+                self.rate = convergence['rate']
+            else:
+                self.rate = 0.01
+            
+            if 'update_step' in convergence:
+                self.update_step = convergence['update_step']
+            else:
+                self.update_step = 100
+                
+            if 'conv_target' in convergence:
+                self.conv_target = convergence['conv_target']
+            else:
+                self.conv_target = 1e-8
+                
+            if 'max_iterations' in convergence:
+                self.max_iterations = convergence['max_iterations']
+            else:
+                self.max_iterations = 5000    
+            
+            if 'learning_rate_decay' in convergence:
+                self.learning_rate_decay = convergence['learning_rate_decay']
+            else:
+                self.learning_rate_decay = 5000
+            
 
 
             

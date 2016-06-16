@@ -27,7 +27,10 @@ def run_session(tfs,graph,conv,sys_para,show_plots=True,single_simulation = Fals
             if (iterations % conv.update_step == 0):    
                 
                 # Plot convergence
-                anly = Analysis(sys_para,tfs.final_state,tfs.ops_weight,tfs.xy_weight, tfs.xy_nocos, tfs.unitary_scale,tfs.inter_vecs)
+                if sys_para.multi:
+                    anly = Analysis(sys_para,tfs.final_state,tfs.ops_weight,tfs.xy_weight, tfs.xy_nocos, tfs.unitary_scale,tfs.inter_vecs)
+                else:
+                    anly = Analysis(sys_para,tfs.final_state,tfs.ops_weight,tfs.ops_weight, tfs.ops_weight, tfs.unitary_scale,tfs.inter_vecs)
                 conv.update_convergence(l,rl,anly,show_plots)
                 
                 # Save the variables to disk.
@@ -36,9 +39,9 @@ def run_session(tfs,graph,conv,sys_para,show_plots=True,single_simulation = Fals
                 save_path = tfs.saver.save(session, tmp_path)
                 if (iterations >= max_iterations): #(l<conv.conv_target) or (iterations>=conv.max_iterations):
                     anly.get_ops_weight()
-                    anly.get_xy_weight()
-                    if sys_para.Modulation:
-                        anly.get_nonmodulated_weight() 
+                    #anly.get_xy_weight()
+                    #if sys_para.Modulation:
+                        #anly.get_nonmodulated_weight() 
                     break
                     
                 

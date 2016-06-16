@@ -27,8 +27,8 @@ class ConvergenceGeneral:
 		print '###### last cost: ' + str(last_cost) + ' ######'
 		self.anly.get_final_state()
 		self.anly.get_ops_weight()
-		self.anly.get_xy_weight()
-		self.anly.get_nonmodulated_weight()
+		#self.anly.get_xy_weight()
+		#self.anly.get_nonmodulated_weight()
 		self.anly.get_inter_vecs()			
     
     def get_convergence(self):
@@ -62,7 +62,36 @@ class ConvergenceGeneral:
         plt.ylim(0,1)
         plt.xlabel('Time (ns)')
         plt.legend(loc=6)
+    
+    
+    def plot_inter_vecs_general(self,pop_inter_vecs,start):
         
+        if self.sys_para.draw_list !=[]:
+            for kk in range(len(self.sys_para.draw_list)):
+                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[self.sys_para.draw_list[kk],1:]),label=self.sys_para.draw_names[kk])
+                
+        
+        else:
+            
+            if start  > 4:
+                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[start,1:]),label='Starting level '+str(start))
+                
+            for jj in range(4):
+                
+                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[jj,1:]),label='level '+str(jj))
+            
+        
+        forbidden =np.zeros(self.sys_para.steps)
+        if self.sys_para.states_forbidden_list!= []:
+            for forbid in self.sys_para.states_forbidden_list:
+                forbidden = forbidden +np.array(pop_inter_vecs[forbid,1:])
+            plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]), forbidden,label='forbidden')
+        
+        plt.ylabel('Population')
+        plt.ylim(0,1)
+        plt.xlabel('Time (ns)')
+        plt.legend(loc=6)
+    
     def plot_inter_vecs_v2(self,pop_inter_vecs):
         plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[0,1:])+\
              np.array(pop_inter_vecs[self.sys_para.mode_state_num**2,1:])+\
@@ -169,10 +198,11 @@ class ConvergenceGeneral:
         ## operators
         plt.subplot(gs[2, :],title="Simulation Weights")
         ops_weight = self.anly.get_ops_weight()
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*ops_weight[0,:]),'r',label='x')
+        for jj in range (self.sys_para.ops_len):
+            plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[jj]*ops_weight[jj,:]),label='u'+self.sys_para.Hnames[jj])
         #plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*ops_weight[1,:]),'c',label='y')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),(self.sys_para.qm_g1/(2*np.pi))\
-             *np.array(self.sys_para.ops_max_amp[1]*ops_weight[2,:]),'g',label='(g/2pi)z')
+        #plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),(self.sys_para.qm_g1/(2*np.pi))\
+         #    *np.array(self.sys_para.ops_max_amp[1]*ops_weight[2,:]),'g',label='(g/2pi)z')
         plt.title('Optimized pulse')
         plt.ylabel('Amplitude')
         plt.xlabel('Time (ns)')
@@ -210,7 +240,7 @@ class ConvergenceGeneral:
             plt.subplot(gs[index+ii, :],title="Evolution")
 
             pop_inter_vecs = inter_vecs[ii]
-            self.plot_inter_vecs_v3(pop_inter_vecs)        
+            self.plot_inter_vecs_general(pop_inter_vecs,self.sys_para.states_concerned_list[ii])        
         
 	fig = plt.gcf()
 	fig.set_size_inches(15, 50)
