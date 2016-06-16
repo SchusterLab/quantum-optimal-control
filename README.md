@@ -16,7 +16,7 @@ This is the packaged function:
                'conv_target':1e-8,'learning_rate_decay':2500}   
 
 #Optional Arguments:  
-**Initial_guess:** A list of k elements, each of them is a steps size array, defining the initial pulses for all operators. If not provided, a default value of a gaussian random distribution will be used.
+**Initial_guess:** A list of k elements, each of them is a steps size array, defining the initial pulses for all operators. If not provided, a default value of a gaussian random distribution will be used.  
 **reg_coeffs:** A dictionary of regulaization coeffecients with default values: reg_coeffs = {'alpha' : 0.01, 'z':0.01, 'dwdt':0.01,'d2wdt2':0.001*0.0001, 'inter':100}   
 where alpha: imposes a Gaussian envelope    
 z: limits z dc value  
