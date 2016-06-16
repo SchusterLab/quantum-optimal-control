@@ -1,6 +1,6 @@
 # GRAPE-Tensorflow
 This is the packaged function:  
-**Grape (H0, Hops, Hnames, U, U0, total_time, steps,states_concerned_list, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None)**
+**Grape (H0, Hops, Hnames, U, U0, total_time, steps,states_concerned_list, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None)**
 
 #Mandatory Arguments:
 **H0:** Drift Hamiltonian (n by n)   
@@ -16,6 +16,7 @@ This is the packaged function:
                'conv_target':1e-8,'learning_rate_decay':2500}   
 
 #Optional Arguments:  
+**Initial_guess:** A list of k elements, each of them is a steps size array, defining the initial pulses for all operators. If not provided, a default value of a gaussian random distribution will be used.
 **reg_coeffs:** A dictionary of regulaization coeffecients with default values: reg_coeffs = {'alpha' : 0.01, 'z':0.01, 'dwdt':0.01,'d2wdt2':0.001*0.0001, 'inter':100}   
 where alpha: imposes a Gaussian envelope    
 z: limits z dc value  
