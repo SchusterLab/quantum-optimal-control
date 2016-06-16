@@ -5,7 +5,7 @@ This is the packaged function:
 #Mandatory Arguments:
 **H0:** Drift Hamiltonian (n by n)   
 **Hops:** A list of Control Hamiltonians  (k hamiltonians, each is n by n)  
-**Hnames:** A list of Control Hamiltonian names, same shape as Hops  
+**Hnames:** A list of Control Hamiltonian names, with k string elements  
 **U:** Target Unitary (n by n)  
 **U0:** Initial Unitary (n by n)  
 **total_time:** Total Time (float)  
