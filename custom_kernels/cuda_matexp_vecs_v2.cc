@@ -21,14 +21,14 @@ limitations under the License.
 using namespace tensorflow;
 using namespace std;
 
-REGISTER_OP("MatrixExpVecs")
+REGISTER_OP("MatrixExpVec")
     .Attr("size: int")
     .Attr("input_num: int")
     .Attr("exp_num: int")
     .Attr("vecs_num: int")
     .Attr("matrix: list(float)")
+    .Attr("vecs: list(float)")
     .Input("coeff: float")
-    .Input("vecs: float")
     .Output("output: float")
     .Doc(R"doc(
 Adds 1 to all elements of the tensor.
@@ -41,9 +41,9 @@ void matrixMultiplication(const float* A, const float* B, float* C, const int N,
 void matrixAddV2(const float* A, const float* B, const float* coeff, float* C, const int N);
 void matrixAddV3(const float* A, const float* B, const float coeff, float* C, const int N, const int M);
 
-class MatrixExpVecsOp : public OpKernel {
+class MatrixExpVecOp : public OpKernel {
  public:
-  explicit MatrixExpVecsOp(OpKernelConstruction* context) : OpKernel(context) {
+  explicit MatrixExpVecOp(OpKernelConstruction* context) : OpKernel(context) {
     OP_REQUIRES_OK(context,
                    context->GetAttr("size", &size_));
   OP_REQUIRES_OK(context,
@@ -53,6 +53,8 @@ class MatrixExpVecsOp : public OpKernel {
   OP_REQUIRES_OK(context,
                    context->GetAttr("vecs_num", &vecs_num_));
   OP_REQUIRES_OK(context,
+                   context->GetAttr("vecs", &vecs_));
+  OP_REQUIRES_OK(context,
                    context->GetAttr("matrix", &matrix_));
 }
 
@@ -60,9 +62,6 @@ class MatrixExpVecsOp : public OpKernel {
     // Grab the input tensor
     const Tensor& input_0_tensor = context->input(0);
     auto input_0 = input_0_tensor.flat<float>();
-
-    const Tensor& input_1_tensor = context->input(1);
-    auto vecs = input_1_tensor.flat<float>();
 
     const int N = size_*size_;
 
@@ -79,6 +78,8 @@ class MatrixExpVecsOp : public OpKernel {
     
     const int vecs_size = dim*dim_m;
 
+    dev_array<float> vecs(vecs_size);
+
     dev_array<float> d_m_ii(N);
 
    
@@ -94,6 +95,8 @@ class MatrixExpVecsOp : public OpKernel {
     // Call the cuda kernel launcher
     //matrixPrepare(d_m0.getData(), d_m1.getData(), d_m2.getData(),&input_0.data()[0], &input_0.data()[1],&input_0.data()[2], d_mat.getData(), dim);
 
+    vecs.set(&vecs_[0], vecs_size);   
+
     d_mat.set(&matrix_[0], N);
 
     for (int ii = 1; ii < input_num_; ii++) {
@@ -103,8 +106,8 @@ class MatrixExpVecsOp : public OpKernel {
     }
 
 
-    d_mat_n.set(vecs.data(), vecs_size);
-    d_mat_exp.set(vecs.data(), vecs_size);
+    d_mat_n.set(vecs.getData(), vecs_size);
+    d_mat_exp.set(vecs.getData(), vecs_size);
 
     float inv_factorial = 1.0;
 
@@ -137,7 +140,8 @@ class MatrixExpVecsOp : public OpKernel {
    int exp_num_;
    int vecs_num_;
    std::vector<float> matrix_;
+   std::vector<float> vecs_;
 };
 
-REGISTER_KERNEL_BUILDER(Name("MatrixExpVecs").Device(DEVICE_GPU), MatrixExpVecsOp);
+REGISTER_KERNEL_BUILDER(Name("MatrixExpVec").Device(DEVICE_GPU), MatrixExpVecOp);
 
