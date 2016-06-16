@@ -8,7 +8,7 @@ __global__ void matrixAddV3Kernel(const float* A,const float* B, const float coe
 
     if (ROW < N && COL < M) {
         // each thread computes one element of the block sub-matrix
-         C[ROW * N + COL]= A[ROW * N + COL] + coeff * B[ROW * N + COL];
+         C[ROW * M + COL]= A[ROW * M + COL] + coeff * B[ROW * M + COL];
     } 
 }
 

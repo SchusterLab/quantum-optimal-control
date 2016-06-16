@@ -14,7 +14,7 @@ __global__ void matrixMultiplicationKernel(const float* A,const float* B, float*
         for (int i = 0; i < N; i++) {
             tmpSum += A[ROW * N + i] * B[i * M + COL];
         }
-        C[ROW * N + COL] = tmpSum;
+        C[ROW * M + COL] = tmpSum;
     }
 
 }

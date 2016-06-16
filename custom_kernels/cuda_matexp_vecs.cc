@@ -21,7 +21,7 @@ limitations under the License.
 using namespace tensorflow;
 using namespace std;
 
-REGISTER_OP("MatrixExp")
+REGISTER_OP("MatrixExpVec")
     .Attr("size: int")
     .Attr("input_num: int")
     .Attr("exp_num: int")
@@ -37,14 +37,13 @@ output: A Tensor.
   output = input + 1
 )doc");
 
-void matrixMultiplication(const float* A, const float* B, float* C, const int N);
-void matrixAdd(const float* A, const float* B, const float coeff, float* C, const int N);
+void matrixMultiplication(const float* A, const float* B, float* C, const int N, const int M);
 void matrixAddV2(const float* A, const float* B, const float* coeff, float* C, const int N);
-void matrixAddV3(const float* A, const float* B, const float* coeff, float* C, const int N);
+void matrixAddV3(const float* A, const float* B, const float coeff, float* C, const int N, const int M);
 
-class MatrixExpOp : public OpKernel {
+class MatrixExpVecOp : public OpKernel {
  public:
-  explicit MatrixExpOp(OpKernelConstruction* context) : OpKernel(context) {
+  explicit MatrixExpVecOp(OpKernelConstruction* context) : OpKernel(context) {
     OP_REQUIRES_OK(context,
                    context->GetAttr("size", &size_));
   OP_REQUIRES_OK(context,
@@ -69,7 +68,7 @@ class MatrixExpOp : public OpKernel {
 
     // Create an output tensor
     Tensor* output_tensor = NULL;
-    OP_REQUIRES_OK(context, context->allocate_output(0, TensorShape({static_cast<int>(sqrt(N)),static_cast<int>(sqrt(N))}),
+    OP_REQUIRES_OK(context, context->allocate_output(0, TensorShape({static_cast<int>(sqrt(N)),vecs_num_}),
                                                      &output_tensor));
     auto output = output_tensor->template flat<float>();
 
@@ -78,15 +77,18 @@ class MatrixExpOp : public OpKernel {
     int dim = static_cast<int>(sqrt(N));
     const int dim_m = vecs_num_;
     
+    const int vecs_size = dim*dim_m;
+
     dev_array<float> d_m_ii(N);
 
    
     dev_array<float> d_mat(N);
     dev_array<float> d_mat_temp(N);
-    dev_array<float> d_mat_exp(N);
-    dev_array<float> d_mat_exp_temp(N);
-    dev_array<float> d_mat_n(N);
-    dev_array<float> d_mat_n_temp(N);
+
+    dev_array<float> d_mat_exp(vecs_size);
+    dev_array<float> d_mat_exp_temp(vecs_size);
+    dev_array<float> d_mat_n(vecs_size);
+    dev_array<float> d_mat_n_temp(vecs_size);
 
 
     // Call the cuda kernel launcher
@@ -101,29 +103,29 @@ class MatrixExpOp : public OpKernel {
     }
 
 
-    d_mat_n.set(vecs.data(), N);
-    d_mat_exp.set(vecs.data(), N);
+    d_mat_n.set(vecs.data(), vecs_size);
+    d_mat_exp.set(vecs.data(), vecs_size);
 
-    float inv_factorial = 2.0;
+    float inv_factorial = 1.0;
 
-    matrixMultiplication(d_mat.getData(), vecs.data(), d_mat_n_temp.getData(), dim, dim_m);
-    matrixAdd(d_mat_exp.getData(), d_mat_n_temp.getData(), inv_factorial, d_mat_exp_temp.getData(), dim);
+    //matrixMultiplication(d_mat.getData(), vecs.data(), d_mat_n_temp.getData(), dim, dim_m);
+    //matrixAddV3(d_mat_exp.getData(), d_mat_n_temp.getData(), inv_factorial, d_mat_exp_temp.getData(), dim, dim_m);
 
-    d_mat_n.set(d_mat_n_temp.getData(), N);
-    d_mat_exp.set(d_mat_exp_temp.getData(), N);
+    //d_mat_n.set(d_mat_n_temp.getData(), vecs_size);
+    //d_mat_exp.set(d_mat_exp_temp.getData(), vecs_size);
 
-    for (int num  = 3; num < exp_num_; num++) {
+    for (int num  = 1; num < exp_num_; num++) {
       inv_factorial = inv_factorial/ num;
-      matrixMultiplication(d_mat.getData(), vecs.getData(), d_mat_n_temp.getData(), dim, dim_m);
-      matrixAdd(d_mat_exp.getData(), d_mat_n_temp.getData(), inv_factorial, d_mat_exp_temp.getData(), dim);
+      matrixMultiplication(d_mat.getData(), d_mat_n.getData(), d_mat_n_temp.getData(), dim, dim_m);
+      matrixAddV3(d_mat_exp.getData(), d_mat_n_temp.getData(), inv_factorial, d_mat_exp_temp.getData(), dim, dim_m);
     
-      d_mat_n.set(d_mat_n_temp.getData(), N);
-      d_mat_exp.set(d_mat_exp_temp.getData(), N);
+      d_mat_n.set(d_mat_n_temp.getData(), vecs_size);
+      d_mat_exp.set(d_mat_exp_temp.getData(), vecs_size);
     }
     
     inv_factorial = inv_factorial/ exp_num_;
-    matrixMultiplication(d_mat.getData(), vecs.getData(), d_mat_n_temp.getData(), dim, dim_m);
-    matrixAdd(d_mat_exp.getData(), d_mat_n_temp.getData(), inv_factorial, output.data(), dim);
+    matrixMultiplication(d_mat.getData(), d_mat_n.getData(), d_mat_n_temp.getData(), dim, dim_m);
+    matrixAddV3(d_mat_exp.getData(), d_mat_n_temp.getData(), inv_factorial, output.data(), dim, dim_m);
     cudaDeviceSynchronize();     
 
 
@@ -137,5 +139,5 @@ class MatrixExpOp : public OpKernel {
    std::vector<float> matrix_;
 };
 
-REGISTER_KERNEL_BUILDER(Name("MatrixExp").Device(DEVICE_GPU), MatrixExpOp);
+REGISTER_KERNEL_BUILDER(Name("MatrixExpVec").Device(DEVICE_GPU), MatrixExpVecOp);
 
