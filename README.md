@@ -1,6 +1,6 @@
 # GRAPE-Tensorflow
 This is the packaged function:  
-**Grape (H0, Hops, Hnames, U, U0, total_time, steps,states_concerned_list, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None)**
+**Grape (H0, Hops, Hnames, U, U0, total_time, steps,psi0, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None)**
 
 #Mandatory Arguments:
 **H0:** Drift Hamiltonian (n by n)   
@@ -10,7 +10,7 @@ This is the packaged function:
 **U0:** Initial Unitary (n by n)  
 **total_time:** Total Time (float)  
 **Steps:** Number of time steps (int)  
-**states_concerned_list:** Initial States (list of integers specifying the indices of those states)  
+**psi0:** Initial States (list of integers specifying the indices of those states)  
 **convergence:** A dictionary (can be empty) that might include the following parameters with default values as shown:
                convergence = {'rate':0.01, 'update_step':100, 'max_iterations':5000,
                'conv_target':1e-8,'learning_rate_decay':2500}   
