@@ -13,7 +13,7 @@ import random as rd
 import time
 from IPython import display
 
-def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence, reg_coeffs = None,multi_mode = None, maxA = None ,use_gpu = True, draw= None, forbidden = None):
+def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence, reg_coeffs = None,multi_mode = None, maxA = None ,use_gpu = True, draw= None, forbidden = None, initial_guess = None):
     
     
     if reg_coeffs == None:
@@ -30,7 +30,7 @@ def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence
     class SystemParameters(SystemParametersGeneral):
         
         def __init__(self):
-            SystemParametersGeneral.__init__(self,H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,multi_mode,maxAmp, draw)
+            SystemParametersGeneral.__init__(self,H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,multi_mode,maxAmp, draw,initial_guess)
         
     sys_para = SystemParameters()
     if use_gpu:

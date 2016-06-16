@@ -148,12 +148,19 @@ class TensorflowState:
             self.H0 = tf.Variable(tf.ones([self.sys_para.steps]), trainable=False)
             self.Hs_unpacked=[self.H0]
             
-            initial_guess = 0
+            if self.sys_para.u0 == []:
+                initial_guess = 0
                 #initial_xy_stddev = (0.1/np.sqrt(self.sys_para.control_steps))
-            initial_stddev = (0.1/np.sqrt(self.sys_para.steps))
-            self.ops_weight = tf.Variable(tf.tanh(tf.truncated_normal([self.sys_para.ops_len,self.sys_para.steps],
+                initial_stddev = (0.1/np.sqrt(self.sys_para.steps))
+                self.ops_weight = tf.Variable(tf.tanh(tf.truncated_normal([self.sys_para.ops_len,self.sys_para.steps],
                                                                    mean= initial_guess ,dtype=tf.float32,
                             stddev=initial_stddev )),name="weights")
+            else:
+                self.ops_weight = tf.Variable(self.sys_para.u0[0],dtype=tf.float32)
+                for ii in range (self.sys_para.ops_len-1):
+                    
+                    self.ops_weight = tf.concat(0,[self.ops_weight,tf.Variable(self.sys_para.u0[ii+1],dtype=tf.float32)])
+                self.ops_weight = tf.reshape(self.ops_weight, [self.sys_para.ops_len,self.sys_para.steps])
             
             
             for ii in range (self.sys_para.ops_len):

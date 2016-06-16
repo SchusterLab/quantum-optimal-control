@@ -5,7 +5,7 @@ from math_functions.Get_state_index import Get_State_index
 
 class SystemParametersGeneral:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess):
         # Input variable
         
         self.H0_c = H0
@@ -19,6 +19,11 @@ class SystemParametersGeneral:
             self.states_forbidden_list = states_forbidden_list
         else:
             self.states_forbidden_list =[]
+        
+        if initial_guess!= None:
+            self.u0 = initial_guess
+        else:
+            self.u0 =[]
         self.states_concerned_list = states_concerned_list
         self.Modulation = False
         self.Interpolation = False
