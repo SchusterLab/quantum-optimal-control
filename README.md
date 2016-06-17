@@ -1,6 +1,6 @@
 # GRAPE-Tensorflow
 This is the packaged function:  
-**Grape (H0, Hops, Hnames, U, U0, total_time, steps,psi0, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None)**
+**Grape (H0, Hops, Hnames, U, U0, total_time, steps,psi0, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None, show_graphs = True)**
 
 #Mandatory Arguments:
 **H0:** Drift Hamiltonian (n by n)   
@@ -37,7 +37,9 @@ Ex: multi_mode = {'dressed':dressed, 'vectors':v_c, 'qnum':qubit_state_num, 'mnu
 states_draw_names = ['g00','g01','g10','g11','e00'] and  draw = [states_draw_list,states_draw_names]  
 default value is to draw states with indices 0-3  
 
-**forbidden:** a list of integer indices indicating the states to penalize
+**forbidden:** a list of integer indices indicating the states to penalize  
+
+**show_graphs:** a boolean (default is True) toggling between progress bar and graphs
 
 
 
