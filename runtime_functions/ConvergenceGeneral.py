@@ -175,7 +175,7 @@ class ConvergenceGeneral:
         
         index = 0
         ## cost
-        if self.sys_para.evolve == False:
+        if self.sys_para.evolve == False and self.sys_para.show_plots == True:
             plt.subplot(gs[index, :],title='Error = %.9f; Unitary Metric: %.5f; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost,
                                                                                                    self.anly.tf_unitary_scale.eval(),
                                                                                                  
@@ -199,7 +199,7 @@ class ConvergenceGeneral:
         plt.imshow(M.real,interpolation='none')
         plt.clim(-1,1)
         plt.colorbar()
-        plt.subplot(gs[1, 1],title="operator: imaginary")
+        plt.subplot(gs[index, 1],title="operator: imaginary")
         plt.imshow(M.imag,interpolation='none')
         plt.clim(-1,1)
         plt.colorbar()

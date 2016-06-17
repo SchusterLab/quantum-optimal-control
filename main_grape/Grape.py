@@ -14,7 +14,7 @@ import time
 from IPython import display
 
 
-def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence, reg_coeffs = None,multi_mode = None, maxA = None ,use_gpu = True, draw= None, forbidden = None, initial_guess = None, evolve = False, evolve_error = False):
+def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence, reg_coeffs = None,multi_mode = None, maxA = None ,use_gpu = True, draw= None, forbidden = None, initial_guess = None, evolve = False, evolve_error = False,show_plots = True):
     
     
     if reg_coeffs == None:
@@ -34,7 +34,7 @@ def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence
     class SystemParameters(SystemParametersGeneral):
         
         def __init__(self):
-            SystemParametersGeneral.__init__(self,H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,multi_mode,maxAmp, draw,initial_guess, evolve, evolve_error)
+            SystemParametersGeneral.__init__(self,H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,multi_mode,maxAmp, draw,initial_guess, evolve, evolve_error, show_plots)
         
     sys_para = SystemParameters()
     if use_gpu:
@@ -79,6 +79,7 @@ def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence
                 self.learning_rate_decay = convergence['learning_rate_decay']
             else:
                 self.learning_rate_decay = 5000
+            
             
 
 
