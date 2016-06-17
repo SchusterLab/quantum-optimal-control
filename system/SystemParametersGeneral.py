@@ -5,7 +5,7 @@ from math_functions.Get_state_index import Get_State_index
 
 class SystemParametersGeneral:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error):
         # Input variable
         
         self.H0_c = H0
@@ -49,7 +49,8 @@ class SystemParametersGeneral:
             self.Interpolation = multi_mode['Interpolation']
             self.Modulation = multi_mode['Modulation']
             self.H0_diag=np.diag(self.w_c)
-        
+        self.evolve = evolve
+        self.evolve_error = evolve_error
         self.init_system()
         self.init_vectors()
         self.init_operators()
