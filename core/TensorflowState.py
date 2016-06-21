@@ -348,10 +348,7 @@ class TensorflowState:
         self.grad = self.opt.compute_gradients(self.reg_loss)
         self.grads =[tf.nn.l2_loss(g) for g, _ in self.grad]
         self.grad_squared = tf.reduce_sum(tf.pack(self.grads))
-        
-        if self.sys_para.evolve == False:
-                
-            self.optimizer = self.opt.apply_gradients(self.grad)
+        self.optimizer = self.opt.apply_gradients(self.grad)
         
         print "Optimizer initialized."
     
