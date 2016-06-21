@@ -1,6 +1,6 @@
 # GRAPE-Tensorflow
 This is the packaged function:  
-**Grape (H0, Hops, Hnames, U, U0, total_time, steps,psi0, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None, show_plots = True)**
+**Grape (H0, Hops, Hnames, U, U0, total_time, steps,psi0, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None, show_plots = True, H_time_scales = None)**
 
 #Mandatory Arguments:
 **H0:** Drift Hamiltonian (n by n)   
@@ -13,7 +13,7 @@ This is the packaged function:
 **psi0:** Initial States (list of integers specifying the indices of those states)  
 **convergence:** A dictionary (can be empty) that might include the following parameters with default values as shown:
                convergence = {'rate':0.01, 'update_step':100, 'max_iterations':5000,
-               'conv_target':1e-8,'learning_rate_decay':2500}   
+               'conv_target':1e-8,'learning_rate_decay':2500, 'min_grad': 1e-25}   
 
 #Optional Arguments:  
 **Initial_guess:** A list of k elements, each of them is a steps size array, defining the initial pulses for all operators. If not provided, a default value of a gaussian random distribution will be used.  
@@ -39,7 +39,9 @@ default value is to draw states with indices 0-3
 
 **forbidden:** a list of integer indices indicating the states to penalize  
 
-**show_plots:** a boolean (default is True) toggling between progress bar and graphs
+**show_plots:** a boolean (default is True) toggling between progress bar and graphs  
+
+**H_time_scales:** a dictionary whose keys are the indices of the control ops to be interpolated, and the values are the dt to use for each key.  
 
 
 
