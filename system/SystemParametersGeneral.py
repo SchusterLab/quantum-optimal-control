@@ -5,7 +5,7 @@ from math_functions.Get_state_index import Get_State_index
 
 class SystemParametersGeneral:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales):
         # Input variable
         
         self.H0_c = H0
@@ -26,6 +26,10 @@ class SystemParametersGeneral:
         else:
             self.u0 =[]
         self.states_concerned_list = states_concerned_list
+        if H_time_scales!= None:
+            self.dts = H_time_scales
+        else:
+            self.dts =[]
         self.Modulation = False
         self.Interpolation = False
         self.D = False
@@ -72,6 +76,28 @@ class SystemParametersGeneral:
             self.Dt = self.dt*self.subpixels
             self.control_steps = int(self.total_time/self.Dt)+1
         else:
+            self.Dts = []
+            self.Dts_indices = []
+            self.ctrl_steps = []
+            idx = []
+            if self.dts != []:
+                for key in self.dts:
+                    Dt= self.dts[key]
+                    if Dt > self.dt:
+                        self.Dts.append(Dt)
+                        self.Dts_indices.append(int(key))
+                        self.ctrl_steps.append(int(self.total_time/Dt)+1)
+                        
+                for ii in range (len(self.ops_c)):
+                    if ii not in self.Dts_indices:
+                        idx.append(ii)
+                for jj in range (len(self.Dts_indices)):
+                    idx.append(self.Dts_indices[jj])
+                    
+                
+                self.ops_c = np.asarray(self.ops_c)[idx]
+                self.ops_max_amp = np.asarray(self.ops_max_amp)[idx]
+                self.Hnames = np.asarray(self.Hnames)[idx]
             self.Dt = self.dt
             self.control_steps = self.steps
         

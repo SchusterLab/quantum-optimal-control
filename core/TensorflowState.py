@@ -3,7 +3,7 @@ import os
 import numpy as np
 import tensorflow as tf
 from math_functions.c_to_r_mat import CtoRMat
-from custom_kernels.gradients.matexp_grad_v3 import *
+from custom_kernels.gradients.matexp_grad_v2 import *
 import os
 
 
@@ -54,9 +54,8 @@ class TensorflowState:
             
         print "Operators initialized."
         
-    def get_j(self,l):
+    def get_j(self,l, Dt):
         dt=self.sys_para.dt
-        Dt=self.sys_para.Dt
         jj=np.floor((l*dt-0.5*Dt)/Dt)
         return jj
     
@@ -72,7 +71,7 @@ class TensorflowState:
     
     # Cubic Splines
         for ll in range (self.sys_para.steps):
-            jj=self.get_j(ll)
+            jj=self.get_j(ll, Dt)
             tao= ll*dt - jj*Dt - 0.5*Dt
             if jj >= 1:
                 indices.append([int(ll),int(jj-1)])
@@ -103,7 +102,46 @@ class TensorflowState:
         xys=tf.concat(1,[temp1,temp2])
         return tf.transpose(xys)
 
+    def transfer_fn_general(self,w,steps):
         
+        indices=[]
+        values=[]
+        shape=[self.sys_para.steps,steps]
+        dt=self.sys_para.dt
+        Dt=self.sys_para.total_time/steps
+    
+    # Cubic Splines
+        for ll in range (self.sys_para.steps):
+            jj=self.get_j(ll,Dt)
+            tao= ll*dt - jj*Dt - 0.5*Dt
+            if jj >= 1:
+                indices.append([int(ll),int(jj-1)])
+                temp= -(tao/(2*Dt))*((tao/Dt)-1)**2
+                values.append(temp)
+                
+            if jj >= 0:
+                indices.append([int(ll),int(jj)])
+                temp= 1+((3*tao**3)/(2*Dt**3))-((5*tao**2)/(2*Dt**2))
+                values.append(temp)
+                
+            if jj+1 <= steps-1:
+                indices.append([int(ll),int(jj+1)])
+                temp= ((tao)/(2*Dt))+((4*tao**2)/(2*Dt**2))-((3*tao**3)/(2*Dt**3))
+                values.append(temp)
+               
+            if jj+2 <= steps-1:
+                indices.append([int(ll),int(jj+2)])
+                temp= ((tao**3)/(2*Dt**3))-((tao**2)/(2*Dt**2))
+                values.append(temp)
+                
+            
+        T1=tf.SparseTensor(indices, values, shape)  
+        T2=tf.sparse_reorder(T1)
+        T=tf.sparse_tensor_to_dense(T2)
+        temp1 = tf.matmul(T,tf.reshape(w[0,:],[steps,1]))
+        
+        return tf.transpose(temp1)
+    
     def init_tf_ops_weight(self):
         
         
@@ -122,7 +160,7 @@ class TensorflowState:
             self.xy_weight = tf.tanh(self.xy_weight_base)
             self.z_weight = tf.tanh(self.z_weight_base)
             if self.sys_para.Interpolation:
-                self.xy_nocos = self.transfer_fn(self.xy_weight)
+                self.xy_nocos = self.transfer_fn(self.xy_weight, self.control_steps)
             else:
                 self.xy_nocos = self.xy_weight
 
@@ -147,14 +185,36 @@ class TensorflowState:
             
             self.H0 = tf.Variable(tf.ones([self.sys_para.steps]), trainable=False)
             self.Hs_unpacked=[self.H0]
+             
             
             if self.sys_para.u0 == []:
                 initial_guess = 0
                 #initial_xy_stddev = (0.1/np.sqrt(self.sys_para.control_steps))
                 initial_stddev = (0.1/np.sqrt(self.sys_para.steps))
-                self.ops_weight = tf.Variable(tf.tanh(tf.truncated_normal([self.sys_para.ops_len,self.sys_para.steps],
+                if self.sys_para.Dts != [] and self.sys_para.ops_len > len(self.sys_para.Dts):
+                    self.ops_weight = tf.Variable(tf.tanh(tf.truncated_normal([self.sys_para.ops_len - len(self.sys_para.Dts) ,self.sys_para.steps],
                                                                    mean= initial_guess ,dtype=tf.float32,
                             stddev=initial_stddev )),name="weights")
+                    
+                    self.raw_weight = []
+                    for ii in range (len(self.sys_para.Dts)):
+                        
+                        initial_stddev = (0.1/np.sqrt(self.sys_para.ctrl_steps[ii]))
+                        weight = tf.Variable(tf.tanh(tf.truncated_normal([1 ,self.sys_para.ctrl_steps[ii]],
+                                                                       mean= initial_guess ,dtype=tf.float32,
+                                stddev=initial_stddev )),name= self.sys_para.Hnames[ii +self.sys_para.ops_len - len(self.sys_para.Dts)] + "_weights")
+                        self.raw_weight.append(weight)
+                        interpolated_weight = self.transfer_fn_general(weight,self.sys_para.ctrl_steps[ii])
+                        self.ops_weight = tf.concat(0,[self.ops_weight,interpolated_weight])
+                    #self.raw_weight = tf.pack(self.raw_weight)
+                    
+                else:
+                    
+                    self.ops_weight = tf.Variable(tf.tanh(tf.truncated_normal([self.sys_para.ops_len,self.sys_para.steps],
+                                                                   mean= initial_guess ,dtype=tf.float32,
+                            stddev=initial_stddev )),name="weights")
+                   
+                    
             else:
                 self.ops_weight = tf.Variable(self.sys_para.u0[0],dtype=tf.float32)
                 for ii in range (self.sys_para.ops_len-1):
@@ -282,7 +342,15 @@ class TensorflowState:
     def init_optimizer(self):
         # Optimizer. Takes a variable learning rate.
         self.learning_rate = tf.placeholder(tf.float32,shape=[])
-        self.optimizer = tf.train.AdamOptimizer(learning_rate = self.learning_rate).minimize(self.reg_loss)
+        self.opt = tf.train.AdamOptimizer(learning_rate = self.learning_rate)
+        
+        #Here we extract the gradients of the xy and z pulses
+        self.grad = self.opt.compute_gradients(self.reg_loss)
+        self.grads =[tf.nn.l2_loss(g) for g, _ in self.grad]
+        self.grad_squared = tf.reduce_sum(tf.pack(self.grads))
+        
+        
+        self.optimizer = self.opt.apply_gradients(self.grad)
         
         print "Optimizer initialized."
     
@@ -309,7 +377,8 @@ class TensorflowState:
             self.init_tf_propagator()
             self.init_tf_inter_vectors()
             self.init_training_loss()
-            self.init_optimizer()
+            if self.sys_para.evolve == False:
+                self.init_optimizer()
             self.init_utilities()
             
             print "Graph built!"

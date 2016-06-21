@@ -165,7 +165,7 @@ class ConvergenceGeneral:
         i2=0
         if self.Modulation:
             i1=1
-        if self.Interpolation:
+        if self.Interpolation or self.sys_para.dts!= []:
             i2=1
         
         if self.sys_para.evolve:
@@ -224,13 +224,22 @@ class ConvergenceGeneral:
         
         index+=1
         ## Control Fields
-        if (self.Modulation == True or self.Interpolation== True):
-            plt.subplot(gs[index, :],title="X and Y Control Fields")
+        if (self.Modulation == True or self.Interpolation== True or self.sys_para.dts !=[]):
+            plt.subplot(gs[index, :],title="Non-Interpolated Control Fields")
             index+=1
-            xy_weight = self.anly.get_xy_weight()
-            plt.plot(np.array([self.sys_para.Dt* ii for ii in range(self.sys_para.control_steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_weight[0,:]),'r',label='x')
+            
+            if self.sys_para.dts == []:
+                xy_weight = self.anly.get_xy_weight()
+                plt.plot(np.array([self.sys_para.Dt* ii for ii in range(self.sys_para.control_steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_weight[0,:]),'r',label='x')
             #plt.plot(np.array([self.sys_para.Dt* ii for ii in range(self.sys_para.control_steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_weight[1,:]),'c',label='y')
-            plt.title('Optimized xy pulses')
+            else:
+                raw_weight = self.anly.get_raw_weight()
+                
+                
+                for kk in range (len(self.sys_para.Dts)):
+                                                      
+                    plt.plot(np.array([self.sys_para.Dts[kk]* ii for ii in range(self.sys_para.ctrl_steps[kk])]),np.array(self.sys_para.ops_max_amp[self.sys_para.ops_len -len(self.sys_para.Dts) +kk]*np.transpose(raw_weight[kk])),'r',label=self.sys_para.Hnames[self.sys_para.ops_len -len(self.sys_para.Dts)+kk])
+            plt.title('Optimized Non interpolated pulses')
             plt.ylabel('Amplitude')
             plt.xlabel('Time (ns)')
             plt.legend()
@@ -261,6 +270,8 @@ class ConvergenceGeneral:
 	
         display.display(plt.gcf())
         display.clear_output(wait=True)
+        if self.sys_para.evolve_error:
+            print "Error = %.9f"%self.last_cost
 	        
 
     def __init__(self):
