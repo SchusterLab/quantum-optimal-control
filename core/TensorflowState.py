@@ -145,7 +145,7 @@ class TensorflowState:
     def init_tf_ops_weight(self):
         
         
-        
+        self.raw_weight =[]
         #tf weights of operators
         if self.sys_para.multi:
             initial_guess = 0
@@ -349,8 +349,9 @@ class TensorflowState:
         self.grads =[tf.nn.l2_loss(g) for g, _ in self.grad]
         self.grad_squared = tf.reduce_sum(tf.pack(self.grads))
         
-        
-        self.optimizer = self.opt.apply_gradients(self.grad)
+        if self.sys_para.evolve == False:
+                
+            self.optimizer = self.opt.apply_gradients(self.grad)
         
         print "Optimizer initialized."
     
@@ -377,8 +378,7 @@ class TensorflowState:
             self.init_tf_propagator()
             self.init_tf_inter_vectors()
             self.init_training_loss()
-            if self.sys_para.evolve == False:
-                self.init_optimizer()
+            self.init_optimizer()
             self.init_utilities()
             
             print "Graph built!"
