@@ -1,6 +1,6 @@
 # GRAPE-Tensorflow
 This is the packaged function:  
-**Grape (H0, Hops, Hnames, U, U0, total_time, steps,psi0, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None, show_plots = True)**
+**Grape (H0, Hops, Hnames, U, U0, total_time, steps,psi0, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None, show_plots = True, H_time_scales = None)**
 
 #Mandatory Arguments:
 **H0:** Drift Hamiltonian (n by n)   
@@ -39,7 +39,9 @@ default value is to draw states with indices 0-3
 
 **forbidden:** a list of integer indices indicating the states to penalize  
 
-**show_plots:** a boolean (default is True) toggling between progress bar and graphs
+**show_plots:** a boolean (default is True) toggling between progress bar and graphs  
+
+**H_time_scales:** a dictionary whose keys are the indices of the control ops to be interpolated, and the values are the dt to use for each key.  
 
 
 
