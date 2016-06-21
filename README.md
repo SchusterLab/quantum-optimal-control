@@ -13,7 +13,7 @@ This is the packaged function:
 **psi0:** Initial States (list of integers specifying the indices of those states)  
 **convergence:** A dictionary (can be empty) that might include the following parameters with default values as shown:
                convergence = {'rate':0.01, 'update_step':100, 'max_iterations':5000,
-               'conv_target':1e-8,'learning_rate_decay':2500}   
+               'conv_target':1e-8,'learning_rate_decay':2500, 'min_grad': 1e-25}   
 
 #Optional Arguments:  
 **Initial_guess:** A list of k elements, each of them is a steps size array, defining the initial pulses for all operators. If not provided, a default value of a gaussian random distribution will be used.  
