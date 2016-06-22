@@ -4,7 +4,7 @@ import os
 
 class Analysis:
     
-    def __init__(self, sys_para,tf_final_state, tf_ops_weight,tf_xy_weight, tf_xy_nocos, tf_unitary_scale, tf_inter_vecs, raw_weight = None):
+    def __init__(self, sys_para,tf_final_state, tf_ops_weight,tf_xy_weight, tf_xy_nocos, tf_unitary_scale, tf_inter_vecs, tf_psi = None, raw_weight = None):
         self.sys_para = sys_para
         self.tf_final_state = tf_final_state
         self.tf_ops_weight = tf_ops_weight
@@ -13,6 +13,8 @@ class Analysis:
         self.tf_unitary_scale = tf_unitary_scale
         if raw_weight != None:
             self.raw_weight = raw_weight
+	if tf_psi != None:
+	    self.tf_psi = tf_psi
         self.tf_inter_vecs = tf_inter_vecs
 	self.this_dir = os.path.dirname(__file__)    
 
@@ -29,7 +31,10 @@ class Analysis:
 	data_path = os.path.join(self.this_dir,'../data/GRAPE-final-state')
         np.save(data_path, np.array(CMat))
         return CMat
-        
+       
+    def get_psi(self):
+        return self.tf_psi.eval()
+ 
     def get_ops_weight(self):        
         ops_weight = self.tf_ops_weight.eval()
 	data_path = os.path.join(self.this_dir,'../data/GRAPE-ops-weight')

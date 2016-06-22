@@ -31,9 +31,9 @@ def run_session(tfs,graph,conv,sys_para,show_plots=True,single_simulation = Fals
                 if sys_para.show_plots:
                 # Plot convergence
                     if sys_para.multi:
-                        anly = Analysis(sys_para,tfs.final_state,tfs.ops_weight,tfs.xy_weight, tfs.xy_nocos, tfs.unitary_scale,tfs.inter_vecs)
+                        anly = Analysis(sys_para,tfs.final_state,tfs.ops_weight,tfs.xy_weight, tfs.xy_nocos, tfs.unitary_scale,tfs.inter_vecs,tf_psi = tfs.psi)
                     else:
-                        anly = Analysis(sys_para,tfs.final_state,tfs.ops_weight,tfs.ops_weight, tfs.ops_weight, tfs.unitary_scale,tfs.inter_vecs, raw_weight =tfs.raw_weight)
+                        anly = Analysis(sys_para,tfs.final_state,tfs.ops_weight,tfs.ops_weight, tfs.ops_weight, tfs.unitary_scale,tfs.inter_vecs, tf_psi = tfs.psi,raw_weight =tfs.raw_weight)
                     conv.update_convergence(l,rl,anly,show_plots)
                 
                 # Save the variables to disk.
