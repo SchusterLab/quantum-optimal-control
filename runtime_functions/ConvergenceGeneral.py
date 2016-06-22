@@ -165,58 +165,81 @@ class ConvergenceGeneral:
         i2=0
         if self.Modulation:
             i1=1
-        if self.Interpolation:
+        if self.Interpolation or self.sys_para.dts!= []:
             i2=1
-        gs = gridspec.GridSpec(3+i1+i2+len(self.sys_para.states_concerned_list), 2)
         
+        if self.sys_para.evolve:
+            gs = gridspec.GridSpec(2+i1+i2+len(self.sys_para.states_concerned_list), 2)
+        else:
+            gs = gridspec.GridSpec(3+i1+i2+len(self.sys_para.states_concerned_list), 2)
         
+        index = 0
         ## cost
-        plt.subplot(gs[0, :],title='Error = %.9f; Unitary Metric: %.5f; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost,
+        if self.sys_para.evolve == False and self.sys_para.show_plots == True:
+            plt.subplot(gs[index, :],title='Error = %.9f; Unitary Metric: %.5f; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost,
                                                                                                    self.anly.tf_unitary_scale.eval(),
                                                                                                  
                                                                                                   self.runtime,
                                                                                                   self.estimated_runtime))
-        plt.plot(np.array(self.iterations),np.array(self.costs),'bx-',label='loss')
-        plt.plot(np.array(self.iterations),np.array(self.reg_costs),'go-',label='reg loss')
-        plt.ylabel('Error')
-        plt.xlabel('Iteration')
-        plt.yscale('log')
-        plt.legend()
-        np.save("./data/GRAPE-costs", np.array(self.costs))
-    
+            
+            index +=1
+            plt.plot(np.array(self.iterations),np.array(self.costs),'bx-',label='loss')
+            plt.plot(np.array(self.iterations),np.array(self.reg_costs),'go-',label='reg loss')
+            plt.ylabel('Error')
+            plt.xlabel('Iteration')
+            plt.yscale('log')
+            plt.legend()
+            np.save("./data/GRAPE-costs", np.array(self.costs))
+        else:
+            if self.sys_para.evolve_error:
+                print "Error = %.9f"%self.last_cost
         ## unitary evolution
         M = self.anly.get_final_state()
-        plt.subplot(gs[1, 0],title="operator: real")
+        plt.subplot(gs[index, 0],title="operator: real")
         plt.imshow(M.real,interpolation='none')
         plt.clim(-1,1)
         plt.colorbar()
-        plt.subplot(gs[1, 1],title="operator: imaginary")
+        plt.subplot(gs[index, 1],title="operator: imaginary")
         plt.imshow(M.imag,interpolation='none')
         plt.clim(-1,1)
         plt.colorbar()
+        index +=1
         
         ## operators
-        plt.subplot(gs[2, :],title="Simulation Weights")
+        plt.subplot(gs[index, :],title="Simulation Weights")
         ops_weight = self.anly.get_ops_weight()
         for jj in range (self.sys_para.ops_len):
             plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[jj]*ops_weight[jj,:]),label='u'+self.sys_para.Hnames[jj])
         #plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*ops_weight[1,:]),'c',label='y')
         #plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),(self.sys_para.qm_g1/(2*np.pi))\
          #    *np.array(self.sys_para.ops_max_amp[1]*ops_weight[2,:]),'g',label='(g/2pi)z')
-        plt.title('Optimized pulse')
+        if self.sys_para.evolve:
+            plt.title('Pulse')
+        else:
+            plt.title('Optimized pulse')
+            
         plt.ylabel('Amplitude')
         plt.xlabel('Time (ns)')
         plt.legend()
         
-        index=3
+        index+=1
         ## Control Fields
-        if (self.Modulation == True or self.Interpolation== True):
-            plt.subplot(gs[index, :],title="X and Y Control Fields")
+        if (self.Modulation == True or self.Interpolation== True or self.sys_para.dts !=[]):
+            plt.subplot(gs[index, :],title="Non-Interpolated Control Fields")
             index+=1
-            xy_weight = self.anly.get_xy_weight()
-            plt.plot(np.array([self.sys_para.Dt* ii for ii in range(self.sys_para.control_steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_weight[0,:]),'r',label='x')
+            
+            if self.sys_para.dts == []:
+                xy_weight = self.anly.get_xy_weight()
+                plt.plot(np.array([self.sys_para.Dt* ii for ii in range(self.sys_para.control_steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_weight[0,:]),'r',label='x')
             #plt.plot(np.array([self.sys_para.Dt* ii for ii in range(self.sys_para.control_steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_weight[1,:]),'c',label='y')
-            plt.title('Optimized xy pulses')
+            else:
+                raw_weight = self.anly.get_raw_weight()
+                
+                
+                for kk in range (len(self.sys_para.Dts)):
+                                                      
+                    plt.plot(np.array([self.sys_para.Dts[kk]* ii for ii in range(self.sys_para.ctrl_steps[kk])]),np.array(self.sys_para.ops_max_amp[self.sys_para.ops_len -len(self.sys_para.Dts) +kk]*np.transpose(raw_weight[kk])),'r',label=self.sys_para.Hnames[self.sys_para.ops_len -len(self.sys_para.Dts)+kk])
+            plt.title('Optimized Non interpolated pulses')
             plt.ylabel('Amplitude')
             plt.xlabel('Time (ns)')
             plt.legend()
@@ -247,6 +270,8 @@ class ConvergenceGeneral:
 	
         display.display(plt.gcf())
         display.clear_output(wait=True)
+        if self.sys_para.evolve_error:
+            print "Error = %.9f"%self.last_cost
 	        
 
     def __init__(self):

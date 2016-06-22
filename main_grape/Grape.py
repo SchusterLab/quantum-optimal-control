@@ -13,13 +13,17 @@ import random as rd
 import time
 from IPython import display
 
-def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence, reg_coeffs = None,multi_mode = None, maxA = None ,use_gpu = True, draw= None, forbidden = None):
+
+def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence, reg_coeffs = None,multi_mode = None, maxA = None ,use_gpu = True, draw= None, forbidden = None, initial_guess = None, evolve = False, evolve_error = False,show_plots = True, H_time_scales = None):
     
     
     if reg_coeffs == None:
         reg_coeffs = {'alpha' : 0.01, 'z':0.01, 'dwdt':0.01,'d2wdt2':0.001*0.0001, 'inter':100}
     if maxA == None:
-        maxAmp = 4*np.ones(len(Hops))
+        if initial_guess == None:
+            maxAmp = 4*np.ones(len(Hops))
+        else:
+            maxAmp = np.ones(len(Hops))
     else:
         maxAmp = maxA
     
@@ -30,7 +34,7 @@ def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence
     class SystemParameters(SystemParametersGeneral):
         
         def __init__(self):
-            SystemParametersGeneral.__init__(self,H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,multi_mode,maxAmp, draw)
+            SystemParametersGeneral.__init__(self,H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,multi_mode,maxAmp, draw,initial_guess, evolve, evolve_error, show_plots, H_time_scales)
         
     sys_para = SystemParameters()
     if use_gpu:
@@ -75,6 +79,11 @@ def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence
                 self.learning_rate_decay = convergence['learning_rate_decay']
             else:
                 self.learning_rate_decay = 5000
+            
+            if 'min_grad' in convergence:
+                self.min_grad = convergence['min_grad']
+            else:
+                self.min_grad = 1e-25 
             
 
 
