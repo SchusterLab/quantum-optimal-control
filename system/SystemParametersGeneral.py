@@ -3,10 +3,11 @@ from math_functions.c_to_r_mat import CtoRMat
 from math_functions.c_to_r_mat import CtoRVec
 import scipy.linalg as la
 from math_functions.Get_state_index import Get_State_index
+from scipy.special import factorial
 
 class SystemParametersGeneral:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error):
         # Input variable
         
         self.H0_c = H0
@@ -17,6 +18,7 @@ class SystemParametersGeneral:
         self.total_time = total_time
         self.steps = steps
         self.show_plots = show_plots
+        self.Unitary_error= Unitary_error
         if states_forbidden_list!= None:
             self.states_forbidden_list = states_forbidden_list
         else:
@@ -34,6 +36,7 @@ class SystemParametersGeneral:
         self.Modulation = False
         self.Interpolation = False
         self.D = False
+        self.U0_c = U0
         self.initial_state = CtoRMat(U0)
         self.target_state = CtoRMat(U)
         
@@ -65,11 +68,42 @@ class SystemParametersGeneral:
         self.init_pulse_operator()
         self.prev_ops_weight()
 
+    def approx_expm(self,M,exp_t):
+        exp_terms = exp_t
+        expo = np.identity(self.state_num)
+        Mn = M
+
+        for ii in range(exp_terms):
+            expo = expo + 1./factorial(ii+1)*Mn
+            Mn = np.dot(M,Mn)
+
+        return expo   
+    def Choose_exp_terms(self):
+        exp_t = 20
+        while True:
+            H=self.H0_c
+            U_f = self.U0_c
+            for ii in range (len(self.ops_c)):
+                H = H + self.ops_max_amp[ii]*self.ops_c[ii]
+            for ii in range (self.steps):
+                U_f = np.dot(U_f,self.approx_expm((0-1j)*self.dt*H, exp_t))
+            Metric = np.abs(np.trace(np.dot(np.conjugate(np.transpose(U_f)), U_f)))/(self.state_num)
+            if exp_t == 5:
+                break
+            if np.abs(Metric - 1.0) < self.Unitary_error:
+                exp_t = exp_t-1
+            else:
+                break
+        return exp_t
+
+
+
+        
     def init_system(self):
         self.initial_pulse = False
         self.prev_pulse = False
 
-        self.exp_terms = 20
+        
         self.subpixels = 50
         
 
@@ -143,6 +177,8 @@ class SystemParametersGeneral:
         self.identity_c = np.identity(self.state_num)
         
         self.identity = CtoRMat(self.identity_c)
+        self.exp_terms = self.Choose_exp_terms()
+        print "Using "+ str(self.exp_terms) + " Taylor terms"
         
         
     def init_one_minus_gaussian_envelop(self):
