@@ -9,7 +9,8 @@ def _matrix_exp_grad(op, grad):
 
     coeff_grad = []
 
-    for ii in range(input_num):
+    coeff_grad.append(tf.constant(0,dtype=tf.float32))
+    for ii in range(1,input_num):
     	coeff_grad.append(tf.reduce_sum(tf.mul(grad,tf.matmul(tf.reshape(op.inputs[1][ii*size**2:(ii+1)*size**2],[size,size]),op.outputs[0]))))
 
     return [tf.pack(coeff_grad), tf.zeros(tf.shape(op.inputs[1]),dtype=tf.float32)]
