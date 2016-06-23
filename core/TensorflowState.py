@@ -419,7 +419,6 @@ class TensorflowState:
             self.init_tf_inter_states()
             self.init_tf_propagator()
             self.init_tf_inter_vectors()
-            self.init_tf_propagate_vectors()
             self.init_training_loss()
             self.init_optimizer()
             self.init_utilities()
