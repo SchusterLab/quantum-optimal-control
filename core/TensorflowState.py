@@ -196,17 +196,17 @@ class TensorflowState:
                 #initial_xy_stddev = (0.1/np.sqrt(self.sys_para.control_steps))
                 initial_stddev = (0.1/np.sqrt(self.sys_para.steps))
                 if self.sys_para.Dts != [] and self.sys_para.ops_len > len(self.sys_para.Dts):
-                    self.ops_weight = tf.Variable(tf.tanh(tf.truncated_normal([self.sys_para.ops_len - len(self.sys_para.Dts) ,self.sys_para.steps],
+                    self.ops_weight = tf.Variable(tf.truncated_normal([self.sys_para.ops_len - len(self.sys_para.Dts) ,self.sys_para.steps],
                                                                    mean= initial_guess ,dtype=tf.float32,
-                            stddev=initial_stddev )),name="weights")
+                            stddev=initial_stddev ),name="weights")
                     
                     self.raw_weight = []
                     for ii in range (len(self.sys_para.Dts)):
                         
                         initial_stddev = (0.1/np.sqrt(self.sys_para.ctrl_steps[ii]))
-                        weight = tf.Variable(tf.tanh(tf.truncated_normal([1 ,self.sys_para.ctrl_steps[ii]],
+                        weight = tf.Variable(tf.truncated_normal([1 ,self.sys_para.ctrl_steps[ii]],
                                                                        mean= initial_guess ,dtype=tf.float32,
-                                stddev=initial_stddev )),name= self.sys_para.Hnames[ii +self.sys_para.ops_len - len(self.sys_para.Dts)] + "_weights")
+                                stddev=initial_stddev ),name= self.sys_para.Hnames[ii +self.sys_para.ops_len - len(self.sys_para.Dts)] + "_weights")
                         self.raw_weight.append(weight)
                         interpolated_weight = self.transfer_fn_general(weight,self.sys_para.ctrl_steps[ii])
                         self.ops_weight = tf.concat(0,[self.ops_weight,interpolated_weight])
@@ -214,9 +214,9 @@ class TensorflowState:
                     
                 else:
                     
-                    self.ops_weight = tf.Variable(tf.tanh(tf.truncated_normal([self.sys_para.ops_len,self.sys_para.steps],
+                    self.ops_weight = tf.Variable(tf.truncated_normal([self.sys_para.ops_len,self.sys_para.steps],
                                                                    mean= initial_guess ,dtype=tf.float32,
-                            stddev=initial_stddev )),name="weights")
+                            stddev=initial_stddev ),name="weights")
                    
                     
             else:
@@ -228,7 +228,7 @@ class TensorflowState:
             
             
             for ii in range (self.sys_para.ops_len):
-                self.Hs_unpacked.append(self.sys_para.ops_max_amp[ii]*self.ops_weight[ii,:])
+                self.Hs_unpacked.append(self.sys_para.ops_max_amp[ii]*tf.tanh(self.ops_weight[ii,:]))
                 
             
             self.Hs = tf.pack(self.Hs_unpacked)
