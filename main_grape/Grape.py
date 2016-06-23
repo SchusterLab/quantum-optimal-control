@@ -97,7 +97,7 @@ def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence
 
             self.inter_reg_alpha_coeff = reg_coeffs['inter']
 
-            self.reset_convergence()
+            self.reset_convergence()  
     conv = Convergence()
     
     try:
