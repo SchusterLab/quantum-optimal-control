@@ -6,7 +6,6 @@ from math_functions.c_to_r_mat import CtoRMat
 from custom_kernels.gradients.matexp_grad_v2 import *
 import os
 
-
 class TensorflowState:
     
     def __init__(self,sys_para,use_gpu = True):
@@ -20,6 +19,11 @@ class TensorflowState:
 		kernel_filename = 'matrix_exp.so'	
 
 	self.matrix_exp_module = tf.load_op_library(os.path.join(user_ops_path,kernel_filename))        
+	self.matrix_vec_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs.so'))
+        
+        matrix_vec_grad_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs_grads.so'))
+        import custom_kernels.gradients.matexp_grad_vecs as mgv
+	mgv.register_gradient(matrix_vec_grad_exp_module)
 
     def init_variables(self):
         self.tf_identity = tf.constant(self.sys_para.identity,dtype=tf.float32)
@@ -192,17 +196,17 @@ class TensorflowState:
                 #initial_xy_stddev = (0.1/np.sqrt(self.sys_para.control_steps))
                 initial_stddev = (0.1/np.sqrt(self.sys_para.steps))
                 if self.sys_para.Dts != [] and self.sys_para.ops_len > len(self.sys_para.Dts):
-                    self.ops_weight = tf.Variable(tf.tanh(tf.truncated_normal([self.sys_para.ops_len - len(self.sys_para.Dts) ,self.sys_para.steps],
+                    self.ops_weight = tf.Variable(tf.truncated_normal([self.sys_para.ops_len - len(self.sys_para.Dts) ,self.sys_para.steps],
                                                                    mean= initial_guess ,dtype=tf.float32,
-                            stddev=initial_stddev )),name="weights")
+                            stddev=initial_stddev ),name="weights")
                     
                     self.raw_weight = []
                     for ii in range (len(self.sys_para.Dts)):
                         
                         initial_stddev = (0.1/np.sqrt(self.sys_para.ctrl_steps[ii]))
-                        weight = tf.Variable(tf.tanh(tf.truncated_normal([1 ,self.sys_para.ctrl_steps[ii]],
+                        weight = tf.Variable(tf.truncated_normal([1 ,self.sys_para.ctrl_steps[ii]],
                                                                        mean= initial_guess ,dtype=tf.float32,
-                                stddev=initial_stddev )),name= self.sys_para.Hnames[ii +self.sys_para.ops_len - len(self.sys_para.Dts)] + "_weights")
+                                stddev=initial_stddev ),name= self.sys_para.Hnames[ii +self.sys_para.ops_len - len(self.sys_para.Dts)] + "_weights")
                         self.raw_weight.append(weight)
                         interpolated_weight = self.transfer_fn_general(weight,self.sys_para.ctrl_steps[ii])
                         self.ops_weight = tf.concat(0,[self.ops_weight,interpolated_weight])
@@ -210,9 +214,9 @@ class TensorflowState:
                     
                 else:
                     
-                    self.ops_weight = tf.Variable(tf.tanh(tf.truncated_normal([self.sys_para.ops_len,self.sys_para.steps],
+                    self.ops_weight = tf.Variable(tf.truncated_normal([self.sys_para.ops_len,self.sys_para.steps],
                                                                    mean= initial_guess ,dtype=tf.float32,
-                            stddev=initial_stddev )),name="weights")
+                            stddev=initial_stddev ),name="weights")
                    
                     
             else:
@@ -224,7 +228,7 @@ class TensorflowState:
             
             
             for ii in range (self.sys_para.ops_len):
-                self.Hs_unpacked.append(self.sys_para.ops_max_amp[ii]*self.ops_weight[ii,:])
+                self.Hs_unpacked.append(self.sys_para.ops_max_amp[ii]*tf.tanh(self.ops_weight[ii,:]))
                 
             
             self.Hs = tf.pack(self.Hs_unpacked)
@@ -288,8 +292,46 @@ class TensorflowState:
             self.inter_vecs.append(inter_vec)
             
         print "Vectors initialized."
+       
+    def init_tf_propagate_vectors(self):
+        matrix_list = self.H0_flat
+        for ii in range(self.sys_para.ops_len):
+            matrix_list = matrix_list + self.flat_ops[ii]
+        matrix_list = matrix_list + self.I_flat
         
+        self.psi0 = tf.transpose(tf.pack(self.tf_initial_vectors))
         
+        self.inter_psi = []
+        for layer in np.arange(0,self.sys_para.steps):
+            self.inter_psi.append(tf.zeros(tf.shape(self.psi0),dtype=tf.float32))
+
+        self.inter_psi[0] = self.matrix_vec_exp_module.matrix_exp_vecs(self.Hs[:,0],self.psi0,size = 2*self.sys_para.state_num ,input_num = self.sys_para.ops_len+1, exp_num = self.sys_para.exp_terms,vecs_num = len(self.sys_para.initial_vectors),matrix= matrix_list)
+
+        for layer in np.arange(1,self.sys_para.steps):
+            self.inter_psi[layer] = self.matrix_vec_exp_module.matrix_exp_vecs(self.Hs[:,layer],self.inter_psi[layer-1],size = 2*self.sys_para.state_num ,input_num = self.sys_para.ops_len+1, exp_num = self.sys_para.exp_terms,vecs_num = len(self.sys_para.initial_vectors),matrix= matrix_list) 
+        
+
+        self.psi = self.inter_psi[self.sys_para.steps-1]
+        print "Vector progragate intialized."       
+
+    def get_inner_product(self,psi1,psi2):
+        #Take 2 states psi1,psi2, calculate their overlap.
+        state_num=self.sys_para.state_num
+        psi_1_real = 0.5*(psi1[0:state_num,:]+psi1[state_num:2*state_num,:])
+        psi_1_imag = 0.5*(psi1[state_num:2*state_num,:] - psi1[0:state_num,:])
+        psi_2_real = 0.5*(psi2[0:state_num,:]+psi2[state_num:2*state_num,:])
+        psi_2_imag = 0.5*(psi2[state_num:2*state_num,:] - psi2[0:state_num,:])
+        # psi1 has a+ib, psi2 has c+id, we wanna get Sum ((ac+bd) + i (bc-ad)) magnitude
+        ac = tf.mul(psi_1_real,psi_2_real)
+        bd = tf.mul(psi_1_imag,psi_2_imag)
+        bc = tf.mul(psi_1_imag,psi_2_real)
+        ad = tf.mul(psi_1_real,psi_2_imag)
+        reals = tf.square(tf.add(tf.reduce_sum(ac),tf.reduce_sum(bd)))
+        imags = tf.square(tf.sub(tf.reduce_sum(bc),tf.reduce_sum(ad)))
+        norm = tf.add(reals,imags)
+        return norm
+
+ 
     def init_training_loss(self):
 
         inner_product = tf.matmul(tf.transpose(self.tf_target_state),self.final_state)
@@ -299,9 +341,11 @@ class TensorflowState:
         /float(len(self.sys_para.states_concerned_list))
         
         inner_product_trace_mag_squared = tf.square(inner_product_trace_real) + tf.square(inner_product_trace_imag)
-        
-        self.loss = tf.abs(1 - inner_product_trace_mag_squared)
-    
+ 
+        #self.loss = tf.abs(1 - inner_product_trace_mag_squared)
+
+        target_vector=tf.matmul(self.tf_target_state,self.psi0)
+        self.loss = (1-self.get_inner_product(target_vector,self.psi))
     
         # Regulizer
         self.reg_loss = self.loss
@@ -337,7 +381,8 @@ class TensorflowState:
                                                      inter_vec[self.sys_para.state_num + state,:]))
                 self.reg_loss = self.reg_loss + inter_reg_alpha * tf.nn.l2_loss(forbidden_state_pop)
             
-        print "Training loss initialized."
+        self.reg_loss = self.loss
+	print "Training loss initialized."
             
     def init_optimizer(self):
         # Optimizer. Takes a variable learning rate.
