@@ -88,7 +88,7 @@ class ConvergenceGeneral:
             plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]), forbidden,label='forbidden')
         
         plt.ylabel('Population')
-        plt.ylim(0,1)
+        plt.ylim(-0.1,1.1)
         plt.xlabel('Time (ns)')
         plt.legend(loc=6)
     
@@ -169,9 +169,9 @@ class ConvergenceGeneral:
             i2=1
         
         if self.sys_para.evolve:
-            gs = gridspec.GridSpec(1+2+i1+i2+len(self.sys_para.states_concerned_list), 2)
+            gs = gridspec.GridSpec(2+i1+i2+len(self.sys_para.states_concerned_list), 2)
         else:
-            gs = gridspec.GridSpec(1+3+i1+i2+len(self.sys_para.states_concerned_list), 2)
+            gs = gridspec.GridSpec(3+i1+i2+len(self.sys_para.states_concerned_list), 2)
         
         index = 0
         ## cost
@@ -204,16 +204,7 @@ class ConvergenceGeneral:
         plt.clim(-1,1)
         plt.colorbar()
         index +=1
-       
-        ## psi
-        plt.subplot(gs[index, :],title="operator: imaginary")
-	psi = self.anly.get_psi()
-	plt.imshow(psi,interpolation='none')
-        plt.clim(-1,1)
-        plt.colorbar()
-	index +=1
-
- 
+        
         ## operators
         plt.subplot(gs[index, :],title="Simulation Weights")
         ops_weight = self.anly.get_ops_weight()

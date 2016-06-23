@@ -5,7 +5,7 @@ import tensorflow as tf
 from math_functions.c_to_r_mat import CtoRMat
 from custom_kernels.gradients.matexp_grad_v2 import *
 import os
-from custom_kernels.gradients.matexp_grad_vecs import *
+
 
 class TensorflowState:
     
@@ -20,8 +20,6 @@ class TensorflowState:
 		kernel_filename = 'matrix_exp.so'	
 
 	self.matrix_exp_module = tf.load_op_library(os.path.join(user_ops_path,kernel_filename))        
-	self.matrix_vec_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs.so'))
-
 
     def init_variables(self):
         self.tf_identity = tf.constant(self.sys_para.identity,dtype=tf.float32)
@@ -290,21 +288,8 @@ class TensorflowState:
             self.inter_vecs.append(inter_vec)
             
         print "Vectors initialized."
-       
-    def init_tf_propagate_vectors(self):
-        matrix_list = self.H0_flat
-        for ii in range(self.sys_para.ops_len):
-            matrix_list = matrix_list + self.flat_ops[ii]
-        matrix_list = matrix_list + self.I_flat
-
-        self.psi = tf.transpose(tf.pack(self.tf_initial_vectors))
         
-        for layer in np.arange(0,self.sys_para.steps):
-            self.psi = self.matrix_vec_exp_module.matrix_exp_vecs(self.Hs[:,layer],self.psi,size = 2*self.sys_para.state_num ,input_num = self.sys_para.ops_len+1, exp_num = self.sys_para.exp_terms,vecs_num = len(self.sys_para.initial_vectors),matrix= matrix_list) 
         
-        print "Vector progragate intialized."       
-
- 
     def init_training_loss(self):
 
         inner_product = tf.matmul(tf.transpose(self.tf_target_state),self.final_state)
@@ -389,7 +374,6 @@ class TensorflowState:
             self.init_tf_inter_states()
             self.init_tf_propagator()
             self.init_tf_inter_vectors()
-            self.init_tf_propagate_vectors()
             self.init_training_loss()
             self.init_optimizer()
             self.init_utilities()

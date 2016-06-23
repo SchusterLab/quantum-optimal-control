@@ -4,7 +4,7 @@ import os
 
 class Analysis:
     
-    def __init__(self, sys_para,tf_final_state, tf_ops_weight,tf_xy_weight, tf_xy_nocos, tf_unitary_scale, tf_inter_vecs, tf_psi = None, raw_weight = None):
+    def __init__(self, sys_para,tf_final_state, tf_ops_weight,tf_xy_weight, tf_xy_nocos, tf_unitary_scale, tf_inter_vecs, raw_weight = None):
         self.sys_para = sys_para
         self.tf_final_state = tf_final_state
         self.tf_ops_weight = tf_ops_weight
@@ -13,8 +13,6 @@ class Analysis:
         self.tf_unitary_scale = tf_unitary_scale
         if raw_weight != None:
             self.raw_weight = raw_weight
-	if tf_psi != None:
-	    self.tf_psi = tf_psi
         self.tf_inter_vecs = tf_inter_vecs
 	self.this_dir = os.path.dirname(__file__)    
 
@@ -31,10 +29,7 @@ class Analysis:
 	data_path = os.path.join(self.this_dir,'../data/GRAPE-final-state')
         np.save(data_path, np.array(CMat))
         return CMat
-       
-    def get_psi(self):
-        return self.tf_psi.eval()
- 
+        
     def get_ops_weight(self):        
         ops_weight = self.tf_ops_weight.eval()
 	data_path = os.path.join(self.this_dir,'../data/GRAPE-ops-weight')
@@ -68,13 +63,15 @@ class Analysis:
         inter_vecs_mag_squared = []
         if self.sys_para.D:
             v_sorted=Sort_ev(self.sys_para.v_c,self.sys_para.dressed)
+        ii=0
         for tf_inter_vec in self.tf_inter_vecs:
             inter_vec = tf_inter_vec.eval()
-            inter_vec_real = 0.5*(inter_vec[0:state_num,:]+inter_vec[state_num:2*state_num,:])
-            inter_vec_imag = 0.5*(inter_vec[state_num:2*state_num,:] - inter_vec[0:state_num,:])
+            
+            inter_vec_real = (inter_vec[0:state_num,:])
+            inter_vec_imag = (inter_vec[state_num:2*state_num,:])
             inter_vec_c = inter_vec_real+1j*inter_vec_imag
             
-            #print inter_vec_c[:,1]
+            
             #print np.shape(self.sys_para.v_c)
             #print np.shape (v_sorted)
             if self.sys_para.D:
@@ -84,6 +81,7 @@ class Analysis:
             else:
                 inter_vec_mag_squared = np.square(np.absolute(inter_vec_c))
             inter_vecs_mag_squared.append(inter_vec_mag_squared)
+            ii+=1
         #print np.shape(inter_vecs_mag_squared)
         #print (inter_vecs_mag_squared)
 	data_path = os.path.join(self.this_dir,'../data/GRAPE-inter_vecs')    

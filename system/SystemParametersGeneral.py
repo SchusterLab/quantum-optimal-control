@@ -1,5 +1,6 @@
 import numpy as np
 from math_functions.c_to_r_mat import CtoRMat
+from math_functions.c_to_r_mat import CtoRVec
 import scipy.linalg as la
 from math_functions.Get_state_index import Get_State_index
 
@@ -35,6 +36,7 @@ class SystemParametersGeneral:
         self.D = False
         self.initial_state = CtoRMat(U0)
         self.target_state = CtoRMat(U)
+        
         if draw != None:
             self.draw_list = draw[0]
             self.draw_names = draw[1]
@@ -114,7 +116,7 @@ class SystemParametersGeneral:
             else:
                 self.initial_vector_c=np.zeros(self.state_num)
                 self.initial_vector_c[state]=1
-            self.initial_vector = np.append(self.initial_vector_c,self.initial_vector_c)
+            self.initial_vector = CtoRVec(self.initial_vector_c)
 
             self.initial_vectors.append(self.initial_vector)
 
