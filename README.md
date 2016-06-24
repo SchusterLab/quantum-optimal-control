@@ -1,6 +1,6 @@
 # GRAPE-Tensorflow
 This is the packaged function:  
-**Grape (H0, Hops, Hnames, U, U0, total_time, steps,psi0, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None, show_plots = True, H_time_scales = None, Unitary_error = 1e-4)**
+**Grape (H0, Hops, Hnames, U, U0, total_time, steps,psi0, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None, show_plots = True, H_time_scales = None, Unitary_error = 1e-4, opti_traj = False)**
 
 #Mandatory Arguments:
 **H0:** Drift Hamiltonian (n by n)   
@@ -45,5 +45,6 @@ default value is to draw states with indices 0-3
 
 **Unitary_error:** a float indicating the desired maximum error of the Taylor expansion of the exponential to choose a proper number of expansion terms, default is 1e-4  
 
+**opti_traj:** a boolean (default is False) if True, targetting state transfer. If false, targetting unitary evolution.
 
 
