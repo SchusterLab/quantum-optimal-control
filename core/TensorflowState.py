@@ -15,15 +15,16 @@ class TensorflowState:
 
 	if use_gpu:
 		kernel_filename = 'cuda_matexp_v3.so'
+		
+		self.matrix_vec_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs.so'))
+
+        	matrix_vec_grad_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs_grads.so'))
+        	import custom_kernels.gradients.matexp_grad_vecs as mgv
+        	mgv.register_gradient(matrix_vec_grad_exp_module)
 	else:
 		kernel_filename = 'matrix_exp.so'	
 
 	self.matrix_exp_module = tf.load_op_library(os.path.join(user_ops_path,kernel_filename))        
-	#self.matrix_vec_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs.so'))
-        
-        #matrix_vec_grad_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs_grads.so'))
-        #import custom_kernels.gradients.matexp_grad_vecs as mgv
-	#mgv.register_gradient(matrix_vec_grad_exp_module)
 
     def init_variables(self):
         self.tf_identity = tf.constant(self.sys_para.identity,dtype=tf.float32)
@@ -298,13 +299,13 @@ class TensorflowState:
         matrix_list = self.H0_flat
         for ii in range(self.sys_para.ops_len):
             matrix_list = matrix_list + self.flat_ops[ii]
-        matrix_list = matrix_list + self.I_flat
+        #matrix_list = matrix_list + self.I_flat
         
         self.psi0 = tf.transpose(tf.pack(self.tf_initial_vectors))
-        
+ 
         self.inter_psi = []
         for layer in np.arange(0,self.sys_para.steps):
-            self.inter_psi.append(tf.zeros(tf.shape(self.psi0),dtype=tf.float32))
+            self.inter_psi.append(tf.zeros(tf.shape(self.psi0),dtype=tf.float32,name="inter_psi_"+str(ii)))
 
         self.inter_psi[0] = self.matrix_vec_exp_module.matrix_exp_vecs(self.Hs[:,0],self.psi0,size = 2*self.sys_para.state_num ,input_num = self.sys_para.ops_len+1, exp_num = self.sys_para.exp_terms,vecs_num = len(self.sys_para.initial_vectors),matrix= matrix_list)
 
@@ -344,9 +345,11 @@ class TensorflowState:
  
         self.loss = tf.abs(1 - inner_product_trace_mag_squared)
 
-        #target_vector=tf.matmul(self.tf_target_state,self.psi0)
-        #self.loss = (1-self.get_inner_product(target_vector,self.inter_psi[self.sys_para.steps-1]))
-    
+	if self.sys_para.opti_traj:
+        	self.target_vector=tf.matmul(self.tf_target_state,self.psi0)
+        	self.loss = (1-4.*self.get_inner_product(self.target_vector,self.inter_psi[self.sys_para.steps-1])/(len(self.sys_para.initial_vectors)**2))
+		print "optimizing for trajectories."
+
         # Regulizer
         self.reg_loss = self.loss
         self.reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
@@ -419,7 +422,7 @@ class TensorflowState:
             self.init_tf_inter_states()
             self.init_tf_propagator()
             self.init_tf_inter_vectors()
-            #self.init_tf_propagate_vectors()
+            self.init_tf_propagate_vectors()
 	    self.init_training_loss()
             self.init_optimizer()
             self.init_utilities()

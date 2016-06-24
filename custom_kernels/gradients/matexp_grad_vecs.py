@@ -25,7 +25,7 @@ def register_gradient(matrix_exp_module):
     #matrix_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs.so'))
 
  
-        vec_grad = matrix_exp_module.matrix_exp_vecs_grads(op.inputs[0],grad ,size = size,input_num = input_num, exp_num = exp_num,vecs_num = vecs_num,matrix= matrix)
+        vec_grad = matrix_exp_module.matrix_exp_vecs_grads(op.inputs[0],grad ,size = size,input_num = input_num, exp_num = exp_num,vecs_num = vecs_num,matrix= [ -x for x in matrix])
 
 
         return [tf.pack(coeff_grad),vec_grad]

@@ -7,9 +7,10 @@ from scipy.special import factorial
 
 class SystemParametersGeneral:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,opti_traj=False):
         # Input variable
         
+	self.opti_traj=opti_traj
         self.H0_c = H0
         self.ops_c = Hops
         self.ops_max_amp = maxA
