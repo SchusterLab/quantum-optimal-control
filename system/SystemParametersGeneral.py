@@ -9,8 +9,7 @@ class SystemParametersGeneral:
 
     def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,opti_traj=False):
         # Input variable
-        
-	self.opti_traj=opti_traj
+        self.opti_traj=opti_traj
         self.H0_c = H0
         self.ops_c = Hops
         self.ops_max_amp = maxA
@@ -69,16 +68,23 @@ class SystemParametersGeneral:
         self.init_pulse_operator()
         self.prev_ops_weight()
 
-    def approx_expm(self,M,exp_t):
-        exp_terms = exp_t
-        expo = np.identity(self.state_num)
-        Mn = M
+    def approx_expm(self,M,exp_t, div):
+        U=np.identity(len(M),dtype=M.dtype)
+        Mt=np.identity(len(M),dtype=M.dtype)
+        iif=1.0
+        
+        for ii in xrange(1,exp_t):
+            iif*=ii
+            #print "ii = %d, iif = %f, 2**(ii*div) = %f" % (ii,iif, 2**(ii*div))
+            #print Mt
+            Mt=np.dot(Mt,M)
+            U+=Mt/((2.**float(ii*div))*iif)
 
-        for ii in range(exp_terms):
-            expo = expo + 1./factorial(ii+1)*Mn
-            Mn = np.dot(M,Mn)
-
-        return expo   
+        
+        for ii in xrange(div):
+            U=np.dot(U,U)
+        
+        return U
     def Choose_exp_terms(self):
         exp_t = 20
         while True:
@@ -86,15 +92,18 @@ class SystemParametersGeneral:
             U_f = self.U0_c
             for ii in range (len(self.ops_c)):
                 H = H + self.ops_max_amp[ii]*self.ops_c[ii]
+            #self.div = max(int(2*np.log2(np.max(np.abs(-(0+1j) * self.dt*H)))),0)
+            self.div =0
             for ii in range (self.steps):
-                U_f = np.dot(U_f,self.approx_expm((0-1j)*self.dt*H, exp_t))
+                U_f = np.dot(U_f,self.approx_expm((0-1j)*self.dt*H, exp_t, self.div))
             Metric = np.abs(np.trace(np.dot(np.conjugate(np.transpose(U_f)), U_f)))/(self.state_num)
-            if exp_t == 5:
+            if exp_t == 3:
                 break
             if np.abs(Metric - 1.0) < self.Unitary_error:
                 exp_t = exp_t-1
             else:
                 break
+        
         return exp_t
 
 
@@ -179,7 +188,7 @@ class SystemParametersGeneral:
         
         self.identity = CtoRMat(self.identity_c)
         self.exp_terms = self.Choose_exp_terms()
-        print "Using "+ str(self.exp_terms) + " Taylor terms"
+        print "Using "+ str(self.exp_terms) + " Taylor terms and "+ str(self.div)+" Scaling & Squaring terms"
         
         
     def init_one_minus_gaussian_envelop(self):
