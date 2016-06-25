@@ -227,11 +227,12 @@ class TensorflowState:
                    
                     
             else:
-                self.ops_weight = tf.Variable(self.sys_para.u0[0],dtype=tf.float32)
+                self.op_weight = tf.constant(self.sys_para.u0[0],dtype=tf.float32)
                 for ii in range (self.sys_para.ops_len-1):
                     
-                    self.ops_weight = tf.concat(0,[self.ops_weight,tf.Variable(self.sys_para.u0[ii+1],dtype=tf.float32)])
-                self.ops_weight = tf.reshape(self.ops_weight, [self.sys_para.ops_len,self.sys_para.steps])
+                    self.op_weight = tf.concat(0,[self.op_weight,self.sys_para.u0[ii+1]])
+                self.op_weight = tf.reshape(self.op_weight, [self.sys_para.ops_len,self.sys_para.steps])
+                self.ops_weight = tf.Variable(self.op_weight,dtype=tf.float32,name="weights")
             
             
             for ii in range (self.sys_para.ops_len):
@@ -394,6 +395,9 @@ class TensorflowState:
         
         #Here we extract the gradients of the xy and z pulses
         self.grad = self.opt.compute_gradients(self.reg_loss)
+        if not self.sys_para.multi:
+            self.grad_pack = tf.pack([g for g, _ in self.grad])
+        
         self.grads =[tf.nn.l2_loss(g) for g, _ in self.grad]
         self.grad_squared = tf.reduce_sum(tf.pack(self.grads))
         self.optimizer = self.opt.apply_gradients(self.grad)

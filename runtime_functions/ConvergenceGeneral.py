@@ -93,21 +93,24 @@ class ConvergenceGeneral:
         plt.legend(loc=6)
     
     def plot_inter_vecs_v2(self,pop_inter_vecs):
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[0,1:])+\
-             np.array(pop_inter_vecs[self.sys_para.mode_state_num**2,1:])+\
-             np.array(pop_inter_vecs[2*self.sys_para.mode_state_num**2,1:]),label='00')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[1,1:])+\
-             np.array(pop_inter_vecs[self.sys_para.mode_state_num**2+1,1:])+\
-             np.array(pop_inter_vecs[2*self.sys_para.mode_state_num**2+1,1:]),label='01')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[self.sys_para.mode_state_num,1:])+\
-             np.array(pop_inter_vecs[self.sys_para.mode_state_num**2+self.sys_para.mode_state_num,1:])+\
-             np.array(pop_inter_vecs[2*self.sys_para.mode_state_num**2+self.sys_para.mode_state_num,1:]),label='10')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[self.sys_para.mode_state_num+1,1:])+\
-             np.array(pop_inter_vecs[self.sys_para.mode_state_num**2+self.sys_para.mode_state_num+1,1:])+\
-             np.array(pop_inter_vecs[2*self.sys_para.mode_state_num**2+self.sys_para.mode_state_num+1,1:]),label='11')
-         
+        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[0,1:]),label='g00')
+        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[1,1:]),label='g01')
+        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[self.sys_para.mode_state_num,1:]),label='g10')
+        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[self.sys_para.mode_state_num+1,1:]),label='g11')
+        
+        h_state= range(self.sys_para.mode_state_num**2,2*self.sys_para.mode_state_num**2)
         plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)])
-             ,np.array(pop_inter_vecs[3*self.sys_para.mode_state_num**2:4*self.sys_para.mode_state_num**2,1:].sum(axis=0)) +\
+    ,np.array(pop_inter_vecs[h_state,1:].sum(axis=0))
+             ,label='e(012)(012)')
+        
+        
+        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)])
+    ,np.array(pop_inter_vecs[range(2*self.sys_para.mode_state_num**2,3*self.sys_para.mode_state_num**2),1:].sum(axis=0))
+             ,label='f(012)(012)') 
+        
+       
+        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)])
+             ,np.array(pop_inter_vecs[range(3*self.sys_para.mode_state_num**2,4*self.sys_para.mode_state_num**2),1:].sum(axis=0)) +\
              np.array(pop_inter_vecs[2,1:])+\
              np.array(pop_inter_vecs[self.sys_para.mode_state_num**2+2,1:])+\
              np.array(pop_inter_vecs[2*self.sys_para.mode_state_num**2+2,1:])+\
@@ -120,7 +123,6 @@ class ConvergenceGeneral:
         plt.ylim(0,1)
         plt.xlabel('Time (ns)')
         plt.legend(loc=6)
-        
     def plot_inter_vecs_v3(self,pop_inter_vecs):
         plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[0,1:]),label='g00')
         plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[self.sys_para.mode_state_num**2,1:]),label='e00')
@@ -208,8 +210,13 @@ class ConvergenceGeneral:
         ## operators
         plt.subplot(gs[index, :],title="Simulation Weights")
         ops_weight = self.anly.get_ops_weight()
-        for jj in range (self.sys_para.ops_len):
-            plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[jj]*ops_weight[jj,:]),label='u'+self.sys_para.Hnames[jj])
+        if self.sys_para.multi:
+            plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*ops_weight[0,:]),'c',label='x')
+            plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),(self.sys_para.qm_g1/(2*np.pi))\
+         *np.array(self.sys_para.ops_max_amp[1]*ops_weight[1,:]),'g',label='(g/2pi)z')
+        else:    
+            for jj in range (self.sys_para.ops_len):
+                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[jj]*ops_weight[jj,:]),label='u'+self.sys_para.Hnames[jj])
         #plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*ops_weight[1,:]),'c',label='y')
         #plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),(self.sys_para.qm_g1/(2*np.pi))\
          #    *np.array(self.sys_para.ops_max_amp[1]*ops_weight[2,:]),'g',label='(g/2pi)z')
@@ -263,7 +270,10 @@ class ConvergenceGeneral:
             plt.subplot(gs[index+ii, :],title="Evolution")
 
             pop_inter_vecs = inter_vecs[ii]
-            self.plot_inter_vecs_general(pop_inter_vecs,self.sys_para.states_concerned_list[ii])        
+            if self.sys_para.multi:
+                self.plot_inter_vecs_v2(pop_inter_vecs)
+            else:
+                self.plot_inter_vecs_general(pop_inter_vecs,self.sys_para.states_concerned_list[ii])        
         
 	fig = plt.gcf()
 	fig.set_size_inches(15, 50)

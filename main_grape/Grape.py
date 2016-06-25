@@ -14,7 +14,7 @@ import time
 from IPython import display
 
 
-def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence, reg_coeffs = None,multi_mode = None, maxA = None ,use_gpu = True, draw= None, forbidden = None, initial_guess = None, evolve = False, evolve_error = False,show_plots = True, H_time_scales = None, Unitary_error=1e-4,opti_traj = False):
+def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence, reg_coeffs = None,multi_mode = None, maxA = None ,use_gpu= True, draw= None, forbidden = None, initial_guess = None, evolve = False, evolve_error = False,show_plots = True, H_time_scales = None, Unitary_error=1e-4, method = 'Adam',opti_traj = False):
     
     
     if reg_coeffs == None:
@@ -101,7 +101,7 @@ def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence
     conv = Convergence()
     
     try:
-        run_session(tfs,graph,conv,sys_para)
+        SS = run_session(tfs,graph,conv,sys_para,method)
     except KeyboardInterrupt:
         display.clear_output()
         
