@@ -94,7 +94,7 @@ class MatrixExpOp : public OpKernel {
 
     d_mat.set(&matrix_.data()[0], N);
 
-    if (div_ > 1){
+    if (div_ > 0){
    
     d_m_ii.set(&matrix_.data()[0], N);
     matrixAdd(d_mat.getData(), d_m_ii.getData(), (1.-div_factor)/div_factor, d_mat_temp.getData(), dim);
