@@ -244,8 +244,9 @@ class ConvergenceGeneral:
                 
                 
                 for kk in range (len(self.sys_para.Dts)):
-                                                      
-                    plt.plot(np.array([self.sys_para.Dts[kk]* ii for ii in range(self.sys_para.ctrl_steps[kk])]),np.array(self.sys_para.ops_max_amp[self.sys_para.ops_len -len(self.sys_para.Dts) +kk]*np.transpose(raw_weight[kk])),'r',label=self.sys_para.Hnames[self.sys_para.ops_len -len(self.sys_para.Dts)+kk])
+                    
+                          
+                    plt.plot(np.array([self.sys_para.Dts[kk]* ii for ii in range(self.sys_para.ctrl_steps[kk])]),np.array(self.sys_para.ops_max_amp[self.sys_para.ops_len -len(self.sys_para.Dts) +kk]*np.transpose(raw_weight[kk])),label=self.sys_para.Hnames[self.sys_para.ops_len -len(self.sys_para.Dts)+kk])
             plt.title('Optimized Non interpolated pulses')
             plt.ylabel('Amplitude')
             plt.xlabel('Time (ns)')

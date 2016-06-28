@@ -26,6 +26,9 @@ class SystemParametersGeneral:
         
         if initial_guess!= None:
             self.u0 = initial_guess
+            for ii in range (len(self.u0)):
+                self.u0[ii]= self.u0[ii]/self.ops_max_amp[ii]
+            self.u0 = np.arctanh(self.u0)
         else:
             self.u0 =[]
         self.states_concerned_list = states_concerned_list
@@ -85,15 +88,20 @@ class SystemParametersGeneral:
             U=np.dot(U,U)
         
         return U
-    def Choose_exp_terms(self):
+    def Choose_exp_terms(self, d):
         exp_t = 20
+        
+        H=self.H0_c
+        U_f = self.U0_c
+        for ii in range (len(self.ops_c)):
+            H = H + self.ops_max_amp[ii]*self.ops_c[ii]
+        if d == 0:
+            self.div = max(int(2*np.log2(np.max(np.abs(-(0+1j) * self.dt*H)))),0) 
+         
+        else:
+            self.div = d
+            
         while True:
-            H=self.H0_c
-            U_f = self.U0_c
-            for ii in range (len(self.ops_c)):
-                H = H + self.ops_max_amp[ii]*self.ops_c[ii]
-            #self.div = max(int(2*np.log2(np.max(np.abs(-(0+1j) * self.dt*H)))),0)
-            self.div =0
             for ii in range (self.steps):
                 U_f = np.dot(U_f,self.approx_expm((0-1j)*self.dt*H, exp_t, self.div))
             Metric = np.abs(np.trace(np.dot(np.conjugate(np.transpose(U_f)), U_f)))/(self.state_num)
@@ -186,8 +194,24 @@ class SystemParametersGeneral:
             
         self.identity_c = np.identity(self.state_num)
         
+        
         self.identity = CtoRMat(self.identity_c)
-        self.exp_terms = self.Choose_exp_terms()
+        
+        self.exps =[]
+        self.divs = []
+        comparisons = 5
+        d = 0
+        while comparisons >0:
+            self.exp_terms = self.Choose_exp_terms(d)
+            self.exps.append(self.exp_terms)
+            self.divs.append(self.div)
+            comparisons = comparisons -1
+            d = d+1
+        self.complexities = np.add(self.exps,self.divs)
+        a = np.argmin(self.complexities)
+        
+        self.exp_terms = self.exps[a]
+        self.div = self.divs[a]
         print "Using "+ str(self.exp_terms) + " Taylor terms and "+ str(self.div)+" Scaling & Squaring terms"
         
         
