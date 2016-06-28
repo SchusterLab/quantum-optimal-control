@@ -104,6 +104,6 @@ def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence
         SS = run_session(tfs,graph,conv,sys_para,method,switch = switch, show_plots = sys_para.show_plots)
     except KeyboardInterrupt:
         display.clear_output()
-    return SS.uks,SS.Uf,SS.names
+    return SS.uks,SS.Uf
     
    

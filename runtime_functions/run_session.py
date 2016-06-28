@@ -83,7 +83,7 @@ class run_session:
                             save_path = tfs.saver.save(self.session, tmp_path)
                             if (self.iterations >= max_iterations) or (l < self.conv.conv_target): #(l<conv.conv_target) or (iterations>=conv.max_iterations):
                                 
-                                self.uks,self.names= self.Get_uks()
+                                self.uks= self.Get_uks()
                                 self.Uf = self.anly.get_final_state()
                             #anly.get_xy_weight()
                             #if sys_para.Modulation:
@@ -97,10 +97,10 @@ class run_session:
                                     self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.xy_weight, self.tfs.xy_nocos, self.tfs.unitary_scale,self.tfs.inter_vecs)
                                 else:
                                     self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
-                                print 'Error = %.9f; Runtime: %.1fs; Iterations = %d, grads =  %10.3e'%(l,elapsed,iterations,g)
-                                self.conv.update_convergence(l,rl,self.anly,self.show_plots)
                                 
-                                self.uks,self.names= self.Get_uks()
+                                self.conv.update_convergence(l,rl,self.anly,True)
+                                print 'Error = %.9f; Runtime: %.1fs; grads =  %10.3e'%(l,elapsed,g)
+                                self.uks= self.Get_uks()
                                 self.Uf = self.anly.get_final_state()
                             #anly.get_xy_weight()
                             #if sys_para.Modulation:
@@ -111,7 +111,13 @@ class run_session:
                     self.iterations+=1
                     
                       
-           
+    def Sort_back(self,uks):
+        uks_original = []
+        for op in self.sys_para.Hnames_original:
+            index = self.sys_para.Hnames.tolist().index(op)
+            uks_original.append(uks[index])
+        return uks_original
+        
     def Get_uks(self):
         if self.sys_para.Dts==[]:
             uks = self.anly.get_ops_weight()
@@ -133,8 +139,8 @@ class run_session:
                 new_uk = self.sys_para.ops_max_amp[jj +self.sys_para.ops_len - len(self.sys_para.Dts)]*raws[:,start:end]
                 uks.append(np.reshape(new_uk,[len(np.transpose(new_uk))]))
                 
-            
-        return uks,self.sys_para.Hnames    
+            uks = self.Sort_back(uks)
+        return uks    
 
     def evolve(self,uks):
         
@@ -190,15 +196,16 @@ class run_session:
         print self.method + ' optimization done'
         
         g, l,rl = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss], feed_dict=self.feed_dict)
-        if self.sys_para.show_plots == False:
-            self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
-            self.conv.update_convergence(l,rl,self.anly,True)
+        
         
         if l > self.conv.conv_target and self.switch == True and self.iterations < self.conv.max_iterations:
             self.method ='Adam'
             print 'Switching to Adam optimizer'
         else:
-            self.uks,self.names= self.Get_uks()
+            if self.sys_para.show_plots == False:
+                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
+                self.conv.update_convergence(l,rl,self.anly,True)
+            self.uks= self.Get_uks()
             
             self.Uf = self.anly.get_final_state()
             if self.show_plots == False:

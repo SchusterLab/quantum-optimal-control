@@ -14,6 +14,7 @@ class SystemParametersGeneral:
         self.ops_c = Hops
         self.ops_max_amp = maxA
         self.Hnames = Hnames
+        self.Hnames_original = Hnames
         self.multi = False
         self.total_time = total_time
         self.steps = steps
