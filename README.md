@@ -1,7 +1,11 @@
 # GRAPE-Tensorflow
 This is the packaged function:  
-**Grape (H0, Hops, Hnames, U, U0, total_time, steps,psi0, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None, show_plots = True, H_time_scales = None, Unitary_error = 1e-4, opti_traj = False, method = 'Adam')**
+**uks, U_final, names = Grape (H0, Hops, Hnames, U, U0, total_time, steps,psi0, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None, show_plots = True, H_time_scales = None, Unitary_error = 1e-4, opti_traj = False, method = 'Adam')**
 
+#Returns:
+**uks:** The optimized control pulses  ( a list of list of floats, each of them has length  = ctrl_steps(ctrl_op)  
+**U_final:** The final Unitary (n by n)
+**names:** The names of the control pulses ( a list of the names of the resulting ops to show their order)  
 #Mandatory Arguments:
 **H0:** Drift Hamiltonian (n by n)   
 **Hops:** A list of Control Hamiltonians  (k hamiltonians, each is n by n)  
@@ -46,6 +50,8 @@ default value is to draw states with indices 0-3
 **Unitary_error:** a float indicating the desired maximum error of the Taylor expansion of the exponential to choose a proper number of expansion terms, default is 1e-4  
 
 **opti_traj:** a boolean (default is False) if True, targetting state transfer. If false, targetting unitary evolution.  
-**method:** 'Adam' or 'BFGS'  
+**method:** 'Adam', 'BFGS'   or 'L-BFGS-B'. Default is Adam  
+**switch:** a boolean (default is True) to switch from BFGS/L-BFGS-B to Adam if a precision loss happens  
+
 
 
