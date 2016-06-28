@@ -4,7 +4,7 @@ This is the packaged function:
 
 #Returns:
 **uks:** The optimized control pulses  ( a list of list of floats, each of them has length  = ctrl_steps(ctrl_op)  
-**U_final:** The final Unitary (n by n)
+**U_final:** The final Unitary (n by n)  
 **names:** The names of the control pulses ( a list of the names of the resulting ops to show their order)  
 #Mandatory Arguments:
 **H0:** Drift Hamiltonian (n by n)   
