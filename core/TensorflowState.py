@@ -146,135 +146,101 @@ class TensorflowState:
         
         self.raw_weight =[]
         #tf weights of operators
-        if self.sys_para.multi:
+        
+            
+        self.H0 = tf.Variable(tf.ones([self.sys_para.steps]), trainable=False)
+        self.Hs_unpacked=[self.H0]
+
+
+        if self.sys_para.u0 == []:
             initial_guess = 0
-            initial_xy_stddev = (0.1/np.sqrt(self.sys_para.control_steps))
-            initial_z_stddev = (0.1/np.sqrt(self.sys_para.steps))
-            self.xy_weight_base = tf.Variable(tf.truncated_normal([self.sys_para.ops_len,self.sys_para.control_steps],
-                                                                   mean= initial_guess ,dtype=tf.float32,
-                            stddev=initial_xy_stddev ),name="xy_weights")
-            self.z_weight_base =  tf.Variable(tf.truncated_normal([1,self.sys_para.steps],
-                                                                   mean= initial_guess ,dtype=tf.float32,
-                            stddev=initial_z_stddev ),name="z_weights")
-            self.xy_weight = tf.tanh(self.xy_weight_base)
-            self.z_weight = tf.tanh(self.z_weight_base)
-            if self.sys_para.Interpolation:
-                self.xy_nocos = self.transfer_fn(self.xy_weight, self.control_steps)
-            else:
-                self.xy_nocos = self.xy_weight
+            index = 0
+            self.raw_weight = []
 
-
-            if self.sys_para.Modulation:
-                
-                cosine= tf.cos(2*np.pi*self.sys_para.freq_ge*np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]))
-                sine= tf.sin(2*np.pi*self.sys_para.freq_ge*np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]))
-                temp1 = tf.mul(self.xy_nocos[0,:],tf.cast(cosine, tf.float32))
-                temp2 = -tf.mul(self.xy_nocos[1,:],tf.cast(sine, tf.float32))
-                self.xy_cos = tf.concat(0,[tf.reshape(temp1,[1,self.sys_para.steps]),tf.reshape(temp2,[1,self.sys_para.steps])],name="modulated")
-                self.ops_weight = tf.concat(0,[self.xy_cos,self.z_weight],name="ops_weight")
-
-            else:
-                self.ops_weight = tf.concat(0,[self.xy_nocos,self.z_weight],name="ops_weight")
-            self.H0 = tf.Variable(tf.ones([self.sys_para.steps]), trainable=False)
-            self.Hx = self.sys_para.ops_max_amp[0]*self.ops_weight[0,:]
-            self.Hz = self.sys_para.ops_max_amp[1]*self.z_weight
-            self.Hs = tf.pack([self.H0,self.Hx,self.Hz[0,:]])
-            
-        else:
-            
-            self.H0 = tf.Variable(tf.ones([self.sys_para.steps]), trainable=False)
-            self.Hs_unpacked=[self.H0]
-             
-            
-            if self.sys_para.u0 == []:
-                initial_guess = 0
-                index = 0
+            #initial_xy_stddev = (0.1/np.sqrt(self.sys_para.control_steps))
+            initial_stddev = (0.1/np.sqrt(self.sys_para.steps))
+            if self.sys_para.Dts != []:
                 self.raw_weight = []
-                
-                #initial_xy_stddev = (0.1/np.sqrt(self.sys_para.control_steps))
-                initial_stddev = (0.1/np.sqrt(self.sys_para.steps))
-                if self.sys_para.Dts != []:
-                    self.raw_weight = []
-                    if self.sys_para.ops_len - len(self.sys_para.Dts) > 0:
-                        weights = tf.truncated_normal([self.sys_para.ops_len - len(self.sys_para.Dts) ,self.sys_para.steps],
+                if self.sys_para.ops_len - len(self.sys_para.Dts) > 0:
+                    weights = tf.truncated_normal([self.sys_para.ops_len - len(self.sys_para.Dts) ,self.sys_para.steps],
+                                                               mean= initial_guess ,dtype=tf.float32,
+                        stddev=initial_stddev )
+
+                    self.ops_weight_base = weights
+                    current = weights[0,:]
+                    for ii in range (self.sys_para.ops_len - len(self.sys_para.Dts)-1):
+                        current = tf.concat(0,[current,weights[ii+1,:]])
+                    self.current = tf.reshape(current,[1, (self.sys_para.ops_len - len(self.sys_para.Dts))*self.sys_para.steps])
+                else:
+                    initial_stddev = (0.1/np.sqrt(self.sys_para.ctrl_steps[0]))
+                    weights = tf.truncated_normal([1 ,self.sys_para.ctrl_steps[0]],
                                                                    mean= initial_guess ,dtype=tf.float32,
                             stddev=initial_stddev )
-                        
-                        self.ops_weight_base = weights
-                        current = weights[0,:]
-                        for ii in range (self.sys_para.ops_len - len(self.sys_para.Dts)-1):
-                            current = tf.concat(0,[current,weights[ii+1,:]])
-                        self.current = tf.reshape(current,[1, (self.sys_para.ops_len - len(self.sys_para.Dts))*self.sys_para.steps])
-                    else:
-                        initial_stddev = (0.1/np.sqrt(self.sys_para.ctrl_steps[0]))
-                        weights = tf.truncated_normal([1 ,self.sys_para.ctrl_steps[0]],
-                                                                       mean= initial_guess ,dtype=tf.float32,
-                                stddev=initial_stddev )
-                        index = 1
-                        self.ops_weight_base = self.transfer_fn_general(weights,self.sys_para.ctrl_steps[0])
-                        self.current = weights
-                        
-                    for ii in range (len(self.sys_para.Dts)-index):
-                        initial_stddev = (0.1/np.sqrt(self.sys_para.ctrl_steps[ii+index]))
-                        weight = tf.truncated_normal([1 ,self.sys_para.ctrl_steps[ii+index]],
-                                                                       mean= initial_guess ,dtype=tf.float32,
-                                stddev=initial_stddev )
-                        
-                        
-                            
-                        self.current = tf.concat(1,[self.current,weight])
-                        
-                        
-                    self.raws = tf.Variable(self.current, dtype=tf.float32,name ="weights")
-                    
-                    self.raw_weight.append(self.raws[:,(self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps:(self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps+self.sys_para.ctrl_steps[0]])
-                    starting_index = (self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps + (index * self.sys_para.ctrl_steps[0])
-                    flag = False
-                    if index == 0:
-                        flag = True
-                    
-                    
-                    for ii in range (len(self.sys_para.Dts)-index):
-                        #R = tf.range(starting_index,starting_index + self.sys_para.ctrl_steps[ii+index],1)
-                        #ws = tf.gather(self.raws,R)
-                        
-                        ws = self.raws[:,starting_index:starting_index + self.sys_para.ctrl_steps[ii+index]]
-                        self.ops_weight_base = tf.concat(0,[self.ops_weight_base,self.transfer_fn_general(ws,self.sys_para.ctrl_steps[ii+index])])
-                        if flag:
-                            flag = False
-                        else:
-                            self.raw_weight.append(ws)
-                            
-                        
-                        starting_index = starting_index + self.sys_para.ctrl_steps[ii+index]
-                        
-                        
-                    
-                
-                    
-                else:
-                    
-                    self.ops_weight_base = tf.Variable(tf.truncated_normal([self.sys_para.ops_len,self.sys_para.steps],
+                    index = 1
+                    self.ops_weight_base = self.transfer_fn_general(weights,self.sys_para.ctrl_steps[0])
+                    self.current = weights
+
+                for ii in range (len(self.sys_para.Dts)-index):
+                    initial_stddev = (0.1/np.sqrt(self.sys_para.ctrl_steps[ii+index]))
+                    weight = tf.truncated_normal([1 ,self.sys_para.ctrl_steps[ii+index]],
                                                                    mean= initial_guess ,dtype=tf.float32,
-                            stddev=initial_stddev ),name="weights")
-                    self.raws = self.ops_weight_base
-                   
-                    
+                            stddev=initial_stddev )
+
+
+
+                    self.current = tf.concat(1,[self.current,weight])
+
+
+                self.raws = tf.Variable(self.current, dtype=tf.float32,name ="weights")
+
+                self.raw_weight.append(self.raws[:,(self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps:(self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps+self.sys_para.ctrl_steps[0]])
+                starting_index = (self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps + (index * self.sys_para.ctrl_steps[0])
+                flag = False
+                if index == 0:
+                    flag = True
+
+
+                for ii in range (len(self.sys_para.Dts)-index):
+                    #R = tf.range(starting_index,starting_index + self.sys_para.ctrl_steps[ii+index],1)
+                    #ws = tf.gather(self.raws,R)
+
+                    ws = self.raws[:,starting_index:starting_index + self.sys_para.ctrl_steps[ii+index]]
+                    self.ops_weight_base = tf.concat(0,[self.ops_weight_base,self.transfer_fn_general(ws,self.sys_para.ctrl_steps[ii+index])])
+                    if flag:
+                        flag = False
+                    else:
+                        self.raw_weight.append(ws)
+
+
+                    starting_index = starting_index + self.sys_para.ctrl_steps[ii+index]
+
+
+
+
+
             else:
-                self.op_weight = tf.constant(self.sys_para.u0[0],dtype=tf.float32)
-                for ii in range (self.sys_para.ops_len-1):
-                    
-                    self.op_weight = tf.concat(0,[self.op_weight,self.sys_para.u0[ii+1]])
-                self.op_weight = tf.reshape(self.op_weight, [self.sys_para.ops_len,self.sys_para.steps])
-                self.ops_weight_base = tf.Variable(self.op_weight,dtype=tf.float32,name="weights")
+
+                self.ops_weight_base = tf.Variable(tf.truncated_normal([self.sys_para.ops_len,self.sys_para.steps],
+                                                               mean= initial_guess ,dtype=tf.float32,
+                        stddev=initial_stddev ),name="weights")
                 self.raws = self.ops_weight_base
-            
-            self.ops_weight = tf.tanh(self.ops_weight_base)
-            for ii in range (self.sys_para.ops_len):
-                self.Hs_unpacked.append(self.sys_para.ops_max_amp[ii]*self.ops_weight[ii,:])
-                
-            
-            self.Hs = tf.pack(self.Hs_unpacked)
+
+
+        else:
+            self.op_weight = tf.constant(self.sys_para.u0[0],dtype=tf.float32)
+            for ii in range (self.sys_para.ops_len-1):
+
+                self.op_weight = tf.concat(0,[self.op_weight,self.sys_para.u0[ii+1]])
+            self.op_weight = tf.reshape(self.op_weight, [self.sys_para.ops_len,self.sys_para.steps])
+            self.ops_weight_base = tf.Variable(self.op_weight,dtype=tf.float32,name="weights")
+            self.raws = self.ops_weight_base
+
+        self.ops_weight = tf.tanh(self.ops_weight_base)
+        for ii in range (self.sys_para.ops_len):
+            self.Hs_unpacked.append(self.sys_para.ops_max_amp[ii]*self.ops_weight[ii,:])
+
+
+        self.Hs = tf.pack(self.Hs_unpacked)
             
         #self.ops_weight = tf.tanh(self.ops_weight_base)
         
@@ -393,14 +359,15 @@ class TensorflowState:
         
         #Here we extract the gradients of the xy and z pulses
         self.grad = self.opt.compute_gradients(self.reg_loss)
-        if not self.sys_para.multi and (self.sys_para.Dts == [] ):
+        if self.sys_para.Dts == [] :
             self.grad_pack = tf.pack([g for g, _ in self.grad])
         
-        if self.sys_para.Dts !=[]:
+        else:
             self.grad_pack,_ = self.grad[0]
             for ii in range (len(self.grad)-1):
                 a,_ = self.grad[ii+1]
                 self.grad_pack = tf.concat(1,[self.grad_pack,a])
+        
         self.grads =[tf.nn.l2_loss(g) for g, _ in self.grad]
         self.grad_squared = tf.reduce_sum(tf.pack(self.grads))
         self.optimizer = self.opt.apply_gradients(self.grad)

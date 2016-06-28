@@ -71,10 +71,8 @@ class run_session:
                         
                         if self.show_plots:
                         # Plot convergence
-                            if self.sys_para.multi:
-                                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.xy_weight, self.tfs.xy_nocos, self.tfs.unitary_scale,self.tfs.inter_vecs)
-                            else:
-                                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
+                            
+                            self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
                             self.conv.update_convergence(l,rl,self.anly,self.show_plots)
 
                         # Save the variables to disk.
@@ -93,10 +91,8 @@ class run_session:
                             elapsed = time.time() - start_time
                             print 'Error = %.9f; Runtime: %.1fs; Iterations = %d, grads =  %10.3e'%(l,elapsed,self.iterations,g)
                             if (self.iterations >= max_iterations) or (l < self.conv.conv_target) or (g < self.conv.min_grad): #(l<conv.conv_target) or (iterations>=conv.max_iterations):
-                                if self.sys_para.multi:
-                                    self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.xy_weight, self.tfs.xy_nocos, self.tfs.unitary_scale,self.tfs.inter_vecs)
-                                else:
-                                    self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
+                                
+                                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
                                 
                                 self.conv.update_convergence(l,rl,self.anly,True)
                                 print 'Error = %.9f; Runtime: %.1fs; grads =  %10.3e'%(l,elapsed,g)

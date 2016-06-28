@@ -210,14 +210,10 @@ class ConvergenceGeneral:
         ## operators
         plt.subplot(gs[index, :],title="Simulation Weights")
         ops_weight = self.anly.get_ops_weight()
-        if self.sys_para.multi:
-            plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*ops_weight[0,:]),'c',label='x')
-            plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),(self.sys_para.qm_g1/(2*np.pi))\
-         *np.array(self.sys_para.ops_max_amp[1]*ops_weight[1,:]),'g',label='(g/2pi)z')
-        else:    
-            for jj in range (self.sys_para.ops_len):
-                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[jj]*ops_weight[jj,:]),label='u'+self.sys_para.Hnames[jj])
-        #plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*ops_weight[1,:]),'c',label='y')
+            
+        for jj in range (self.sys_para.ops_len):
+            plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[jj]*ops_weight[jj,:]),label='u'+self.sys_para.Hnames[jj])
+    #plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*ops_weight[1,:]),'c',label='y')
         #plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),(self.sys_para.qm_g1/(2*np.pi))\
          #    *np.array(self.sys_para.ops_max_amp[1]*ops_weight[2,:]),'g',label='(g/2pi)z')
         if self.sys_para.evolve:
@@ -231,39 +227,22 @@ class ConvergenceGeneral:
         
         index+=1
         ## Control Fields
-        if (self.Modulation == True or self.Interpolation== True or self.sys_para.dts !=[]):
+        if ( self.sys_para.dts !=[]):
             plt.subplot(gs[index, :],title="Non-Interpolated Control Fields")
             index+=1
             
-            if self.sys_para.dts == []:
-                xy_weight = self.anly.get_xy_weight()
-                plt.plot(np.array([self.sys_para.Dt* ii for ii in range(self.sys_para.control_steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_weight[0,:]),'r',label='x')
-            #plt.plot(np.array([self.sys_para.Dt* ii for ii in range(self.sys_para.control_steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_weight[1,:]),'c',label='y')
-            else:
-                raw_weight = self.anly.get_raw_weight()
-                
-                
-                for kk in range (len(self.sys_para.Dts)):
-                    
-                          
-                    plt.plot(np.array([self.sys_para.Dts[kk]* ii for ii in range(self.sys_para.ctrl_steps[kk])]),np.array(self.sys_para.ops_max_amp[self.sys_para.ops_len -len(self.sys_para.Dts) +kk]*np.transpose(raw_weight[kk])),label=self.sys_para.Hnames[self.sys_para.ops_len -len(self.sys_para.Dts)+kk])
+            
+            raw_weight = self.anly.get_raw_weight()
+
+
+            for kk in range (len(self.sys_para.Dts)):
+
+                plt.plot(np.array([self.sys_para.Dts[kk]* ii for ii in range(self.sys_para.ctrl_steps[kk])]),np.array(self.sys_para.ops_max_amp[self.sys_para.ops_len -len(self.sys_para.Dts) +kk]*np.transpose(raw_weight[kk])),label=self.sys_para.Hnames[self.sys_para.ops_len -len(self.sys_para.Dts)+kk])
             plt.title('Optimized Non interpolated pulses')
             plt.ylabel('Amplitude')
             plt.xlabel('Time (ns)')
             plt.legend()
-        
-        if self.Interpolation:
-            if self.Modulation:
-                
-                plt.subplot(gs[index, :],title="X and Y Interpolated Control Fields")
-                index+=1
-                xy_nocos = self.anly.get_nonmodulated_weight() 
-                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_nocos[0,:]),'r',label='x')
-                #plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*xy_nocos[1,:]),'c',label='y')
-                plt.title('Optimized Interpolated xy pulses')
-                plt.ylabel('Amplitude')
-                plt.xlabel('Time (ns)')
-                plt.legend()
+     
         ## state evolution
         inter_vecs = self.anly.get_inter_vecs()
         
