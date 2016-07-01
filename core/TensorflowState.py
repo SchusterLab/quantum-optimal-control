@@ -3,6 +3,7 @@ import os
 import numpy as np
 import tensorflow as tf
 from math_functions.c_to_r_mat import CtoRMat
+from custom_kernels.gradients.matexp_grad_vecs import *
 from custom_kernels.gradients.matexp_grad_v3 import *
 import os
 
@@ -12,11 +13,19 @@ class TensorflowState:
         self.sys_para = sys_para
 	this_dir = os.path.dirname(__file__)
 	user_ops_path = os.path.join(this_dir,'../custom_kernels/build')
+    
+        if self.sys_para.state_transfer:
+            kernel_filename = 'cuda_matexp_vecs.so'
+            matrix_vec_grad_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs_grads.so'))
+            import custom_kernels.gradients.matexp_grad_vecs as mgv
+            mgv.register_gradient(matrix_vec_grad_exp_module)
+        else:
 
-	if use_gpu:
-		kernel_filename = 'cuda_matexp_v4.so'
-	else:
-		kernel_filename = 'matrix_exp.so'	
+            if use_gpu:
+                kernel_filename = 'cuda_matexp_v4.so'
+            else:
+                kernel_filename = 'matrix_exp.so'	
+
 
 	self.matrix_exp_module = tf.load_op_library(os.path.join(user_ops_path,kernel_filename))        
 
@@ -27,15 +36,21 @@ class TensorflowState:
         
         
     def init_tf_vectors(self):
-        self.tf_initial_vectors=[]
-        for initial_vector in self.sys_para.initial_vectors:
-            tf_initial_vector = tf.constant(initial_vector,dtype=tf.float32)
-            self.tf_initial_vectors.append(tf_initial_vector)
+        if self.sys_para.state_transfer:
+            self.tf_initial_vectors = tf.constant(self.sys_para.initial_vectors[0],dtype=tf.float32)
+        else:
+            self.tf_initial_vectors=[]
+            for initial_vector in self.sys_para.initial_vectors:
+                tf_initial_vector = tf.constant(initial_vector,dtype=tf.float32)
+                self.tf_initial_vectors.append(tf_initial_vector)
     
     def init_tf_states(self):
         #tf initial and target states
         self.tf_initial_state = tf.constant(self.sys_para.initial_state,dtype=tf.float32)
-        self.tf_target_state = tf.constant(self.sys_para.target_state,dtype=tf.float32)
+        if self.sys_para.state_transfer:
+            self.tf_target_state = tf.constant(self.sys_para.target_vector,dtype=tf.float32)
+        else:
+            self.tf_target_state = tf.constant(self.sys_para.target_state,dtype=tf.float32)
         print "State initialized."
         
         
@@ -302,18 +317,66 @@ class TensorflowState:
             
         print "Vectors initialized."
         
+    def init_tf_inter_vector_state(self):
+        self.inter_vecs=[]
+       
+        matrix_list = self.H0_flat
+        for ii in range(self.sys_para.ops_len):
+            matrix_list = matrix_list + self.flat_ops[ii]
+        matrix_list = matrix_list + self.I_flat
+        inter_vec = tf.reshape(self.tf_initial_vectors,[2*self.sys_para.state_num,1])
+        for ii in np.arange(0,self.sys_para.steps):
+            if ii==0:
+                psi = self.tf_initial_vectors
+            else:
+                psi = inter_vec_temp
+            inter_vec_temp = tf.reshape(self.matrix_exp_module.matrix_exp_vecs(self.Hs[:,ii],psi,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
+                                      exp_num = self.sys_para.exp_terms, vecs_num = 1
+                                      ,matrix=matrix_list),[2*self.sys_para.state_num,1])
+            inter_vec = tf.concat(1,[inter_vec,inter_vec_temp])
+            
+        self.inter_vecs.append(inter_vec)
+        self.unitary_scale = 0
+            
+        print "Vectors initialized."
         
+    def get_inner_product(self,psi1,psi2):
+        #Take 2 states psi1,psi2, calculate their overlap.
+        state_num=self.sys_para.state_num
+        
+        psi_1_real = (psi1[0:state_num])
+        psi_1_imag = (psi1[state_num:2*state_num])
+        psi_2_real = (psi2[0:state_num])
+        psi_2_imag = (psi2[state_num:2*state_num])
+        # psi1 has a+ib, psi2 has c+id, we wanna get Sum ((ac+bd) + i (bc-ad)) magnitude
+        ac = tf.mul(psi_1_real,psi_2_real)
+        bd = tf.mul(psi_1_imag,psi_2_imag)
+        bc = tf.mul(psi_1_imag,psi_2_real)
+        ad = tf.mul(psi_1_real,psi_2_imag)
+        reals = tf.square(tf.add(tf.reduce_sum(ac),tf.reduce_sum(bd)))
+        imags = tf.square(tf.sub(tf.reduce_sum(bc),tf.reduce_sum(ad)))
+        norm = tf.add(reals,imags)
+        return norm
+    
     def init_training_loss(self):
+        
+        if self.sys_para.state_transfer == False:
 
-        inner_product = tf.matmul(tf.transpose(self.tf_target_state),self.final_state)
-        inner_product_trace_real = tf.reduce_sum(tf.pack([inner_product[ii,ii] for ii in self.sys_para.states_concerned_list]))\
-        /float(len(self.sys_para.states_concerned_list))
-        inner_product_trace_imag = tf.reduce_sum(tf.pack([inner_product[self.sys_para.state_num+ii,ii] for ii in self.sys_para.states_concerned_list]))\
-        /float(len(self.sys_para.states_concerned_list))
+            inner_product = tf.matmul(tf.transpose(self.tf_target_state),self.final_state)
+            inner_product_trace_real = tf.reduce_sum(tf.pack([inner_product[ii,ii] for ii in self.sys_para.states_concerned_list]))\
+            /float(len(self.sys_para.states_concerned_list))
+            inner_product_trace_imag = tf.reduce_sum(tf.pack([inner_product[self.sys_para.state_num+ii,ii] for ii in self.sys_para.states_concerned_list]))\
+            /float(len(self.sys_para.states_concerned_list))
+
+            inner_product_trace_mag_squared = tf.square(inner_product_trace_real) + tf.square(inner_product_trace_imag)
+
+            self.loss = tf.abs(1 - inner_product_trace_mag_squared)
         
-        inner_product_trace_mag_squared = tf.square(inner_product_trace_real) + tf.square(inner_product_trace_imag)
-        
-        self.loss = tf.abs(1 - inner_product_trace_mag_squared)
+        else:
+            for inter_vec in self.inter_vecs:
+                self.final_state= inter_vec[:,self.sys_para.steps]
+            inner_product = self.get_inner_product(self.tf_target_state,self.final_state)
+            self.loss = tf.abs(1 - inner_product)
     
     
         # Regulizer
@@ -332,6 +395,8 @@ class TensorflowState:
         dwdt_reg_alpha = self.dwdt_reg_alpha_coeff/float(self.sys_para.steps)
         self.reg_loss = self.reg_loss + dwdt_reg_alpha*tf.nn.l2_loss((self.ops_weight[:,1:]-self.ops_weight[:,:self.sys_para.steps-1])/self.sys_para.dt)
         
+       
+            
         # Limiting the d2wdt2 of control pulse
         self.d2wdt2_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
         d2wdt2_reg_alpha = self.d2wdt2_reg_alpha_coeff/float(self.sys_para.steps)
@@ -344,10 +409,8 @@ class TensorflowState:
         
         for inter_vec in self.inter_vecs:
             for state in self.sys_para.states_forbidden_list:
-                forbidden_state_pop = tf.square(0.5*(inter_vec[state,:] +\
-                                                     inter_vec[self.sys_para.state_num + state,:])) +\
-                                    tf.square(0.5*(inter_vec[state,:] -\
-                                                     inter_vec[self.sys_para.state_num + state,:]))
+                forbidden_state_pop = tf.square(inter_vec[state,:]) +\
+                                    tf.square(inter_vec[self.sys_para.state_num+state,:])
                 self.reg_loss = self.reg_loss + inter_reg_alpha * tf.nn.l2_loss(forbidden_state_pop)
             
         print "Training loss initialized."
@@ -393,9 +456,12 @@ class TensorflowState:
             self.init_tf_states()
             self.init_tf_ops()
             self.init_tf_ops_weight()
-            self.init_tf_inter_states()
-            self.init_tf_propagator()
-            self.init_tf_inter_vectors()
+            if self.sys_para.state_transfer == False:
+                self.init_tf_inter_states()
+                self.init_tf_propagator()
+                self.init_tf_inter_vectors()
+            else:
+                self.init_tf_inter_vector_state()
             self.init_training_loss()
             self.init_optimizer()
             self.init_utilities()

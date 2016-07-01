@@ -7,9 +7,9 @@ from scipy.special import factorial
 
 class SystemParametersGeneral:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,opti_traj=False):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer):
         # Input variable
-        self.opti_traj=opti_traj
+        self.state_transfer = state_transfer
        
         self.H0_c = H0
         self.ops_c = Hops
@@ -43,7 +43,10 @@ class SystemParametersGeneral:
         self.D = False
         self.U0_c = U0
         self.initial_state = CtoRMat(U0)
-        self.target_state = CtoRMat(U)
+        if self.state_transfer == False:
+            self.target_state = CtoRMat(U)
+        else:
+            self.target_vector = CtoRVec(U)
         
         if draw != None:
             self.draw_list = draw[0]
@@ -102,7 +105,9 @@ class SystemParametersGeneral:
          
         else:
             self.div = d
-            
+        
+        if self.state_transfer:
+            self.div =0
         while True:
             for ii in range (self.steps):
                 U_f = np.dot(U_f,self.approx_expm((0-1j)*self.dt*H, exp_t, self.div))
@@ -201,7 +206,10 @@ class SystemParametersGeneral:
         
         self.exps =[]
         self.divs = []
-        comparisons = 5
+        if self.state_transfer:
+            comparisons = 1
+        else:
+            comparisons = 5
         d = 0
         while comparisons >0:
             self.exp_terms = self.Choose_exp_terms(d)

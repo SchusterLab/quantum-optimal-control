@@ -82,7 +82,10 @@ class run_session:
                             if (self.iterations >= max_iterations) or (l < self.conv.conv_target): #(l<conv.conv_target) or (iterations>=conv.max_iterations):
                                 
                                 self.uks= self.Get_uks()
-                                self.Uf = self.anly.get_final_state()
+                                if not self.sys_para.state_transfer:
+                                    self.Uf = self.anly.get_final_state()
+                                else:
+                                    self.Uf=[]
                             #anly.get_xy_weight()
                             #if sys_para.Modulation:
                                 #anly.get_nonmodulated_weight() 
@@ -97,7 +100,10 @@ class run_session:
                                 self.conv.update_convergence(l,rl,self.anly,True)
                                 print 'Error = %.9f; Runtime: %.1fs; grads =  %10.3e'%(l,elapsed,g)
                                 self.uks= self.Get_uks()
-                                self.Uf = self.anly.get_final_state()
+                                if not self.sys_para.state_transfer:
+                                    self.Uf = self.anly.get_final_state()
+                                else:
+                                    self.Uf=[]
                             #anly.get_xy_weight()
                             #if sys_para.Modulation:
                                 #anly.get_nonmodulated_weight() 
@@ -203,7 +209,10 @@ class run_session:
                 self.conv.update_convergence(l,rl,self.anly,True)
             self.uks= self.Get_uks()
             
-            self.Uf = self.anly.get_final_state()
+            if not self.sys_para.state_transfer:
+                self.Uf = self.anly.get_final_state()
+            else:
+                self.Uf=[]
             if self.show_plots == False:
                 print l
             #print res.message

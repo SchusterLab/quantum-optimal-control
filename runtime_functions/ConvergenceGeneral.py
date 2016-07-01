@@ -25,11 +25,12 @@ class ConvergenceGeneral:
         	self.plot_summary()
 	else:
 		print '###### last cost: ' + str(last_cost) + ' ######'
-		self.anly.get_final_state()
-		self.anly.get_ops_weight()
+        if self.sys_para.state_transfer == False:
+            self.anly.get_final_state()
+        self.anly.get_ops_weight()
 		#self.anly.get_xy_weight()
 		#self.anly.get_nonmodulated_weight()
-		self.anly.get_inter_vecs()			
+        self.anly.get_inter_vecs()			
     
     def get_convergence(self):
         self.costs.append(self.last_cost)
@@ -169,7 +170,8 @@ class ConvergenceGeneral:
             i1=1
         if self.Interpolation or self.sys_para.dts!= []:
             i2=1
-        
+        if self.sys_para.state_transfer:
+            i2 = i2-1
         if self.sys_para.evolve:
             gs = gridspec.GridSpec(2+i1+i2+len(self.sys_para.states_concerned_list), 2)
         else:
@@ -178,7 +180,14 @@ class ConvergenceGeneral:
         index = 0
         ## cost
         if self.sys_para.evolve == False and self.sys_para.show_plots == True:
-            plt.subplot(gs[index, :],title='Error = %.9f; Unitary Metric: %.5f; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost,
+            
+            if self.sys_para.state_transfer:
+                plt.subplot(gs[index, :],title='Error = %.9f; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost,
+                                                                                                   
+                                                                                                  self.runtime,
+                                                                                                  self.estimated_runtime))
+            else:
+                plt.subplot(gs[index, :],title='Error = %.9f; Unitary Metric: %.5f; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost,
                                                                                                    self.anly.tf_unitary_scale.eval(),
                                                                                                  
                                                                                                   self.runtime,
@@ -196,16 +205,17 @@ class ConvergenceGeneral:
             if self.sys_para.evolve_error:
                 print "Error = %.9f"%self.last_cost
         ## unitary evolution
-        M = self.anly.get_final_state()
-        plt.subplot(gs[index, 0],title="operator: real")
-        plt.imshow(M.real,interpolation='none')
-        plt.clim(-1,1)
-        plt.colorbar()
-        plt.subplot(gs[index, 1],title="operator: imaginary")
-        plt.imshow(M.imag,interpolation='none')
-        plt.clim(-1,1)
-        plt.colorbar()
-        index +=1
+        if not self.sys_para.state_transfer:
+            M = self.anly.get_final_state()
+            plt.subplot(gs[index, 0],title="operator: real")
+            plt.imshow(M.real,interpolation='none')
+            plt.clim(-1,1)
+            plt.colorbar()
+            plt.subplot(gs[index, 1],title="operator: imaginary")
+            plt.imshow(M.imag,interpolation='none')
+            plt.clim(-1,1)
+            plt.colorbar()
+            index +=1
         
         ## operators
         plt.subplot(gs[index, :],title="Simulation Weights")
