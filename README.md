@@ -1,6 +1,6 @@
 # GRAPE-Tensorflow
 This is the packaged function:  
-**uks, U_final = Grape (H0, Hops, Hnames, U, U0, total_time, steps,psi0, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None, show_plots = True, H_time_scales = None, Unitary_error = 1e-4, opti_traj = False, method = 'Adam')**
+**uks, U_final = Grape (H0, Hops, Hnames, U, U0, total_time, steps,psi0, convergence, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None, show_plots = True, H_time_scales = None, Unitary_error = 1e-4, state_transfer = False, method = 'Adam')**
 
 #Returns:
 **uks:** The optimized control pulses  ( a list of list of floats, each of them has length  = ctrl_steps(ctrl_op) ) same order as the input  
@@ -10,7 +10,7 @@ This is the packaged function:
 **H0:** Drift Hamiltonian (n by n)   
 **Hops:** A list of Control Hamiltonians  (k hamiltonians, each is n by n)  
 **Hnames:** A list of Control Hamiltonian names, with k string elements  
-**U:** Target Unitary (n by n)  
+**U:** Target Unitary (n by n)  if state_transfer = False. a vector (n by 1) if state_transfer = True  
 **U0:** Initial Unitary (n by n)  
 **total_time:** Total Time (float)  
 **Steps:** Number of time steps (int)  
@@ -49,7 +49,7 @@ default value is to draw states with indices 0-3
 
 **Unitary_error:** a float indicating the desired maximum error of the Taylor expansion of the exponential to choose a proper number of expansion terms, default is 1e-4  
 
-**opti_traj:** a boolean (default is False) if True, targetting state transfer. If false, targetting unitary evolution.  
+**state_transfer:** a boolean (default is False) if True, targetting state transfer. If false, targetting unitary evolution. If True, the U is expected to be a vector, not a matrix.    
 **method:** 'Adam', 'BFGS'   or 'L-BFGS-B'. Default is Adam  
 **switch:** a boolean (default is True) to switch from BFGS/L-BFGS-B to Adam if a precision loss happens  
 
