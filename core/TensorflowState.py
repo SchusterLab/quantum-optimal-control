@@ -173,7 +173,7 @@ class TensorflowState:
             self.raw_weight = []
 
             #initial_xy_stddev = (0.1/np.sqrt(self.sys_para.control_steps))
-            initial_stddev = (0.1/np.sqrt(self.sys_para.steps))
+            initial_stddev = (10./np.sqrt(self.sys_para.steps))
             if self.sys_para.Dts != []:
                 self.raw_weight = []
                 if self.sys_para.ops_len - len(self.sys_para.Dts) > 0:
@@ -187,7 +187,7 @@ class TensorflowState:
                         current = tf.concat(0,[current,weights[ii+1,:]])
                     self.current = tf.reshape(current,[1, (self.sys_para.ops_len - len(self.sys_para.Dts))*self.sys_para.steps])
                 else:
-                    initial_stddev = (0.1/np.sqrt(self.sys_para.ctrl_steps[0]))
+                    initial_stddev = (10/np.sqrt(self.sys_para.ctrl_steps[0]))
                     weights = tf.truncated_normal([1 ,self.sys_para.ctrl_steps[0]],
                                                                    mean= initial_guess ,dtype=tf.float32,
                             stddev=initial_stddev )
@@ -196,7 +196,7 @@ class TensorflowState:
                     self.current = weights
 
                 for ii in range (len(self.sys_para.Dts)-index):
-                    initial_stddev = (0.1/np.sqrt(self.sys_para.ctrl_steps[ii+index]))
+                    initial_stddev = (10/np.sqrt(self.sys_para.ctrl_steps[ii+index]))
                     weight = tf.truncated_normal([1 ,self.sys_para.ctrl_steps[ii+index]],
                                                                    mean= initial_guess ,dtype=tf.float32,
                             stddev=initial_stddev )

@@ -215,6 +215,7 @@ class run_session:
                 self.Uf=[]
             if self.show_plots == False:
                 print l
+                print time.time() - self.start_time
             #print res.message
             
         return res, uks

@@ -7,9 +7,10 @@ from scipy.special import factorial
 
 class SystemParametersGeneral:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling):
         # Input variable
         self.state_transfer = state_transfer
+        self.no_scaling = no_scaling
        
         self.H0_c = H0
         self.ops_c = Hops
@@ -106,7 +107,7 @@ class SystemParametersGeneral:
         else:
             self.div = d
         
-        if self.state_transfer:
+        if self.state_transfer or self.no_scaling:
             self.div =0
         while True:
             for ii in range (self.steps):
@@ -206,7 +207,7 @@ class SystemParametersGeneral:
         
         self.exps =[]
         self.divs = []
-        if self.state_transfer:
+        if self.state_transfer or self.no_scaling:
             comparisons = 1
         else:
             comparisons = 5

@@ -261,7 +261,7 @@ class ConvergenceGeneral:
 
             pop_inter_vecs = inter_vecs[ii]
             if self.sys_para.multi:
-                self.plot_inter_vecs_v2(pop_inter_vecs)
+                self.plot_inter_vecs_general(pop_inter_vecs,self.sys_para.states_concerned_list[ii])
             else:
                 self.plot_inter_vecs_general(pop_inter_vecs,self.sys_para.states_concerned_list[ii])        
         
