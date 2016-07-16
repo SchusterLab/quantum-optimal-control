@@ -11,23 +11,24 @@ class TensorflowState:
     
     def __init__(self,sys_para,use_gpu = True):
         self.sys_para = sys_para
-	this_dir = os.path.dirname(__file__)
-	user_ops_path = os.path.join(this_dir,'../custom_kernels/build')
+        this_dir = os.path.dirname(__file__)
+        user_ops_path = os.path.join(this_dir,'../custom_kernels/build')
     
-        if self.sys_para.state_transfer:
+        if self.sys_para.state_transfer: #choosing matrix_vector kernel
             kernel_filename = 'cuda_matexp_vecs.so'
             matrix_vec_grad_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs_grads.so'))
             import custom_kernels.gradients.matexp_grad_vecs as mgv
             mgv.register_gradient(matrix_vec_grad_exp_module)
-        else:
+        else: #choosing matrix matrix kernel
 
             if use_gpu:
                 kernel_filename = 'cuda_matexp_v4.so'
             else:
                 kernel_filename = 'matrix_exp.so'	
 
-
-	self.matrix_exp_module = tf.load_op_library(os.path.join(user_ops_path,kernel_filename))        
+        with tf.name_scope('kernel'):
+            self.matrix_exp_module = tf.load_op_library(os.path.join(user_ops_path,kernel_filename))      
+           
 
     def init_variables(self):
         self.tf_identity = tf.constant(self.sys_para.identity,dtype=tf.float32)
@@ -68,55 +69,15 @@ class TensorflowState:
             
         print "Operators initialized."
         
-    def get_j(self,l, Dt):
+    def get_j(self,l, Dt): # function for the interpolation
         dt=self.sys_para.dt
         jj=np.floor((l*dt-0.5*Dt)/Dt)
         return jj
     
     
             
-    def transfer_fn(self,xy):
-        
-        indices=[]
-        values=[]
-        shape=[self.sys_para.steps,self.sys_para.control_steps]
-        dt=self.sys_para.dt
-        Dt=self.sys_para.Dt
     
-    # Cubic Splines
-        for ll in range (self.sys_para.steps):
-            jj=self.get_j(ll, Dt)
-            tao= ll*dt - jj*Dt - 0.5*Dt
-            if jj >= 1:
-                indices.append([int(ll),int(jj-1)])
-                temp= -(tao/(2*Dt))*((tao/Dt)-1)**2
-                values.append(temp)
-                
-            if jj >= 0:
-                indices.append([int(ll),int(jj)])
-                temp= 1+((3*tao**3)/(2*Dt**3))-((5*tao**2)/(2*Dt**2))
-                values.append(temp)
-                
-            if jj+1 <= self.sys_para.control_steps-1:
-                indices.append([int(ll),int(jj+1)])
-                temp= ((tao)/(2*Dt))+((4*tao**2)/(2*Dt**2))-((3*tao**3)/(2*Dt**3))
-                values.append(temp)
-               
-            if jj+2 <= self.sys_para.control_steps-1:
-                indices.append([int(ll),int(jj+2)])
-                temp= ((tao**3)/(2*Dt**3))-((tao**2)/(2*Dt**2))
-                values.append(temp)
-                
-            
-        T1=tf.SparseTensor(indices, values, shape)  
-        T2=tf.sparse_reorder(T1)
-        T=tf.sparse_tensor_to_dense(T2)
-        temp1 = tf.matmul(T,tf.reshape(xy[0,:],[self.sys_para.control_steps,1]))
-        temp2 = tf.matmul(T,tf.reshape(xy[1,:],[self.sys_para.control_steps,1]))
-        xys=tf.concat(1,[temp1,temp2])
-        return tf.transpose(xys)
-
-    def transfer_fn_general(self,w,steps):
+    def transfer_fn_general(self,w,steps): # Interpolating function, interpolates weights vector w to steps size
         
         indices=[]
         values=[]
@@ -163,51 +124,51 @@ class TensorflowState:
         #tf weights of operators
         
             
-        self.H0 = tf.Variable(tf.ones([self.sys_para.steps]), trainable=False)
-        self.Hs_unpacked=[self.H0]
+        self.H0 = tf.Variable(tf.ones([self.sys_para.steps]), trainable=False) #Just a vector of ones needed for the kernel
+        self.Hs_unpacked=[self.H0] #will collect all Hamiltonians here
 
 
-        if self.sys_para.u0 == []:
+        if self.sys_para.u0 == []: #No initial guess supplied
             initial_guess = 0
             index = 0
-            self.raw_weight = []
+            
 
             #initial_xy_stddev = (0.1/np.sqrt(self.sys_para.control_steps))
             initial_stddev = (10./np.sqrt(self.sys_para.steps))
-            if self.sys_para.Dts != []:
-                self.raw_weight = []
-                if self.sys_para.ops_len - len(self.sys_para.Dts) > 0:
+            if self.sys_para.Dts != []: # We have different time scales
+                
+                if self.sys_para.ops_len - len(self.sys_para.Dts) > 0: # if there exists operators that don't need interpolation
                     weights = tf.truncated_normal([self.sys_para.ops_len - len(self.sys_para.Dts) ,self.sys_para.steps],
                                                                mean= initial_guess ,dtype=tf.float32,
-                        stddev=initial_stddev )
+                        stddev=initial_stddev ) #initialize all ops that don't need interpolation together first
 
                     self.ops_weight_base = weights
                     current = weights[0,:]
                     for ii in range (self.sys_para.ops_len - len(self.sys_para.Dts)-1):
                         current = tf.concat(0,[current,weights[ii+1,:]])
                     self.current = tf.reshape(current,[1, (self.sys_para.ops_len - len(self.sys_para.Dts))*self.sys_para.steps])
-                else:
-                    initial_stddev = (10/np.sqrt(self.sys_para.ctrl_steps[0]))
+                    #self.current holds the concatenated weights
+                else: # all operators need interpolation
+                    initial_stddev = (10./np.sqrt(self.sys_para.ctrl_steps[0]))
                     weights = tf.truncated_normal([1 ,self.sys_para.ctrl_steps[0]],
                                                                    mean= initial_guess ,dtype=tf.float32,
                             stddev=initial_stddev )
                     index = 1
-                    self.ops_weight_base = self.transfer_fn_general(weights,self.sys_para.ctrl_steps[0])
                     self.current = weights
+                    #self.current holds the first weight vector
 
-                for ii in range (len(self.sys_para.Dts)-index):
-                    initial_stddev = (10/np.sqrt(self.sys_para.ctrl_steps[ii+index]))
+                for ii in range (len(self.sys_para.Dts)-index): # add all remaining non interpolated wieghts
+                    initial_stddev = (1/np.sqrt(self.sys_para.ctrl_steps[ii+index]))
                     weight = tf.truncated_normal([1 ,self.sys_para.ctrl_steps[ii+index]],
                                                                    mean= initial_guess ,dtype=tf.float32,
                             stddev=initial_stddev )
-
-
 
                     self.current = tf.concat(1,[self.current,weight])
 
 
                 self.raws = tf.Variable(self.current, dtype=tf.float32,name ="weights")
-
+#start interpolating them
+                self.ops_weight_base = self.transfer_fn_general(self.raws[:,0: self.sys_para.ctrl_steps[0]],self.sys_para.ctrl_steps[0])
                 self.raw_weight.append(self.raws[:,(self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps:(self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps+self.sys_para.ctrl_steps[0]])
                 starting_index = (self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps + (index * self.sys_para.ctrl_steps[0])
                 flag = False
@@ -228,20 +189,21 @@ class TensorflowState:
 
 
                     starting_index = starting_index + self.sys_para.ctrl_steps[ii+index]
+                    
 
 
 
 
 
-            else:
+            else: #No interpolation needed
 
                 self.ops_weight_base = tf.Variable(tf.truncated_normal([self.sys_para.ops_len,self.sys_para.steps],
                                                                mean= initial_guess ,dtype=tf.float32,
-                        stddev=initial_stddev ),name="weights")
+                        stddev=initial_stddev ),name="weight_bases")
                 self.raws = self.ops_weight_base
 
-
-        else:
+            
+        else: #initial guess supplied
             self.op_weight = tf.constant(self.sys_para.u0[0],dtype=tf.float32)
             for ii in range (self.sys_para.ops_len-1):
 
@@ -250,12 +212,12 @@ class TensorflowState:
             self.ops_weight_base = tf.Variable(self.op_weight,dtype=tf.float32,name="weights")
             self.raws = self.ops_weight_base
 
-        self.ops_weight = tf.tanh(self.ops_weight_base)
+        self.ops_weight = tf.tanh(self.ops_weight_base,name="weights")
         for ii in range (self.sys_para.ops_len):
             self.Hs_unpacked.append(self.sys_para.ops_max_amp[ii]*self.ops_weight[ii,:])
 
 
-        self.Hs = tf.pack(self.Hs_unpacked)
+        self.Hs = tf.pack(self.Hs_unpacked,name="packed_weights")
             
         #self.ops_weight = tf.tanh(self.ops_weight_base)
         
@@ -273,7 +235,7 @@ class TensorflowState:
         print "Intermediate states initialized."
             
     def get_inter_state_op(self,layer):
-        # build opertor for intermediate state propagation
+        # build operator for intermediate state propagation
         # This function determines the nature of propagation
         matrix_list = self.H0_flat
         for ii in range(self.sys_para.ops_len):
@@ -296,7 +258,7 @@ class TensorflowState:
         for ii in np.arange(1,self.sys_para.steps):
             self.inter_states[ii] = tf.matmul(self.get_inter_state_op(ii),self.inter_states[ii-1])
             
-        #apply global phase operator to final state
+        
         self.final_state = self.inter_states[self.sys_para.steps-1]
         
         self.unitary_scale = (0.5/self.sys_para.state_num)*tf.reduce_sum(tf.matmul(tf.transpose(self.final_state),self.final_state))
@@ -308,23 +270,23 @@ class TensorflowState:
         
         for tf_initial_vector in self.tf_initial_vectors:
         
-            inter_vec = tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1])
+            inter_vec = tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1],name="initial_vector")
             for ii in np.arange(0,self.sys_para.steps):
-                inter_vec_temp = tf.matmul(self.inter_states[ii],tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1]))
-                inter_vec = tf.concat(1,[inter_vec,inter_vec_temp])
+                inter_vec_temp = tf.matmul(self.inter_states[ii],tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1]),name="inter_vec_"+str(ii))
+                inter_vec = tf.concat(1,[inter_vec,inter_vec_temp],name = "all_vectors")
                 
             self.inter_vecs.append(inter_vec)
             
         print "Vectors initialized."
         
-    def init_tf_inter_vector_state(self):
+    def init_tf_inter_vector_state(self): # for state transfer
         self.inter_vecs=[]
        
         matrix_list = self.H0_flat
         for ii in range(self.sys_para.ops_len):
             matrix_list = matrix_list + self.flat_ops[ii]
         matrix_list = matrix_list + self.I_flat
-        inter_vec = tf.reshape(self.tf_initial_vectors,[2*self.sys_para.state_num,1])
+        inter_vec = tf.reshape(self.tf_initial_vectors,[2*self.sys_para.state_num,1],name="initial_vector")
         for ii in np.arange(0,self.sys_para.steps):
             if ii==0:
                 psi = self.tf_initial_vectors
@@ -332,8 +294,8 @@ class TensorflowState:
                 psi = inter_vec_temp
             inter_vec_temp = tf.reshape(self.matrix_exp_module.matrix_exp_vecs(self.Hs[:,ii],psi,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
                                       exp_num = self.sys_para.exp_terms, vecs_num = 1
-                                      ,matrix=matrix_list),[2*self.sys_para.state_num,1])
-            inter_vec = tf.concat(1,[inter_vec,inter_vec_temp])
+                                      ,matrix=matrix_list),[2*self.sys_para.state_num,1],name="inter_vec_"+str(ii))
+            inter_vec = tf.concat(1,[inter_vec,inter_vec_temp],name = "all_vectors")
             
         self.inter_vecs.append(inter_vec)
         self.unitary_scale = 0
@@ -349,13 +311,14 @@ class TensorflowState:
         psi_2_real = (psi2[0:state_num])
         psi_2_imag = (psi2[state_num:2*state_num])
         # psi1 has a+ib, psi2 has c+id, we wanna get Sum ((ac+bd) + i (bc-ad)) magnitude
-        ac = tf.mul(psi_1_real,psi_2_real)
-        bd = tf.mul(psi_1_imag,psi_2_imag)
-        bc = tf.mul(psi_1_imag,psi_2_real)
-        ad = tf.mul(psi_1_real,psi_2_imag)
-        reals = tf.square(tf.add(tf.reduce_sum(ac),tf.reduce_sum(bd)))
-        imags = tf.square(tf.sub(tf.reduce_sum(bc),tf.reduce_sum(ad)))
-        norm = tf.add(reals,imags)
+        with tf.name_scope('inner_product'):
+            ac = tf.mul(psi_1_real,psi_2_real)
+            bd = tf.mul(psi_1_imag,psi_2_imag)
+            bc = tf.mul(psi_1_imag,psi_2_real)
+            ad = tf.mul(psi_1_real,psi_2_imag)
+            reals = tf.square(tf.add(tf.reduce_sum(ac),tf.reduce_sum(bd)))
+            imags = tf.square(tf.sub(tf.reduce_sum(bc),tf.reduce_sum(ad)))
+            norm = tf.add(reals,imags)
         return norm
     
     def init_training_loss(self):
@@ -376,43 +339,49 @@ class TensorflowState:
             for inter_vec in self.inter_vecs:
                 self.final_state= inter_vec[:,self.sys_para.steps]
             inner_product = self.get_inner_product(self.tf_target_state,self.final_state)
-            self.loss = tf.abs(1 - inner_product)
+            self.loss = tf.abs(1 - inner_product, name ="Fidelity_error")
     
     
         # Regulizer
-        self.reg_loss = self.loss
-        self.reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
-        reg_alpha = self.reg_alpha_coeff/float(self.sys_para.steps)
-        self.reg_loss = self.reg_loss + reg_alpha * tf.nn.l2_loss(tf.mul(self.tf_one_minus_gaussian_evelop,self.ops_weight))
-        
-        # Constrain Z to have no dc value
-        self.z_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
-        z_reg_alpha = self.z_reg_alpha_coeff/float(self.sys_para.steps)
-        #self.reg_loss = self.reg_loss + z_reg_alpha*tf.square(tf.reduce_sum(self.ops_weight[2,:]))
-        
-        # Limiting the dwdt of control pulse
-        self.dwdt_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
-        dwdt_reg_alpha = self.dwdt_reg_alpha_coeff/float(self.sys_para.steps)
-        self.reg_loss = self.reg_loss + dwdt_reg_alpha*tf.nn.l2_loss((self.ops_weight[:,1:]-self.ops_weight[:,:self.sys_para.steps-1])/self.sys_para.dt)
-        
-       
-            
-        # Limiting the d2wdt2 of control pulse
-        self.d2wdt2_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
-        d2wdt2_reg_alpha = self.d2wdt2_reg_alpha_coeff/float(self.sys_para.steps)
-        self.reg_loss = self.reg_loss + d2wdt2_reg_alpha*tf.nn.l2_loss((self.ops_weight[:,2:] -\
-                        2*self.ops_weight[:,1:self.sys_para.steps-1] +self.ops_weight[:,:self.sys_para.steps-2])/(self.sys_para.dt**2))
-        
-        # Limiting the access to forbidden states
-        self.inter_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
-        inter_reg_alpha = self.inter_reg_alpha_coeff/float(self.sys_para.steps)
-        
-        for inter_vec in self.inter_vecs:
-            for state in self.sys_para.states_forbidden_list:
-                forbidden_state_pop = tf.square(inter_vec[state,:]) +\
-                                    tf.square(inter_vec[self.sys_para.state_num+state,:])
-                self.reg_loss = self.reg_loss + inter_reg_alpha * tf.nn.l2_loss(forbidden_state_pop)
-            
+        with tf.name_scope('reg_errors'):
+            self.reg_loss = self.loss
+            self.reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
+            reg_alpha = self.reg_alpha_coeff/float(self.sys_para.steps)
+            self.reg_loss = self.reg_loss + reg_alpha * tf.nn.l2_loss(tf.mul(self.tf_one_minus_gaussian_evelop,self.ops_weight))
+
+            # Constrain Z to have no dc value
+            self.z_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
+            z_reg_alpha = self.z_reg_alpha_coeff/float(self.sys_para.steps)
+            #self.reg_loss = self.reg_loss + z_reg_alpha*tf.square(tf.reduce_sum(self.ops_weight[2,:]))
+
+            # Limiting the dwdt of control pulse
+            self.dwdt_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
+            dwdt_reg_alpha = self.dwdt_reg_alpha_coeff/float(self.sys_para.steps)
+            self.reg_loss = self.reg_loss + dwdt_reg_alpha*tf.nn.l2_loss((self.ops_weight[:,1:]-self.ops_weight[:,:self.sys_para.steps-1])/self.sys_para.dt)
+
+
+
+            # Limiting the d2wdt2 of control pulse
+            self.d2wdt2_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
+            d2wdt2_reg_alpha = self.d2wdt2_reg_alpha_coeff/float(self.sys_para.steps)
+            self.reg_loss = self.reg_loss + d2wdt2_reg_alpha*tf.nn.l2_loss((self.ops_weight[:,2:] -\
+                            2*self.ops_weight[:,1:self.sys_para.steps-1] +self.ops_weight[:,:self.sys_para.steps-2])/(self.sys_para.dt**2))
+
+            # Limiting the access to forbidden states
+            self.inter_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
+            inter_reg_alpha = self.inter_reg_alpha_coeff/float(self.sys_para.steps)
+
+            for inter_vec in self.inter_vecs:
+                for state in self.sys_para.states_forbidden_list:
+                    forbidden_state_pop = tf.square(inter_vec[state,:]) +\
+                                        tf.square(inter_vec[self.sys_para.state_num+state,:])
+                    self.reg_loss = self.reg_loss + inter_reg_alpha * tf.nn.l2_loss(forbidden_state_pop)
+
+            ends = 1/float(self.sys_para.steps)
+            end_steps = int(self.sys_para.steps *0.05)
+
+            #self.reg_loss = self.reg_loss + ends*(tf.add(tf.nn.l2_loss(self.ops_weight[:,:end_steps]),tf.nn.l2_loss(self.ops_weight[:,self.sys_para.steps-end_steps:])))
+           
         print "Training loss initialized."
             
     def init_optimizer(self):
@@ -467,5 +436,7 @@ class TensorflowState:
             self.init_utilities()
             
             print "Graph built!"
-
+            #tf.train.SummaryWriter.add_graph(graph)
+            #tf.train.SummaryWriter('./tmp/graph',graph)
+        
         return graph

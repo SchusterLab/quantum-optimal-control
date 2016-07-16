@@ -13,6 +13,7 @@ class Analysis:
         self.tf_unitary_scale = tf_unitary_scale
         if raw_weight != None:
             self.raw_weight = raw_weight
+            
         if raws != None:
             self.raws = raws
         self.tf_inter_vecs = tf_inter_vecs
@@ -55,7 +56,8 @@ class Analysis:
 	data_path = os.path.join(self.this_dir,'../data/GRAPE-raw-weight')
         raw_weight =[]
         for ii in range (len(self.sys_para.Dts)):
-            raw_weight.append(self.raw_weight[ii].eval())
+            raw_weight.append(np.tanh(self.raw_weight[ii].eval()))
+            
             np.save(data_path, np.array(raw_weight[ii]))
 
         

@@ -13,15 +13,17 @@ import random as rd
 import time
 from IPython import display
 
-def Evolve(H0,Hops,U0,total_time,steps,psi0,initial_guess,U=None,draw=None):
-    Hnames = []
+def Evolve(H0,Hops,U0,total_time,steps,psi0,initial_guess,U=None,draw=None,Hnames = None):
+    
     flag = True
-    for ii in range (len(Hops)):
-        Hnames.append(' ')
+    if Hnames == None:
+        for ii in range (len(Hops)):
+            Hnames.append(str(ii))
+    
     if U == None:
         flag = False
         U = U0
     convergence = {'rate':0, 'update_step':1, 'max_iterations':0,\
                'conv_target':1e-8,'learning_rate_decay':1}
     
-    Grape(H0,Hops,Hnames,U,U0,total_time,steps,psi0,convergence, draw= draw, initial_guess = initial_guess, evolve = True, evolve_error = flag)
+    Grape(H0,Hops,Hnames,U,U0,total_time,steps,psi0,convergence, draw= draw, initial_guess = initial_guess, evolve = True, evolve_error = flag,Unitary_error = 1e-20)

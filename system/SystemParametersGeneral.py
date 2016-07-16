@@ -11,13 +11,12 @@ class SystemParametersGeneral:
         # Input variable
         self.state_transfer = state_transfer
         self.no_scaling = no_scaling
-       
         self.H0_c = H0
         self.ops_c = Hops
         self.ops_max_amp = maxA
         self.Hnames = Hnames
-        self.Hnames_original = Hnames
-        self.multi = False
+        self.Hnames_original = Hnames #because we might rearrange them later if we have different timescales 
+        self.multi = False #are we using a multimode system?
         self.total_time = total_time
         self.steps = steps
         self.show_plots = show_plots
@@ -31,7 +30,8 @@ class SystemParametersGeneral:
             self.u0 = initial_guess
             for ii in range (len(self.u0)):
                 self.u0[ii]= self.u0[ii]/self.ops_max_amp[ii]
-            self.u0 = np.arctanh(self.u0)
+            self.u0 = np.arctanh(self.u0) #because we take the tanh of weights later
+            
         else:
             self.u0 =[]
         self.states_concerned_list = states_concerned_list
@@ -43,7 +43,7 @@ class SystemParametersGeneral:
         self.Interpolation = False
         self.D = False
         self.U0_c = U0
-        self.initial_state = CtoRMat(U0)
+        self.initial_state = CtoRMat(U0) #CtoRMat is converting complex matrices to their equivalent real (double the size) matrices
         if self.state_transfer == False:
             self.target_state = CtoRMat(U)
         else:
@@ -75,26 +75,24 @@ class SystemParametersGeneral:
         self.init_operators()
         self.init_one_minus_gaussian_envelop()
         self.init_pulse_operator()
-        self.prev_ops_weight()
 
-    def approx_expm(self,M,exp_t, div):
+    def approx_expm(self,M,exp_t, div): #approximate the exp at the beginning to estimate the number of taylor terms and scaling and squaring needed
         U=np.identity(len(M),dtype=M.dtype)
         Mt=np.identity(len(M),dtype=M.dtype)
-        iif=1.0
+        iif=1.0 #for factorials
         
         for ii in xrange(1,exp_t):
             iif*=ii
-            #print "ii = %d, iif = %f, 2**(ii*div) = %f" % (ii,iif, 2**(ii*div))
-            #print Mt
             Mt=np.dot(Mt,M)
-            U+=Mt/((2.**float(ii*div))*iif)
+            U+=Mt/((2.**float(ii*div))*iif) #scaling by 2**div
 
         
         for ii in xrange(div):
-            U=np.dot(U,U)
+            U=np.dot(U,U) #squaring div times
         
         return U
-    def Choose_exp_terms(self, d):
+    
+    def Choose_exp_terms(self, d): #given our hamiltonians and a number of scaling/squaring, we determine the number of Taylor terms
         exp_t = 20
         
         H=self.H0_c
@@ -126,43 +124,33 @@ class SystemParametersGeneral:
 
         
     def init_system(self):
-        self.initial_pulse = False
-        self.prev_pulse = False
-
-        
-        self.subpixels = 50
-        
-
         self.dt = self.total_time/self.steps
-        if self.Interpolation:
-            self.Dt = self.dt*self.subpixels
-            self.control_steps = int(self.total_time/self.Dt)+1
-        else:
-            self.Dts = []
-            self.Dts_indices = []
-            self.ctrl_steps = []
-            idx = []
-            if self.dts != []:
-                for key in self.dts:
-                    Dt= self.dts[key]
-                    if Dt > self.dt:
-                        self.Dts.append(Dt)
-                        self.Dts_indices.append(int(key))
-                        self.ctrl_steps.append(int(self.total_time/Dt)+1)
-                        
-                for ii in range (len(self.ops_c)):
-                    if ii not in self.Dts_indices:
-                        idx.append(ii)
-                for jj in range (len(self.Dts_indices)):
-                    idx.append(self.Dts_indices[jj])
-                    
-                
-                self.ops_c = np.asarray(self.ops_c)[idx]
-                self.ops_max_amp = np.asarray(self.ops_max_amp)[idx]
-                self.Hnames = np.asarray(self.Hnames)[idx]
+        self.Dts = []
+        self.Dts_indices = []
+        self.ctrl_steps = []
+        idx = []
+        if self.dts != []: #generate Hops and Hnames rearranged such that the controls without a special dt come first
+            for key in self.dts:
+                Dt= self.dts[key]
+                if Dt > self.dt:
+                    self.Dts.append(Dt)
+                    self.Dts_indices.append(int(key))
+                    self.ctrl_steps.append(int(self.total_time/Dt)+1)
+
+            for ii in range (len(self.ops_c)):
+                if ii not in self.Dts_indices:
+                    idx.append(ii)
+            for jj in range (len(self.Dts_indices)):
+                idx.append(self.Dts_indices[jj])
+
+
+            self.ops_c = np.asarray(self.ops_c)[idx]
+            self.ops_max_amp = np.asarray(self.ops_max_amp)[idx]
+            self.Hnames = np.asarray(self.Hnames)[idx]
             self.Dt = self.dt
             self.control_steps = self.steps
         
+            print self.ctrl_steps
         
         self.state_num= len(self.H0_c)
         
@@ -231,10 +219,7 @@ class SystemParametersGeneral:
         one_minus_gauss = []
         offset = 0.0
         overall_offset = 0.01
-        if self.multi:
-            opsnum=self.ops_len
-        else:
-            opsnum=self.ops_len
+        opsnum=self.ops_len
         for ii in range(opsnum):
             constraint_shape = np.ones(self.steps)- self.gaussian(np.linspace(-2,2,self.steps)) - offset
             constraint_shape = constraint_shape * (constraint_shape>0)
@@ -271,13 +256,3 @@ class SystemParametersGeneral:
 
 
         self.manual_pulse = np.array(manual_pulse)
-
-    def prev_ops_weight(self):
-        if self.initial_pulse and self.prev_pulse:
-            prev_ops_weight = np.load("/home/nelson/Simulations/GRAPE-GPU/data/g00-g11/GRAPE-control.npy")
-            prev_ops_weight_base = np.arctanh(prev_ops_weight)
-            temp_ops_weight_base = np.zeros([self.ops_len,self.steps])
-            temp_ops_weight_base[:,:len(prev_ops_weight_base[0])] +=prev_ops_weight_base
-            self.prev_ops_weight_base = temp_ops_weight_base
-            
-

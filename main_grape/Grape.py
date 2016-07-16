@@ -18,12 +18,23 @@ def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence
     
     
     if reg_coeffs == None:
-        reg_coeffs = {'alpha' : 0.01, 'z':0.01, 'dwdt':0.01,'d2wdt2':0.001*0.0001, 'inter':100}
+        if evolve:
+            reg_coeffs = {'alpha' : 0, 'z':0, 'dwdt':0,'d2wdt2':0, 'inter':0}
+        else:
+            reg_coeffs = {'alpha' : 0.01, 'z':0.01, 'dwdt':0.001,'d2wdt2':0.001*0.0001, 'inter':100}
+            #reg_coeffs = {'alpha' : 0, 'z':0, 'dwdt':0.000001,'d2wdt2':0.000001, 'inter':0}
+        # alpha: to make it close to a Gaussian envelope
+        # z: to limit DC offset of z pulses 
+        # dwdt: to limit pulse first derivative
+        # d2wdt2: to limit second derivatives
+        # inter: to penalize forbidden states
+        #reg_coeffs = {'alpha' : 0, 'z':0, 'dwdt':0,'d2wdt2':0, 'inter':0}
+        
     if maxA == None:
         if initial_guess == None:
             maxAmp = 4*np.ones(len(Hops))
         else:
-            maxAmp = np.ones(len(Hops))
+            maxAmp = 1.5*np.max(np.abs(initial_guess))*np.ones(len(Hops))
     else:
         maxAmp = maxA
     
@@ -31,7 +42,7 @@ def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence
     
     
     
-    class SystemParameters(SystemParametersGeneral):
+    class SystemParameters(SystemParametersGeneral): #build pyhton system parameters
         
         def __init__(self):
             SystemParametersGeneral.__init__(self,H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,multi_mode,maxAmp, draw,initial_guess, evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling )
@@ -43,7 +54,7 @@ def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence
         dev = '/cpu:0'
             
     with tf.device(dev):
-        tfs = TensorflowState(sys_para,use_gpu)
+        tfs = TensorflowState(sys_para,use_gpu) # create tensorflow graph
         graph = tfs.build_graph()
     
     class Convergence(ConvergenceGeneral):
