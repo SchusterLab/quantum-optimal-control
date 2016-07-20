@@ -3,8 +3,8 @@ import tensorflow as tf
 from runtime_functions.Analysis import Analysis
 import os
 import time
-import scipy
 from scipy.optimize import minimize
+
 
 class run_session:
     def __init__(self, tfs,graph,conv,sys_para,method,show_plots=True,single_simulation = False,switch = True):
@@ -38,9 +38,7 @@ class run_session:
                     g,l,rl,uks = self.session.run([tfs.grad_pack, tfs.loss, tfs.reg_loss,tfs.ops_weight_base], feed_dict=self.feed_dict)
                 else:
                     g,l,rl,uks = self.session.run([tfs.grad_pack, tfs.loss, tfs.reg_loss,tfs.raws], feed_dict=self.feed_dict)
-                
-                #lol = self.session.run([tfs.lol], feed_dict= self.feed_dict)
-                
+                                
                 myfactr = 1e-20
                 ftol = myfactr * np.finfo(float).eps
                 res=self.optimize(uks, method=self.method,jac = True, options={'maxfun' : self.conv.max_iterations,'gtol': self.conv.min_grad, 'disp':False,'ftol':ftol, 'maxls': 40})
@@ -72,21 +70,19 @@ class run_session:
                             this_dir = os.path.dirname(__file__)
                             tmp_path = os.path.join(this_dir,'../tmp/grape.ckpt')
                             save_path = tfs.saver.save(self.session, tmp_path)
-                            if (self.iterations >= max_iterations) or (l < self.conv.conv_target): #(l<conv.conv_target) or (iterations>=conv.max_iterations):
+                            if (self.iterations >= max_iterations) or (l < self.conv.conv_target): 
                                 
                                 self.uks= self.Get_uks()
                                 if not self.sys_para.state_transfer:
                                     self.Uf = self.anly.get_final_state()
                                 else:
                                     self.Uf=[]
-                            #anly.get_xy_weight()
-                            #if sys_para.Modulation:
-                                #anly.get_nonmodulated_weight() 
+                            
                                 break
                         else:
                             elapsed = time.time() - start_time
                             print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e'%(l,elapsed,self.iterations,g)
-                            if (self.iterations >= max_iterations) or (l < self.conv.conv_target) or (g < self.conv.min_grad): #(l<conv.conv_target) or (iterations>=conv.max_iterations):
+                            if (self.iterations >= max_iterations) or (l < self.conv.conv_target) or (g < self.conv.min_grad): 
                                 
                                 self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
                                 
@@ -97,23 +93,21 @@ class run_session:
                                     self.Uf = self.anly.get_final_state()
                                 else:
                                     self.Uf=[]
-                            #anly.get_xy_weight()
-                            #if sys_para.Modulation:
-                                #anly.get_nonmodulated_weight() 
+                           
                                 break
 
 
                     self.iterations+=1
                     
                       
-    def Sort_back(self,uks):
+    def Sort_back(self,uks): # To restore the order of uks (pulse amplitudes) as in the input
         uks_original = []
         for op in self.sys_para.Hnames_original:
             index = self.sys_para.Hnames.tolist().index(op)
             uks_original.append(uks[index])
         return uks_original
         
-    def Get_uks(self):
+    def Get_uks(self): # to get the pulse amplitudes in any scenario (including different time scales) 
         if self.sys_para.Dts==[]:
             uks = self.anly.get_ops_weight()
             for ii in range (len(uks)):
@@ -139,7 +133,7 @@ class run_session:
 
     
 #BFGS functions:
-    def evolve(self,uks):
+    def get_error(self,uks):
         
         if self.sys_para.Dts==[]:
             self.session.run(self.tfs.ops_weight_base.assign(uks))
@@ -157,10 +151,10 @@ class run_session:
     
     def minimize_opt_fun(self,x):
         if self.sys_para.Dts==[]:
-            l,rl,grads=self.evolve(np.reshape(x,(len(self.sys_para.ops_c),len(x)/len(self.sys_para.ops_c))))
+            l,rl,grads=self.get_error(np.reshape(x,(len(self.sys_para.ops_c),len(x)/len(self.sys_para.ops_c))))
         else:
-            l,rl,grads=self.evolve(np.reshape(x,[1,len(x)]))
-        #l,rl,grads=self.evolve(x)
+            l,rl,grads=self.get_error(np.reshape(x,[1,len(x)]))
+        
         
         if l <self.conv.conv_target and self.first:
             self.conv_time = time.time()-self.start_time
@@ -180,9 +174,6 @@ class run_session:
         self.iterations=self.iterations+1
         
         
-            
-        #print np.shape(rl)
-        #print np.shape(grads)
         if self.method == 'L-BFGS-B':
             return np.float64(rl),np.float64(np.transpose(grads))
         else:
@@ -224,7 +215,7 @@ class run_session:
                 print("Error = %1.2e" %l)
                 print time.time() - self.start_time
                 print self.conv_time,self.conv_iter
-            #print res.message
+        
             
         return res, uks
     

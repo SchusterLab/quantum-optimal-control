@@ -1,5 +1,5 @@
 import numpy as np
-from math_functions.Sort import Sort_ev
+from helper_functions.grape_functions import sort_ev
 import os
 
 class Analysis:
@@ -73,7 +73,7 @@ class Analysis:
         state_num = self.sys_para.state_num
         inter_vecs_mag_squared = []
         if self.sys_para.D:
-            v_sorted=Sort_ev(self.sys_para.v_c,self.sys_para.dressed)
+            v_sorted=sort_ev(self.sys_para.v_c,self.sys_para.dressed)
         ii=0
         for tf_inter_vec in self.tf_inter_vecs:
             inter_vec = tf_inter_vec.eval()

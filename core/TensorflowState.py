@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 import tensorflow as tf
-from math_functions.c_to_r_mat import CtoRMat
+from helper_functions.grape_functions import c_to_r_mat
 from custom_kernels.gradients.matexp_grad_vecs import *
 from custom_kernels.gradients.matexp_grad_v3 import *
 import os
@@ -10,7 +10,9 @@ import os
 class TensorflowState:
     
     def __init__(self,sys_para,use_gpu = True):
+        
         self.sys_para = sys_para
+        # Setting up our matrix exponential kernel
         this_dir = os.path.dirname(__file__)
         user_ops_path = os.path.join(this_dir,'../custom_kernels/build')
     
@@ -24,7 +26,7 @@ class TensorflowState:
             if use_gpu:
                 kernel_filename = 'cuda_matexp_v4.so'
             else:
-                kernel_filename = 'matrix_exp.so'	
+                kernel_filename = 'matrix_exp.so'
 
         with tf.name_scope('kernel'):
             self.matrix_exp_module = tf.load_op_library(os.path.join(user_ops_path,kernel_filename))      
@@ -32,8 +34,8 @@ class TensorflowState:
 
     def init_variables(self):
         self.tf_identity = tf.constant(self.sys_para.identity,dtype=tf.float32)
-        self.tf_neg_i = tf.constant(CtoRMat(-1j*self.sys_para.identity_c),dtype=tf.float32)
-        self.tf_one_minus_gaussian_evelop = tf.constant(self.sys_para.one_minus_gauss,dtype=tf.float32)
+        self.tf_neg_i = tf.constant(c_to_r_mat(-1j*self.sys_para.identity_c),dtype=tf.float32)
+        self.tf_one_minus_gaussian_envelope = tf.constant(self.sys_para.one_minus_gauss,dtype=tf.float32)
         
         
     def init_tf_vectors(self):
@@ -45,14 +47,14 @@ class TensorflowState:
                 tf_initial_vector = tf.constant(initial_vector,dtype=tf.float32)
                 self.tf_initial_vectors.append(tf_initial_vector)
     
-    def init_tf_states(self):
-        #tf initial and target states
-        self.tf_initial_state = tf.constant(self.sys_para.initial_state,dtype=tf.float32)
+    def init_tf_propagators(self):
+        #tf initial and target propagator
+        self.tf_initial_unitary = tf.constant(self.sys_para.initial_unitary,dtype=tf.float32)
         if self.sys_para.state_transfer:
             self.tf_target_state = tf.constant(self.sys_para.target_vector,dtype=tf.float32)
         else:
-            self.tf_target_state = tf.constant(self.sys_para.target_state,dtype=tf.float32)
-        print "State initialized."
+            self.tf_target_state = tf.constant(self.sys_para.target_unitary,dtype=tf.float32)
+        print "Propagators initialized."
         
         
     def init_tf_ops(self):
@@ -121,11 +123,12 @@ class TensorflowState:
         
         
         self.raw_weight =[]
+        
         #tf weights of operators
         
             
-        self.H0 = tf.Variable(tf.ones([self.sys_para.steps]), trainable=False) #Just a vector of ones needed for the kernel
-        self.Hs_unpacked=[self.H0] #will collect all Hamiltonians here
+        self.H0_weight = tf.Variable(tf.ones([self.sys_para.steps]), trainable=False) #Just a vector of ones needed for the kernel
+        self.weights_unpacked=[self.H0_weight] #will collect all weights here
 
 
         if self.sys_para.u0 == []: #No initial guess supplied
@@ -168,9 +171,10 @@ class TensorflowState:
 
                 self.raws = tf.Variable(self.current, dtype=tf.float32,name ="weights")
 #start interpolating them
-                self.ops_weight_base = self.transfer_fn_general(self.raws[:,0: self.sys_para.ctrl_steps[0]],self.sys_para.ctrl_steps[0])
-                self.raw_weight.append(self.raws[:,(self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps:(self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps+self.sys_para.ctrl_steps[0]])
-                starting_index = (self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps + (index * self.sys_para.ctrl_steps[0])
+                first_steps = self.sys_para.ctrl_steps[0]
+                self.ops_weight_base = self.transfer_fn_general(self.raws[:,0: first_steps],first_steps)
+                self.raw_weight.append(self.raws[:,(self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps:(self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps+first_steps])
+                starting_index = (self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps + (index * first_steps)
                 flag = False
                 if index == 0:
                     flag = True
@@ -214,25 +218,25 @@ class TensorflowState:
 
         self.ops_weight = tf.tanh(self.ops_weight_base,name="weights")
         for ii in range (self.sys_para.ops_len):
-            self.Hs_unpacked.append(self.sys_para.ops_max_amp[ii]*self.ops_weight[ii,:])
+            self.weights_unpacked.append(self.sys_para.ops_max_amp[ii]*self.ops_weight[ii,:])
 
 
-        self.Hs = tf.pack(self.Hs_unpacked,name="packed_weights")
+        self.H_weights = tf.pack(self.weights_unpacked,name="packed_weights")
             
         #self.ops_weight = tf.tanh(self.ops_weight_base)
         
         
-	
-	
-	print "Operators weight initialized."
+
+
+        print "Operators weight initialized."
                 
-    def init_tf_inter_states(self):
-        #initialize intermediate states
+    def init_tf_inter_propagators(self):
+        #initialize intermediate unitaries
         self.inter_states = []    
         for ii in range(self.sys_para.steps):
             self.inter_states.append(tf.zeros([2*self.sys_para.state_num,2*self.sys_para.state_num],
                                               dtype=tf.float32,name="inter_state_"+str(ii)))
-        print "Intermediate states initialized."
+        print "Intermediate propagators initialized."
             
     def get_inter_state_op(self,layer):
         # build operator for intermediate state propagation
@@ -242,8 +246,8 @@ class TensorflowState:
             matrix_list = matrix_list + self.flat_ops[ii]
         matrix_list = matrix_list + self.I_flat
         
-        propagator = self.matrix_exp_module.matrix_exp(self.Hs[:,layer],size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
-                                      exp_num = self.sys_para.exp_terms, div = self.sys_para.div
+        propagator = self.matrix_exp_module.matrix_exp(self.H_weights[:,layer],size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
+                                      exp_num = self.sys_para.exp_terms, div = self.sys_para.scaling
                                       ,matrix=matrix_list)
         
         
@@ -252,9 +256,9 @@ class TensorflowState:
     def init_tf_propagator(self):
         # build propagator for all the intermediate states
         
-        #first intermediate state
-        self.inter_states[0] = tf.matmul(self.get_inter_state_op(0),self.tf_initial_state)
-        #subsequent operation layers and intermediate states
+        #first intermediate propagator
+        self.inter_states[0] = tf.matmul(self.get_inter_state_op(0),self.tf_initial_unitary)
+        #subsequent operation layers and intermediate propagators
         for ii in np.arange(1,self.sys_para.steps):
             self.inter_states[ii] = tf.matmul(self.get_inter_state_op(ii),self.inter_states[ii-1])
             
@@ -263,7 +267,7 @@ class TensorflowState:
         
         self.unitary_scale = (0.5/self.sys_para.state_num)*tf.reduce_sum(tf.matmul(tf.transpose(self.final_state),self.final_state))
         
-        print "Propagator initialized."
+        print "Intermediate propagators correlations initialized."
         
     def init_tf_inter_vectors(self):
         self.inter_vecs=[]
@@ -292,7 +296,7 @@ class TensorflowState:
                 psi = self.tf_initial_vectors
             else:
                 psi = inter_vec_temp
-            inter_vec_temp = tf.reshape(self.matrix_exp_module.matrix_exp_vecs(self.Hs[:,ii],psi,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
+            inter_vec_temp = tf.reshape(self.matrix_exp_module.matrix_exp_vecs(self.H_weights[:,ii],psi,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
                                       exp_num = self.sys_para.exp_terms, vecs_num = 1
                                       ,matrix=matrix_list),[2*self.sys_para.state_num,1],name="inter_vec_"+str(ii))
             inter_vec = tf.concat(1,[inter_vec,inter_vec_temp],name = "all_vectors")
@@ -322,7 +326,7 @@ class TensorflowState:
         return norm
     
     def init_training_loss(self):
-        
+        # Adding all penalties
         if self.sys_para.state_transfer == False:
 
             inner_product = tf.matmul(tf.transpose(self.tf_target_state),self.final_state)
@@ -347,25 +351,35 @@ class TensorflowState:
             self.reg_loss = self.loss
             self.reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
             reg_alpha = self.reg_alpha_coeff/float(self.sys_para.steps)
-            self.reg_loss = self.reg_loss + reg_alpha * tf.nn.l2_loss(tf.mul(self.tf_one_minus_gaussian_evelop,self.ops_weight))
+            self.reg_loss = self.reg_loss + reg_alpha * tf.nn.l2_loss(tf.mul(self.tf_one_minus_gaussian_envelope,self.ops_weight))
 
             # Constrain Z to have no dc value
             self.z_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
             z_reg_alpha = self.z_reg_alpha_coeff/float(self.sys_para.steps)
-            #self.reg_loss = self.reg_loss + z_reg_alpha*tf.square(tf.reduce_sum(self.ops_weight[2,:]))
+            for state in self.sys_para.limit_dc:
+            
+                self.reg_loss = self.reg_loss + z_reg_alpha*tf.square(tf.reduce_sum(self.ops_weight[state,:]))
+            
+            
+            
 
             # Limiting the dwdt of control pulse
+            zeros_for_training = tf.zeros([self.sys_para.ops_len, 2])
+            new_weights = tf.concat(1, [self.ops_weight, zeros_for_training])
+            new_weights = tf.concat(1, [zeros_for_training,new_weights])
             self.dwdt_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
             dwdt_reg_alpha = self.dwdt_reg_alpha_coeff/float(self.sys_para.steps)
-            self.reg_loss = self.reg_loss + dwdt_reg_alpha*tf.nn.l2_loss((self.ops_weight[:,1:]-self.ops_weight[:,:self.sys_para.steps-1])/self.sys_para.dt)
+            self.reg_loss = self.reg_loss + dwdt_reg_alpha*tf.nn.l2_loss((new_weights[:,1:]-new_weights[:,:self.sys_para.steps+3])/self.sys_para.dt) 
+            #+ dwdt_reg_alpha*tf.nn.l2_loss((self.ops_weight[:,0] + self.ops_weight[:,self.sys_para.steps])/self.sys_para.dt)
 
 
 
             # Limiting the d2wdt2 of control pulse
             self.d2wdt2_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
             d2wdt2_reg_alpha = self.d2wdt2_reg_alpha_coeff/float(self.sys_para.steps)
-            self.reg_loss = self.reg_loss + d2wdt2_reg_alpha*tf.nn.l2_loss((self.ops_weight[:,2:] -\
-                            2*self.ops_weight[:,1:self.sys_para.steps-1] +self.ops_weight[:,:self.sys_para.steps-2])/(self.sys_para.dt**2))
+            self.reg_loss = self.reg_loss + d2wdt2_reg_alpha*tf.nn.l2_loss((new_weights[:,2:] -\
+                            2*new_weights[:,1:self.sys_para.steps+3] +new_weights[:,:self.sys_para.steps+2])/(self.sys_para.dt**2))
+            #+d2wdt2_reg_alpha*tf.nn.l2_loss((self.ops_weight[:,1]-self.ops_weight[:,0] - 2*self.ops_weight[:,self.sys_para.steps] + self.ops_weight[:,self.sys_para.steps-1] )/(self.sys_para.dt**2))
 
             # Limiting the access to forbidden states
             self.inter_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
@@ -422,11 +436,11 @@ class TensorflowState:
             
             self.init_variables()
             self.init_tf_vectors()
-            self.init_tf_states()
+            self.init_tf_propagators()
             self.init_tf_ops()
             self.init_tf_ops_weight()
             if self.sys_para.state_transfer == False:
-                self.init_tf_inter_states()
+                self.init_tf_inter_propagators()
                 self.init_tf_propagator()
                 self.init_tf_inter_vectors()
             else:

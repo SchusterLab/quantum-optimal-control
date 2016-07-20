@@ -129,3 +129,27 @@ def append_separate_krons(op,name,num,state_num,Hops,Hnames,ops_max_amp,amp=4.0)
         ops_max_amp.append(amp)
         Hnames.append(string)
     return Hops,Hnames,ops_max_amp
+
+
+def sort_ev(v,dressed):
+    v_sorted=[]
+    for ii in range (len(dressed)):
+        v_sorted.append(np.transpose(v[:,get_state_index(ii,dressed)]))
+    
+    return np.transpose(v_sorted)
+
+def get_state_index(bareindex,dressed):
+    if len(dressed) > 0:
+        return dressed.index(bareindex)
+    else:
+        return bareindex
+    
+def c_to_r_mat(M):
+    return np.asarray(np.bmat([[M.real,-M.imag],[M.imag,M.real]]))
+
+def c_to_r_vec(V):
+    new_v =[]
+    new_v.append(V.real)
+    new_v.append(V.imag)
+    return np.reshape(new_v,[2*len(V)])
+        

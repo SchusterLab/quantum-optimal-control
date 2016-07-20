@@ -3,10 +3,9 @@ import numpy as np
 import scipy.linalg as la
 from core.TensorflowState import TensorflowState
 from system.SystemParametersGeneral import SystemParametersGeneral
-from math_functions.c_to_r_mat import CtoRMat
 from runtime_functions.ConvergenceGeneral import ConvergenceGeneral
 from runtime_functions.run_session import run_session
-from math_functions.Get_state_index import Get_State_index
+
 
 
 import random as rd
@@ -14,21 +13,34 @@ import time
 from IPython import display
 
 
-def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence, reg_coeffs = None,multi_mode = None, maxA = None ,use_gpu= True, draw= None, forbidden = None, initial_guess = None, evolve = False, evolve_error = False,show_plots = True, H_time_scales = None, Unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False):
+def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, penalty_coeffs = None,multi_mode = None, maxA = None ,use_gpu= True, draw= None, forbidden = None, initial_guess = None, evolve_only = False, evolve_error = False,show_plots = True, H_time_scales = None, Unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', limit_dc = None):
     
     
-    if reg_coeffs == None:
-        if evolve:
-            reg_coeffs = {'alpha' : 0, 'z':0, 'dwdt':0,'d2wdt2':0, 'inter':0}
+    if freq_unit == 'GHz':
+        time_unit = 'ns'
+    elif freq_unit == 'MHz':
+        time_unit = 'micro s'
+    elif freq_unit == 'KHz':
+        time_unit = 'ms'
+    elif freq_unit == 'Hz':
+        time_unit = 's'
+    
+    if U0 == None:
+        U0 = np.identity(len(H0))
+    if convergence == None:
+        convergence = {'rate':0.01, 'update_step':100, 'max_iterations':5000,'conv_target':1e-8,'learning_rate_decay':2500}
+    
+    if penalty_coeffs == None:
+        if evolve_only:
+            penalty_coeffs = {'envelope' : 0, 'dc':0, 'dwdt':0,'d2wdt2':0, 'forbidden':0}
         else:
-            reg_coeffs = {'alpha' : 0.01, 'z':0.01, 'dwdt':0.001,'d2wdt2':0.001*0.0001, 'inter':100}
-            #reg_coeffs = {'alpha' : 0, 'z':0, 'dwdt':0.000001,'d2wdt2':0.000001, 'inter':0}
-        # alpha: to make it close to a Gaussian envelope
-        # z: to limit DC offset of z pulses 
+            penalty_coeffs = {'envelope' : 0.01, 'dc':0.01, 'dwdt':0.001,'d2wdt2':0.001*0.0001, 'forbidden':100}
+        # envelope: to make it close to a Gaussian envelope
+        # dc: to limit DC offset of z pulses 
         # dwdt: to limit pulse first derivative
         # d2wdt2: to limit second derivatives
-        # inter: to penalize forbidden states
-        #reg_coeffs = {'alpha' : 0, 'z':0, 'dwdt':0,'d2wdt2':0, 'inter':0}
+        # forbidden: to penalize forbidden states
+       
         
     if maxA == None:
         if initial_guess == None:
@@ -41,13 +53,7 @@ def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence
             
     
     
-    
-    class SystemParameters(SystemParametersGeneral): #build pyhton system parameters
-        
-        def __init__(self):
-            SystemParametersGeneral.__init__(self,H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,multi_mode,maxAmp, draw,initial_guess, evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling )
-        
-    sys_para = SystemParameters()
+    sys_para = SystemParametersGeneral(H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,multi_mode,maxAmp, draw,initial_guess, evolve_only, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,limit_dc)
     if use_gpu:
         dev = '/gpu:0'
     else:
@@ -63,9 +69,8 @@ def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence
             self.sys_para = sys_para
             self.Modulation = self.sys_para.Modulation
             self.Interpolation = self.sys_para.Interpolation
-            
-            
-
+            self.time_unit = time_unit
+          
             if 'rate' in convergence:
                 self.rate = convergence['rate']
             else:
@@ -89,7 +94,7 @@ def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence
             if 'learning_rate_decay' in convergence:
                 self.learning_rate_decay = convergence['learning_rate_decay']
             else:
-                self.learning_rate_decay = 5000
+                self.learning_rate_decay = 2500
             
             if 'min_grad' in convergence:
                 self.min_grad = convergence['min_grad']
@@ -99,14 +104,14 @@ def Grape(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,convergence
 
 
             
-            self.reg_alpha_coeff = reg_coeffs['alpha']
+            self.reg_alpha_coeff = penalty_coeffs['envelope']
 
-            self.z_reg_alpha_coeff = reg_coeffs['z']
+            self.z_reg_alpha_coeff = penalty_coeffs['dc']
 
-            self.dwdt_reg_alpha_coeff = reg_coeffs['dwdt']
-            self.d2wdt2_reg_alpha_coeff = reg_coeffs['d2wdt2']
+            self.dwdt_reg_alpha_coeff = penalty_coeffs['dwdt']
+            self.d2wdt2_reg_alpha_coeff = penalty_coeffs['d2wdt2']
 
-            self.inter_reg_alpha_coeff = reg_coeffs['inter']
+            self.inter_reg_alpha_coeff = penalty_coeffs['forbidden']
             
 
             self.reset_convergence()  

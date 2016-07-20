@@ -61,7 +61,7 @@ class ConvergenceGeneral:
         
         plt.ylabel('Population')
         plt.ylim(0,1)
-        plt.xlabel('Time (ns)')
+        plt.xlabel('Time ('+ self.time_unit+')')
         plt.legend(loc=6)
     
     
@@ -90,7 +90,7 @@ class ConvergenceGeneral:
         
         plt.ylabel('Population')
         plt.ylim(-0.1,1.1)
-        plt.xlabel('Time (ns)')
+        plt.xlabel('Time ('+ self.time_unit+')')
         plt.legend(loc=6)
     
     def plot_inter_vecs_v2(self,pop_inter_vecs):
@@ -122,7 +122,7 @@ class ConvergenceGeneral:
         
         plt.ylabel('Population')
         plt.ylim(0,1)
-        plt.xlabel('Time (ns)')
+        plt.xlabel('Time ('+ self.time_unit+')')
         plt.legend(loc=6)
     def plot_inter_vecs_v3(self,pop_inter_vecs):
         plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[0,1:]),label='g00')
@@ -148,7 +148,7 @@ class ConvergenceGeneral:
         
         plt.ylabel('Population')
         plt.ylim(0,1)
-        plt.xlabel('Time (ns)')
+        plt.xlabel('Time ('+ self.time_unit+')')
         plt.legend(loc=6)
         
     def plot_summary(self):
@@ -194,8 +194,8 @@ class ConvergenceGeneral:
                                                                                                   self.estimated_runtime))
             
             index +=1
-            plt.plot(np.array(self.iterations),np.array(self.costs),'bx-',label='loss')
-            plt.plot(np.array(self.iterations),np.array(self.reg_costs),'go-',label='reg loss')
+            plt.plot(np.array(self.iterations),np.array(self.costs),'bx-',label='Fidelity Error')
+            plt.plot(np.array(self.iterations),np.array(self.reg_costs),'go-',label='All Penalties')
             plt.ylabel('Error')
             plt.xlabel('Iteration')
             plt.yscale('log')
@@ -233,7 +233,7 @@ class ConvergenceGeneral:
             plt.title('Optimized pulse')
             
         plt.ylabel('Amplitude')
-        plt.xlabel('Time (ns)')
+        plt.xlabel('Time ('+ self.time_unit+')')
         plt.legend()
         
         index+=1
@@ -253,7 +253,7 @@ class ConvergenceGeneral:
             
             plt.title('Optimized Non interpolated pulses')
             plt.ylabel('Amplitude')
-            plt.xlabel('Time (ns)')
+            plt.xlabel('Time ('+ self.time_unit+')')
             plt.legend()
      
         ## state evolution
@@ -269,7 +269,7 @@ class ConvergenceGeneral:
                 self.plot_inter_vecs_general(pop_inter_vecs,self.sys_para.states_concerned_list[ii])        
         
 	fig = plt.gcf()
-	fig.set_size_inches(15, 50)
+	fig.set_size_inches(15, int (200/4+len(self.sys_para.states_concerned_list)))
 	
         display.display(plt.gcf())
         display.clear_output(wait=True)
