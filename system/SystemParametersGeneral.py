@@ -79,6 +79,7 @@ class SystemParametersGeneral:
         self.init_operators()
         self.init_one_minus_gaussian_envelope()
         self.init_pulse_operator()
+        self.init_guess()
 
     def approx_expm(self,M,exp_t, scaling_terms): #approximate the exp at the beginning to estimate the number of taylor terms and scaling and squaring needed
         U=np.identity(len(M),dtype=M.dtype)
@@ -225,7 +226,19 @@ class SystemParametersGeneral:
         self.scaling = self.scalings[a]
         print "Using "+ str(self.exp_terms) + " Taylor terms and "+ str(self.scaling)+" Scaling & Squaring terms"
         
+        i_array = np.eye(2*self.state_num)
+        op_matrix_I=i_array.tolist()
+        self.I_flat = [item for sublist in op_matrix_I  for item in sublist]
+        self.H0_flat = [item for sublist in self.H0  for item in sublist]
         
+        self.flat_ops = []
+        for op in self.ops:
+            flat_op = [item for sublist in op for item in sublist]
+            self.flat_ops.append(flat_op)
+        self.matrix_list = self.H0_flat
+        for ii in range(self.ops_len):
+            self.matrix_list = self.matrix_list + self.flat_ops[ii]
+        self.matrix_list = self.matrix_list + self.I_flat
     def init_one_minus_gaussian_envelope(self):
         # Generating the Gaussian envelope that pulses should obey
         one_minus_gauss = []
@@ -268,3 +281,39 @@ class SystemParametersGeneral:
 
 
         self.manual_pulse = np.array(manual_pulse)
+    def init_guess(self):
+        if self.u0 != []:
+            
+            self.ops_weight_base = np.reshape(self.u0, [self.ops_len,self.steps])
+        else:
+            initial_mean = 0
+            index = 0
+            
+            initial_stddev = (10./np.sqrt(self.steps))
+            if self.Dts != []: # We have different time scales
+                self.current = []
+                if self.ops_len - len(self.Dts) > 0: # if there exists operators that don't need interpolation
+                    self.current = np.random.normal(initial_mean, initial_stddev, [self.ops_len - len(self.Dts) ,self.steps])
+                     #initialize all ops that don't need interpolation together first
+
+                    
+                    #self.current holds the concatenated weights
+                    
+                   
+                for ii in range (len(self.Dts)): # add all remaining non interpolated wieghts
+                    initial_stddev = (1/np.sqrt(self.ctrl_steps[ii]))
+                    weight = np.random.normal(initial_mean, initial_stddev, [1 ,self.ctrl_steps[ii]])
+                    self.current = np.append(self.current,weight)
+
+
+
+
+
+                self.ops_weight_base = np.reshape(self.current, [1,len(self.current)])
+            else: #No interpolation needed
+
+                self.ops_weight_base = np.random.normal(initial_mean, initial_stddev, [self.ops_len ,self.steps])
+        
+        self.raw_shape = np.shape(self.ops_weight_base)
+        
+        
