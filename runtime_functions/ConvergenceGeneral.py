@@ -69,6 +69,7 @@ class ConvergenceGeneral:
         
         if self.sys_para.draw_list !=[]:
             for kk in range(len(self.sys_para.draw_list)):
+                
                 plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[self.sys_para.draw_list[kk],1:]),label=self.sys_para.draw_names[kk])
                 
         
@@ -182,12 +183,12 @@ class ConvergenceGeneral:
         if self.sys_para.evolve == False and self.sys_para.show_plots == True:
             
             if self.sys_para.state_transfer:
-                plt.subplot(gs[index, :],title='Error = %.9f; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost,
+                plt.subplot(gs[index, :],title='Error = %1.2e; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost,
                                                                                                    
                                                                                                   self.runtime,
                                                                                                   self.estimated_runtime))
             else:
-                plt.subplot(gs[index, :],title='Error = %.9f; Unitary Metric: %.5f; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost,
+                plt.subplot(gs[index, :],title='Error = %1.2e; Unitary Metric: %.5f; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost,
                                                                                                    self.anly.tf_unitary_scale.eval(),
                                                                                                  
                                                                                                   self.runtime,
@@ -238,7 +239,7 @@ class ConvergenceGeneral:
         
         index+=1
         ## Control Fields
-        if ( self.sys_para.dts !=[]):
+        if ( self.sys_para.Dts !=[]):
             plt.subplot(gs[index, :],title="Non-Interpolated Control Fields")
             index+=1
             
@@ -268,8 +269,15 @@ class ConvergenceGeneral:
             else:
                 self.plot_inter_vecs_general(pop_inter_vecs,self.sys_para.states_concerned_list[ii])        
         
-	fig = plt.gcf()
-	fig.set_size_inches(15, int (200/4+len(self.sys_para.states_concerned_list)))
+        fig = plt.gcf()
+        if self.sys_para.state_transfer:
+            plots = 2
+        else:
+            plots = 3
+        if self.sys_para.Dts !=[]:
+            plots= plots+1
+        
+        fig.set_size_inches(15, int (plots+len(self.sys_para.states_concerned_list)*18))
 	
         display.display(plt.gcf())
         display.clear_output(wait=True)

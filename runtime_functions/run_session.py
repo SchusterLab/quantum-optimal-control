@@ -18,8 +18,10 @@ class run_session:
         self.switch = switch
         self.show_plots = show_plots
         self.BFGS_time =0
+        self.target = False
         
         with tf.Session(graph=graph) as self.session:
+            
             tf.initialize_all_variables().run()
 
 
@@ -34,11 +36,13 @@ class run_session:
                              tfs.dwdt_reg_alpha_coeff: conv.dwdt_reg_alpha_coeff,
                              tfs.d2wdt2_reg_alpha_coeff: conv.d2wdt2_reg_alpha_coeff,
                              tfs.inter_reg_alpha_coeff:conv.inter_reg_alpha_coeff}
+                
                 if self.sys_para.Dts==[]:
                     g,l,rl,uks = self.session.run([tfs.grad_pack, tfs.loss, tfs.reg_loss,tfs.ops_weight_base], feed_dict=self.feed_dict)
                 else:
                     g,l,rl,uks = self.session.run([tfs.grad_pack, tfs.loss, tfs.reg_loss,tfs.raws], feed_dict=self.feed_dict)
-                                
+                    
+               
                 myfactr = 1e-20
                 ftol = myfactr * np.finfo(float).eps
                 res=self.optimize(uks, method=self.method,jac = True, options={'maxfun' : self.conv.max_iterations,'gtol': self.conv.min_grad, 'disp':False,'ftol':ftol, 'maxls': 40})
@@ -54,12 +58,12 @@ class run_session:
                              tfs.dwdt_reg_alpha_coeff: conv.dwdt_reg_alpha_coeff,
                              tfs.d2wdt2_reg_alpha_coeff: conv.d2wdt2_reg_alpha_coeff,
                              tfs.inter_reg_alpha_coeff:conv.inter_reg_alpha_coeff}
-                    g,_, l,rl = self.session.run([tfs.grad_squared, tfs.optimizer, tfs.loss, tfs.reg_loss], feed_dict=self.feed_dict)
+                    
+                    g,_, l,rl= self.session.run([tfs.grad_squared, tfs.optimizer, tfs.loss, tfs.reg_loss], feed_dict=self.feed_dict)
                     
             
                     
                     if (self.iterations % self.conv.update_step == 0) or (l < self.conv.conv_target) or (g < self.conv.min_grad):    
-                        
                         if self.show_plots:
                         # Plot convergence
                             
@@ -156,13 +160,13 @@ class run_session:
             l,rl,grads=self.get_error(np.reshape(x,[1,len(x)]))
         
         
-        if l <self.conv.conv_target and self.first:
+        if l <self.conv.conv_target :
             self.conv_time = time.time()-self.start_time
             self.conv_iter = self.iterations
-            self.first = False
+            self.target = True
             print 'Target fidelity reached'
             grads= 0*grads
-        if self.iterations % self.update_step == 0:
+        if self.iterations % self.update_step == 0 or self.target :
             g, l,rl = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss], feed_dict=self.feed_dict)
             
             if self.show_plots:

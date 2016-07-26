@@ -159,6 +159,17 @@ class TensorflowState:
         for ii in range (self.sys_para.ops_len):
             self.weights_unpacked.append(self.sys_para.ops_max_amp[ii]*self.ops_weight[ii,:])
 
+        #with tf.name_scope('kernel_weights'):
+
+            #self.H_weights = []
+            #for jj in range (self.sys_para.steps):
+                #temp =[]
+
+                #for kk in range (self.sys_para.ops_len+1):
+                    #temp.append(self.weights_unpacked[kk][jj])
+                #self.H_weights.append(tf.pack(temp))
+
+        
         self.H_weights = tf.pack(self.weights_unpacked,name="packed_weights")
         
         #self.ops_weight = tf.tanh(self.ops_weight_base)
@@ -181,7 +192,7 @@ class TensorflowState:
         # This function determines the nature of propagation
        
         
-        propagator = self.matrix_exp_module.matrix_exp(self.weights_unpacked[layer],size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
+        propagator = self.matrix_exp_module.matrix_exp(self.H_weights[:,layer],size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
                                       exp_num = self.sys_para.exp_terms, div = self.sys_para.scaling
                                       ,matrix=self.sys_para.matrix_list)
         
@@ -226,7 +237,6 @@ class TensorflowState:
         self.inter_vec = []
         inter_vec = tf.reshape(self.tf_initial_vectors,[2*self.sys_para.state_num,1],name="initial_vector")
         self.inter_vec.append(inter_vec)
-        
 
         for ii in np.arange(0,self.sys_para.steps):
             psi = inter_vec
@@ -276,8 +286,8 @@ class TensorflowState:
         else:
             for inter_vec in self.inter_vecs:
                 self.final_state= inter_vec[:,self.sys_para.steps]
-            inner_product = self.get_inner_product(self.tf_target_state,self.final_state)
-            self.loss = tf.abs(1 - inner_product, name ="Fidelity_error")
+            self.inner_product = self.get_inner_product(self.tf_target_state,self.final_state)
+            self.loss = tf.abs(1 - self.inner_product, name ="Fidelity_error")
     
         # Regulizer
         with tf.name_scope('reg_errors'):
@@ -353,7 +363,11 @@ class TensorflowState:
         
         print "Optimizer initialized."
     
-    
+    def init_utilities(self):
+        # Add ops to save and restore all the variables.
+        self.saver = tf.train.Saver()
+        
+        print "Utilities initialized."
         
       
             
@@ -375,10 +389,11 @@ class TensorflowState:
                 self.init_tf_inter_vector_state()
             self.init_training_loss()
             self.init_optimizer()
+            self.init_utilities()
          
             
             print "Graph built!"
             #tf.train.SummaryWriter.add_graph(graph)
-            #tf.train.SummaryWriter('./tmp/graph',graph)
+            tf.train.SummaryWriter('./tmp/graph',graph)
         
         return graph
