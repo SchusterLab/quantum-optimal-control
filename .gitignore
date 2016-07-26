@@ -2,9 +2,9 @@
 sbatch_file/*
 *.pyc
 .ipynb_checkpoints/
-data/*.npy
-tmp/*ckpt*
-tmp/checkpoint
+Examples/data/*.npy
+Examples/tmp/*ckpt*
+Examples/tmp/checkpoint
 
 *.so
 *.o
