@@ -3,11 +3,11 @@
  This is the packaged function:  
  **uks, U_final = Grape (H0, Hops, Hnames, U, total_time, steps,psi0, convergence = None, U0 = None, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None, show_plots = True, H_time_scales = None, Unitary_error = 1e-4, state_transfer = False, method = 'Adam', switch = True, no_scaling = False, freq_unit= 'GHz', limit_dc = None)**
  
- #Returns:
+ #Returns:  
  **uks:** The optimized control pulses  ( a list of list of floats, each of them has length  = ctrl_steps(ctrl_op) ) same order as the input  
  **U_final:** The final Unitary (n by n)  
  
- #Mandatory Arguments:
+ #Mandatory Arguments:  
  **H0:** Drift Hamiltonian (n by n)   
  **Hops:** A list of Control Hamiltonians  (k hamiltonians, each is n by n)  
  **Hnames:** A list of Control Hamiltonian names, with k string elements  
