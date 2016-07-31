@@ -26,9 +26,9 @@ REGISTER_OP("MatrixExpVecsGrads")
     .Attr("input_num: int")
     .Attr("exp_num: int")
     .Attr("vecs_num: int")
-    .Attr("matrix: list(float)")
     .Input("coeff: float")
     .Input("vecs: float")
+    .Input("matrix: float")
     .Output("output: float")
     .Doc(R"doc(
 Adds 1 to all elements of the tensor.
@@ -52,8 +52,6 @@ class MatrixExpVecsGradsOp : public OpKernel {
                    context->GetAttr("exp_num", &exp_num_));
   OP_REQUIRES_OK(context,
                    context->GetAttr("vecs_num", &vecs_num_));
-  OP_REQUIRES_OK(context,
-                   context->GetAttr("matrix", &matrix_));
 }
 
   void Compute(OpKernelContext* context) override {
@@ -63,6 +61,9 @@ class MatrixExpVecsGradsOp : public OpKernel {
 
     const Tensor& input_1_tensor = context->input(1);
     auto vecs = input_1_tensor.flat<float>();
+
+    const Tensor& input_2_tensor = context->input(2);
+    auto matrix_ = input_2_tensor.flat<float>();
 
     const int N = size_*size_;
 
@@ -94,10 +95,10 @@ class MatrixExpVecsGradsOp : public OpKernel {
     // Call the cuda kernel launcher
     //matrixPrepare(d_m0.getData(), d_m1.getData(), d_m2.getData(),&input_0.data()[0], &input_0.data()[1],&input_0.data()[2], d_mat.getData(), dim);
 
-    d_mat.set(&matrix_[0], N);
+    d_mat.set(&matrix_.data()[0], N);
 
     for (int ii = 1; ii < input_num_; ii++) {
-      d_m_ii.set(&matrix_[ii*N], N);
+      d_m_ii.set(&matrix_.data()[ii*N], N);
       matrixAddV2(d_mat.getData(), d_m_ii.getData(), &input_0.data()[ii], d_mat_temp.getData(), dim);
       d_mat.set(d_mat_temp.getData(),N);
     }
@@ -131,6 +132,7 @@ class MatrixExpVecsGradsOp : public OpKernel {
     cudaDeviceSynchronize();     
 
     d_mat.free();
+
   }
 
     private:
@@ -138,7 +140,6 @@ class MatrixExpVecsGradsOp : public OpKernel {
    int input_num_;
    int exp_num_;
    int vecs_num_;
-   std::vector<float> matrix_;
 };
 
 REGISTER_KERNEL_BUILDER(Name("MatrixExpVecsGrads").Device(DEVICE_GPU), MatrixExpVecsGradsOp);

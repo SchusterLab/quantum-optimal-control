@@ -71,6 +71,16 @@ public:
         }
     }
 
+    // free memory on the device
+    void free()
+    {
+        if (start_ != 0)
+        {
+            cudaFree(start_);
+            start_ = end_ = 0;
+        }
+    }
+
 
 // private functions
 private:
@@ -84,16 +94,6 @@ private:
             throw std::runtime_error("failed to allocate device memory");
         }
         end_ = start_ + size;
-    }
-
-    // free memory on the device
-    void free()
-    {
-        if (start_ != 0)
-        {
-            cudaFree(start_);
-            start_ = end_ = 0;
-        }
     }
 
     T* start_;

@@ -5,7 +5,7 @@ sbatch_file/*
 Examples/data/*.npy
 Examples/tmp/*ckpt*
 Examples/tmp/checkpoint
-
+Examples/tmp/*
 *.so
 *.o
 custom_kernels/build/temp/*

@@ -102,6 +102,8 @@ class MatrixExpVecsOp : public OpKernel {
       d_mat.set(d_mat_temp.getData(),N);
     }
 
+    d_m_ii.free();
+    d_mat_temp.free();
 
     d_mat_n.set(vecs.data(), vecs_size);
     d_mat_exp.set(vecs.data(), vecs_size);
@@ -128,6 +130,7 @@ class MatrixExpVecsOp : public OpKernel {
     matrixAddV3(d_mat_exp.getData(), d_mat_n_temp.getData(), inv_factorial, output.data(), dim, dim_m);
     cudaDeviceSynchronize();     
 
+    d_mat.free();
 
   }
 

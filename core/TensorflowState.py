@@ -3,7 +3,7 @@ import os
 import numpy as np
 import tensorflow as tf
 from helper_functions.grape_functions import c_to_r_mat
-from custom_kernels.gradients.matexp_grad_vecs import *
+from custom_kernels.gradients.matexp_grad_vecs_v2 import *
 from custom_kernels.gradients.matexp_grad_v3 import *
 import os
 
@@ -17,9 +17,9 @@ class TensorflowState:
         user_ops_path = os.path.join(this_dir,'../custom_kernels/build')
     
         if self.sys_para.state_transfer: #choosing matrix_vector kernel
-            kernel_filename = 'cuda_matexp_vecs.so'
-            matrix_vec_grad_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs_grads.so'))
-            import custom_kernels.gradients.matexp_grad_vecs as mgv
+            kernel_filename = 'cuda_matexp_vecs_v2.so'
+            matrix_vec_grad_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs_grads_v2.so'))
+            import custom_kernels.gradients.matexp_grad_vecs_v2 as mgv
             mgv.register_gradient(matrix_vec_grad_exp_module)
         else: #choosing matrix matrix kernel
 
@@ -238,11 +238,12 @@ class TensorflowState:
         inter_vec = tf.reshape(self.tf_initial_vectors,[2*self.sys_para.state_num,1],name="initial_vector")
         self.inter_vec.append(inter_vec)
 
+        tf_matrix_list = tf.constant(self.sys_para.matrix_list)
+
         for ii in np.arange(0,self.sys_para.steps):
             psi = inter_vec
-            inter_vec = self.matrix_exp_module.matrix_exp_vecs(self.H_weights[:,ii],psi,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
-                                      exp_num = self.sys_para.exp_terms, vecs_num = 1
-                                      ,matrix=self.sys_para.matrix_list)
+            inter_vec = self.matrix_exp_module.matrix_exp_vecs(self.H_weights[:,ii],psi,tf_matrix_list,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
+                                      exp_num = self.sys_para.exp_terms, vecs_num = 1)
         
             self.inter_vec.append(inter_vec)
         self.unitary_scale = 0
