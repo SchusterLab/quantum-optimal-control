@@ -192,14 +192,14 @@ class TensorflowState:
         # This function determines the nature of propagation
        
         
-        propagator = self.matrix_exp_module.matrix_exp(self.H_weights[:,layer],size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
-                                      exp_num = self.sys_para.exp_terms, div = self.sys_para.scaling
-                                      ,matrix=self.sys_para.matrix_list)
+        propagator = self.matrix_exp_module.matrix_exp(self.H_weights[:,layer],self.tf_matrix_list,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,exp_num = self.sys_para.exp_terms, div = self.sys_para.scaling)
         
         
         return propagator    
         
     def init_tf_propagator(self):
+        self.tf_matrix_list = tf.constant(self.sys_para.matrix_list)
+
         # build propagator for all the intermediate states
         
         #first intermediate propagator
