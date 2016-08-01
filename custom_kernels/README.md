@@ -22,13 +22,15 @@ cuda_matexp_v3.so: GPU kernel for exponentiating a matrix, that takes arbitrary 
 
 cuda_matexp_v4.so: GPU kernel for exponentiating a matrix, that takes arbitrary input controls, and matrix_list as tensorflow constant, and with scaling and squaring capability
 
-cuda_matexp_vecs.so: GPU kernel for exponentiating matrix-vector, and takes arbitrary input controls
-
 matrix_exp.so: CPU kernel for exponentiating a matrix
 
 cuda_matexp_vecs.so: GPU kernel for exp matrix - vector multiplication
 
 cuda_matexp_vecs_grads.so: Identitcal as cuda_matexp_vecs.so, but with different name such that graident python file wont be confused, as this operation is required in gradient calculation.
+
+cuda_matexp_vecs_v2.so: GPU kernel for exp matrix - vector multiplication, that takes arbitrary input controls, and matrix_list as tensorflow constant
+
+cuda_matexp_vecs_grads_v2.so: Identitcal as cuda_matexp_vecs_v2.so, but with different name such that graident python file wont be confused, as this operation is required in gradient calculation.
 
 #### Run these commands in the folder ./build
 
