@@ -52,3 +52,6 @@ g++ -std=c++11 -shared -o cuda_matexp_vecs_v2.so ../cuda_matexp_vecs_v2.cc matad
 
 echo "cuda_matexp_vecs_grads_v2.cc"
 g++ -std=c++11 -shared -o cuda_matexp_vecs_grads_v2.so ../cuda_matexp_vecs_grads_v2.cc matadd_coeff_v3.cu.o matmul_v2.cu.o matadd_coeff_v2.cu.o -I $TF_INC -I /usr/local/cuda/include -fPIC -L /usr/local/cuda/lib64 -lcudart
+
+echo "cuda_matmul_vec.cc"
+g++ -std=c++11 -shared -o cuda_matmul_vec.so ../cuda_matmul_vec.cc matmul_v2.cu.o -I $TF_INC -I /usr/local/cuda/include -fPIC -L /usr/local/cuda/lib64 -lcudart
