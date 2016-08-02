@@ -3,7 +3,7 @@ import os
 import numpy as np
 import tensorflow as tf
 from helper_functions.grape_functions import c_to_r_mat
-from custom_kernels.gradients.matexp_grad_vecs_v2 import *
+from custom_kernels.gradients.matexp_grad_vecs_v3 import *
 from custom_kernels.gradients.matexp_grad_v3 import *
 import os
 
@@ -19,8 +19,9 @@ class TensorflowState:
         if self.sys_para.state_transfer: #choosing matrix_vector kernel
             kernel_filename = 'cuda_matexp_vecs_v2.so'
             matrix_vec_grad_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs_grads_v2.so'))
-            import custom_kernels.gradients.matexp_grad_vecs_v2 as mgv
-            mgv.register_gradient(matrix_vec_grad_exp_module)
+            matmul_vec_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matmul_vec.so'))
+            import custom_kernels.gradients.matexp_grad_vecs_v3 as mgv
+            mgv.register_gradient(matrix_vec_grad_exp_module,matmul_vec_module)
         else: #choosing matrix matrix kernel
 
             if use_gpu:
