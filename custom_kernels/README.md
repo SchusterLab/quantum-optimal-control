@@ -32,6 +32,8 @@ cuda_matexp_vecs_v2.so: GPU kernel for exp matrix - vector multiplication, that 
 
 cuda_matexp_vecs_grads_v2.so: Identitcal as cuda_matexp_vecs_v2.so, but with different name such that graident python file wont be confused, as this operation is required in gradient calculation.
 
+cuda_matmul_vec.cc: For matrix vector multiplication. Used in backward propagation gradient.
+
 #### Run these commands in the folder ./build
 
 ### First run
@@ -65,6 +67,8 @@ nvcc -std=c++11 -c -o matmul_v2.cu.o ../matmul_v2.cu.cc -I $TF_INC -D GOOGLE_CUD
 g++ -std=c++11 -shared -o cuda_matexp_vecs.so ../cuda_matexp_vecs.cc matadd_coeff_v3.cu.o matmul_v2.cu.o matadd_coeff_v2.cu.o -I $TF_INC -I /usr/local/cuda/include -fPIC -lcudart
 
 g++ -std=c++11 -shared -o cuda_matexp_vecs_grads.so ../cuda_matexp_vecs_grads.cc matadd_coeff_v3.cu.o matmul_v2.cu.o matadd_coeff_v2.cu.o -I $TF_INC -I /usr/local/cuda/include -fPIC -lcudart
+
+g++ -std=c++11 -shared -o cuda_matmul_vec.so ../cuda_matmul_vec.cc matmul_v2.cu.o -I $TF_INC -I /usr/local/cuda/include -fPIC -L /usr/local/cuda/lib64 -lcudart
 
 ### building CPU kernel:
 
