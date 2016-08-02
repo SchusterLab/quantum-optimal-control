@@ -72,7 +72,7 @@ class run_session:
 
                         # Save the variables to disk.
                             this_dir = os.path.dirname(__file__)
-                            tmp_path = os.path.join(this_dir,'../tmp/grape.ckpt')
+                            tmp_path = os.path.join(this_dir,'../Examples/tmp/grape.ckpt')
                             save_path = tfs.saver.save(self.session, tmp_path)
                             if (self.iterations >= max_iterations) or (l < self.conv.conv_target): 
                                 
@@ -217,8 +217,7 @@ class run_session:
             if self.show_plots == False:
                 print res.message
                 print("Error = %1.2e" %l)
-                print time.time() - self.start_time
-                print self.conv_time,self.conv_iter
+                print ("Total time is " + str(time.time() - self.start_time))
         
             
         return res, uks

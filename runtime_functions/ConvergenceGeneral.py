@@ -37,121 +37,37 @@ class ConvergenceGeneral:
         self.reg_costs.append(self.last_reg_cost)
         self.iterations.append(self.last_iter)
         self.last_iter+=self.update_step
-        
-    def plot_inter_vecs(self,pop_inter_vecs):
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[0,1:]),label='g00')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[1,1:]),label='g01')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[self.sys_para.mode_state_num,1:]),label='g10')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[self.sys_para.mode_state_num+1,1:]),label='g11')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)])
-    ,np.array(pop_inter_vecs[self.sys_para.mode_state_num**2:2*self.sys_para.mode_state_num**2,1:].sum(axis=0))
-             ,label='e(012)(012)')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)])
-    ,np.array(pop_inter_vecs[2*self.sys_para.mode_state_num**2:3*self.sys_para.mode_state_num**2,1:].sum(axis=0))
-             ,label='f(012)(012)') 
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)])
-             ,np.array(pop_inter_vecs[3*self.sys_para.mode_state_num**2:4*self.sys_para.mode_state_num**2,1:].sum(axis=0)) +\
-             np.array(pop_inter_vecs[2,1:])+\
-             np.array(pop_inter_vecs[self.sys_para.mode_state_num**2+2,1:])+\
-             np.array(pop_inter_vecs[2*self.sys_para.mode_state_num**2+2,1:])+\
-             np.array(pop_inter_vecs[2*self.sys_para.mode_state_num,1:])+\
-             np.array(pop_inter_vecs[self.sys_para.mode_state_num**2+2*self.sys_para.mode_state_num,1:])+\
-             np.array(pop_inter_vecs[2*self.sys_para.mode_state_num**2+2*self.sys_para.mode_state_num,1:])
-             ,label='forbidden')
-        
-        plt.ylabel('Population')
-        plt.ylim(0,1)
-        plt.xlabel('Time ('+ self.time_unit+')')
-        plt.legend(loc=6)
-    
+ 
     
     def plot_inter_vecs_general(self,pop_inter_vecs,start):
         
         if self.sys_para.draw_list !=[]:
             for kk in range(len(self.sys_para.draw_list)):
                 
-                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[self.sys_para.draw_list[kk],1:]),label=self.sys_para.draw_names[kk])
+                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps+1)]),np.array(pop_inter_vecs[self.sys_para.draw_list[kk],:]),label=self.sys_para.draw_names[kk])
                 
         
         else:
             
             if start  > 4:
-                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[start,1:]),label='Starting level '+str(start))
+                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps+1)]),np.array(pop_inter_vecs[start,:]),label='Starting level '+str(start))
                 
             for jj in range(4):
                 
-                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[jj,1:]),label='level '+str(jj))
+                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps+1)]),np.array(pop_inter_vecs[jj,:]),label='level '+str(jj))
             
         
-        forbidden =np.zeros(self.sys_para.steps)
+        forbidden =np.zeros(self.sys_para.steps+1)
         if self.sys_para.states_forbidden_list!= []:
             for forbid in self.sys_para.states_forbidden_list:
-                forbidden = forbidden +np.array(pop_inter_vecs[forbid,1:])
-            plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]), forbidden,label='forbidden')
+                forbidden = forbidden +np.array(pop_inter_vecs[forbid,:])
+            plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps+1)]), forbidden,label='forbidden')
         
         plt.ylabel('Population')
         plt.ylim(-0.1,1.1)
         plt.xlabel('Time ('+ self.time_unit+')')
         plt.legend(loc=6)
-    
-    def plot_inter_vecs_v2(self,pop_inter_vecs):
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[0,1:]),label='g00')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[1,1:]),label='g01')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[self.sys_para.mode_state_num,1:]),label='g10')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[self.sys_para.mode_state_num+1,1:]),label='g11')
-        
-        h_state= range(self.sys_para.mode_state_num**2,2*self.sys_para.mode_state_num**2)
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)])
-    ,np.array(pop_inter_vecs[h_state,1:].sum(axis=0))
-             ,label='e(012)(012)')
-        
-        
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)])
-    ,np.array(pop_inter_vecs[range(2*self.sys_para.mode_state_num**2,3*self.sys_para.mode_state_num**2),1:].sum(axis=0))
-             ,label='f(012)(012)') 
-        
-       
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)])
-             ,np.array(pop_inter_vecs[range(3*self.sys_para.mode_state_num**2,4*self.sys_para.mode_state_num**2),1:].sum(axis=0)) +\
-             np.array(pop_inter_vecs[2,1:])+\
-             np.array(pop_inter_vecs[self.sys_para.mode_state_num**2+2,1:])+\
-             np.array(pop_inter_vecs[2*self.sys_para.mode_state_num**2+2,1:])+\
-             np.array(pop_inter_vecs[2*self.sys_para.mode_state_num,1:])+\
-             np.array(pop_inter_vecs[self.sys_para.mode_state_num**2+2*self.sys_para.mode_state_num,1:])+\
-             np.array(pop_inter_vecs[2*self.sys_para.mode_state_num**2+2*self.sys_para.mode_state_num,1:])
-             ,label='forbidden')
-        
-        plt.ylabel('Population')
-        plt.ylim(0,1)
-        plt.xlabel('Time ('+ self.time_unit+')')
-        plt.legend(loc=6)
-    def plot_inter_vecs_v3(self,pop_inter_vecs):
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[0,1:]),label='g00')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[self.sys_para.mode_state_num**2,1:]),label='e00')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(pop_inter_vecs[self.sys_para.mode_state_num,1:]),label='g10')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)])
-             ,np.array(pop_inter_vecs[self.sys_para.mode_state_num+self.sys_para.mode_state_num**2,1:]),label='e10')
-#        plot(array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)])
-#    ,np.array(pop_inter_vecs[self.sys_para.mode_state_num**2:2*self.sys_para.mode_state_num**2,1:].sum(axis=0))
-#             ,label='e(012)(012)')
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)])
-    ,np.array(pop_inter_vecs[2*self.sys_para.mode_state_num**2:3*self.sys_para.mode_state_num**2,1:].sum(axis=0))
-             ,label='f(012)(012)') 
-        plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)])
-             ,np.array(pop_inter_vecs[3*self.sys_para.mode_state_num**2:4*self.sys_para.mode_state_num**2,1:].sum(axis=0)) +\
-             np.array(pop_inter_vecs[2,1:])+\
-             np.array(pop_inter_vecs[self.sys_para.mode_state_num**2+2,1:])+\
-             np.array(pop_inter_vecs[2*self.sys_para.mode_state_num**2+2,1:])+\
-             np.array(pop_inter_vecs[2*self.sys_para.mode_state_num,1:])+\
-             np.array(pop_inter_vecs[self.sys_para.mode_state_num**2+2*self.sys_para.mode_state_num,1:])+\
-             np.array(pop_inter_vecs[2*self.sys_para.mode_state_num**2+2*self.sys_para.mode_state_num,1:])
-             ,label='forbidden')
-        
-        plt.ylabel('Population')
-        plt.ylim(0,1)
-        plt.xlabel('Time ('+ self.time_unit+')')
-        plt.legend(loc=6)
-        
+  
     def plot_summary(self):
         
 
@@ -264,10 +180,8 @@ class ConvergenceGeneral:
             plt.subplot(gs[index+ii, :],title="Evolution")
 
             pop_inter_vecs = inter_vecs[ii]
-            if self.sys_para.multi:
-                self.plot_inter_vecs_general(pop_inter_vecs,self.sys_para.states_concerned_list[ii])
-            else:
-                self.plot_inter_vecs_general(pop_inter_vecs,self.sys_para.states_concerned_list[ii])        
+            
+            self.plot_inter_vecs_general(pop_inter_vecs,self.sys_para.states_concerned_list[ii])        
         
         fig = plt.gcf()
         if self.sys_para.state_transfer:

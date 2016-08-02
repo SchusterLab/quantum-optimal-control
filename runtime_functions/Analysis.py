@@ -29,32 +29,32 @@ class Analysis:
     def get_final_state(self):
         M = self.tf_final_state.eval()
         CMat = self.RtoCMat(M)
-	data_path = os.path.join(self.this_dir,'../data/GRAPE-final-state')
+	data_path = os.path.join(self.this_dir,'../Examples/data/GRAPE-final-state')
         np.save(data_path, np.array(CMat))
         return CMat
         
     def get_ops_weight(self):        
         ops_weight = self.tf_ops_weight.eval()
         
-	data_path = os.path.join(self.this_dir,'../data/GRAPE-ops-weight')
+	data_path = os.path.join(self.this_dir,'../Examples/data/GRAPE-ops-weight')
         np.save(data_path, np.array(ops_weight))
         
         return ops_weight
     def get_raws(self):        
         ops_weight = self.raws.eval()
-        
-	data_path = os.path.join(self.this_dir,'../data/GRAPE-raws')
+	data_path = os.path.join(self.this_dir,'../Examples/data/GRAPE-raws')
         np.save(data_path, np.array(ops_weight))
         
         return ops_weight
     def get_xy_weight(self):        
         xy_weight = self.tf_xy_weight.eval()
-	data_path = os.path.join(self.this_dir,'../data/GRAPE-xy-weight')
+	data_path = os.path.join(self.this_dir,'../Examples/data/GRAPE-xy-weight')
         np.save(data_path, np.array(xy_weight))
         return xy_weight
     def get_raw_weight(self): 
-	data_path = os.path.join(self.this_dir,'../data/GRAPE-raw-weight')
+	data_path = os.path.join(self.this_dir,'../Examples/data/GRAPE-raw-weight')
         raw_weight =[]
+        ops_weight = self.raws.eval()
         for ii in range (len(self.sys_para.Dts)):
             raw_weight.append(np.tanh(self.raw_weight[ii].eval()))
             
@@ -64,7 +64,7 @@ class Analysis:
         return raw_weight
     def get_nonmodulated_weight(self):        
         xy_nocos = self.tf_xy_nocos.eval()
-	data_path = os.path.join(self.this_dir,'../data/GRAPE-nocos-weight')
+	data_path = os.path.join(self.this_dir,'../Examples/data/GRAPE-nocos-weight')
         np.save(data_path, np.array(xy_nocos))
         return xy_nocos
     
@@ -95,6 +95,6 @@ class Analysis:
             ii+=1
         #print np.shape(inter_vecs_mag_squared)
         #print (inter_vecs_mag_squared)
-	data_path = os.path.join(self.this_dir,'../data/GRAPE-inter_vecs')    
+	data_path = os.path.join(self.this_dir,'../Examples/data/GRAPE-inter_vecs')    
         np.save(data_path, np.array(inter_vecs_mag_squared))
         return inter_vecs_mag_squared

@@ -97,27 +97,49 @@ class SystemParametersGeneral:
         
         return U
     
-    def Choose_exp_terms(self, d): #given our hamiltonians and a number of scaling/squaring, we determine the number of Taylor terms
-        exp_t = 20 #maximum
+    def approx_exp(self,M,exp_t, scaling_terms): 
+        U=1.0
+        Mt=1.0
+        factorial=1.0 #for factorials
         
+        for ii in xrange(1,exp_t):
+            factorial*=ii
+            Mt=M*Mt
+            U+=Mt/((2.**float(ii*scaling_terms))*factorial) #scaling by 2**scaling_terms
+
+        
+        for ii in xrange(scaling_terms):
+            U=np.dot(U,U) #squaring scaling times
+        
+        return U
+    
+    def Choose_exp_terms(self, d): #given our hamiltonians and a number of scaling/squaring, we determine the number of Taylor terms
+        
+
+        exp_t = 20 #maximum
+
         H=self.H0_c
         U_f = self.U0_c
         for ii in range (len(self.ops_c)):
             H = H + self.ops_max_amp[ii]*self.ops_c[ii]
         if d == 0:
             self.scaling = max(int(2*np.log2(np.max(np.abs(-(0+1j) * self.dt*H)))),0) 
-         
+
         else:
             self.scaling += d
-        
+
         if self.state_transfer or self.no_scaling:
             self.scaling =0
         while True:
-            
-            for ii in range (self.steps):
-                U_f = np.dot(U_f,self.approx_expm((0-1j)*self.dt*H, exp_t, self.scaling))
-            Metric = np.abs(np.trace(np.dot(np.conjugate(np.transpose(U_f)), U_f)))/(self.state_num)
-            
+
+            if len(self.H0_c) < 64:
+                for ii in range (self.steps):
+                    U_f = np.dot(U_f,self.approx_expm((0-1j)*self.dt*H, exp_t, self.scaling))
+                Metric = np.abs(np.trace(np.dot(np.conjugate(np.transpose(U_f)), U_f)))/(self.state_num)
+            else:
+                max_term = np.max(np.abs(-(0+1j) * self.dt*H))
+                Metric = 1 + np.abs((self.approx_exp(max_term, exp_t, self.scaling)**self.steps - np.exp(max_term)**self.steps)/np.exp(max_term)**self.steps)
+
             if exp_t == 3:
                 break
             if np.abs(Metric - 1.0) < self.Unitary_error:
