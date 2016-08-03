@@ -202,12 +202,17 @@ class TensorflowState:
         self.tf_matrix_list = tf.constant(self.sys_para.matrix_list)
 
         # build propagator for all the intermediate states
-        
+       
+        tf_inter_state_op = []
+        for ii in np.arange(0,self.sys_para.steps):
+            tf_inter_state_op.append(self.get_inter_state_op(ii))
+
         #first intermediate propagator
-        self.inter_states[0] = tf.matmul(self.get_inter_state_op(0),self.tf_initial_unitary)
+        self.inter_states[0] = tf.matmul(tf_inter_state_op[0],self.tf_initial_unitary)
         #subsequent operation layers and intermediate propagators
+        
         for ii in np.arange(1,self.sys_para.steps):
-            self.inter_states[ii] = tf.matmul(self.get_inter_state_op(ii),self.inter_states[ii-1])
+            self.inter_states[ii] = tf.matmul(tf_inter_state_op[ii],self.inter_states[ii-1])
             
         
         self.final_state = self.inter_states[self.sys_para.steps-1]
