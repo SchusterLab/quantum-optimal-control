@@ -55,3 +55,10 @@ g++ -std=c++11 -shared -o cuda_matexp_vecs_grads_v2.so ../cuda_matexp_vecs_grads
 
 echo "cuda_matmul_vec.cc"
 g++ -std=c++11 -shared -o cuda_matmul_vec.so ../cuda_matmul_vec.cc matmul_v2.cu.o -I $TF_INC -I /usr/local/cuda/include -fPIC -L /usr/local/cuda/lib64 -lcudart
+
+echo "matrix_exp_v2.cc"
+g++ -std=c++11 -shared ../matrix_exp_v2.cc -o matrix_exp_v2.so -fPIC -I $TF_INC
+
+echo "matrix_exp_vec.cc"
+g++ -std=c++11 -shared ../matrix_exp_vec.cc -o matrix_exp_vec.so -fPIC -I $TF_INC
+
