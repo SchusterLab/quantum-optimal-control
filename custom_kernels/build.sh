@@ -59,6 +59,9 @@ g++ -std=c++11 -shared -o cuda_matmul_vec.so ../cuda_matmul_vec.cc matmul_v2.cu.
 echo "matrix_exp_v2.cc"
 g++ -std=c++11 -shared ../matrix_exp_v2.cc -o matrix_exp_v2.so -fPIC -I $TF_INC
 
-echo "matrix_exp_vec.cc"
-g++ -std=c++11 -shared ../matrix_exp_vec.cc -o matrix_exp_vec.so -fPIC -I $TF_INC
+echo "matrix_exp_vecs.cc"
+g++ -std=c++11 -shared ../matrix_exp_vecs.cc -o matrix_exp_vecs.so -fPIC -I $TF_INC
+
+echo "matrix_exp_vecs_grads.cc"
+g++ -std=c++11 -shared ../matrix_exp_vecs_grads.cc -o matrix_exp_vecs_grads.so -fPIC -I $TF_INC
 
