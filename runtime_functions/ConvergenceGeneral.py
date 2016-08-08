@@ -5,6 +5,7 @@ import matplotlib.gridspec as gridspec
 from IPython import display
 
 class ConvergenceGeneral:
+    
 
     
     def reset_convergence(self):
@@ -16,6 +17,10 @@ class ConvergenceGeneral:
         self.accumulate_rate = 1.00
 
     def update_convergence(self,last_cost, last_reg_cost, anly,show_plots=True):
+        if len(self.sys_para.states_concerned_list) > 8:
+            self.concerned = [0,1,2,3,4,5,6,7]
+        else:
+            self.concerned = self.sys_para.states_concerned_list
         self.last_cost = last_cost
         self.last_reg_cost = last_reg_cost
           
@@ -66,7 +71,7 @@ class ConvergenceGeneral:
         plt.ylabel('Population')
         plt.ylim(-0.1,1.1)
         plt.xlabel('Time ('+ self.time_unit+')')
-        plt.legend(loc=6)
+        plt.legend(ncol=7)
   
     def plot_summary(self):
         
@@ -90,21 +95,17 @@ class ConvergenceGeneral:
         if self.sys_para.state_transfer:
             i2 = i2-1
         if self.sys_para.evolve:
-            gs = gridspec.GridSpec(2+i1+i2+len(self.sys_para.states_concerned_list), 2)
+            gs = gridspec.GridSpec(2+i1+i2+len(self.concerned), 2)
         else:
-            gs = gridspec.GridSpec(3+i1+i2+len(self.sys_para.states_concerned_list), 2)
+            gs = gridspec.GridSpec(3+i1+i2+len(self.concerned), 2)
         
         index = 0
         ## cost
         if self.sys_para.evolve == False and self.sys_para.show_plots == True:
             
-            if self.sys_para.state_transfer:
-                plt.subplot(gs[index, :],title='Error = %1.2e; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost,
-                                                                                                   
-                                                                                                  self.runtime,
-                                                                                                  self.estimated_runtime))
-            else:
-                plt.subplot(gs[index, :],title='Error = %1.2e; Unitary Metric: %.5f; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost,
+            
+          
+            plt.subplot(gs[index, :],title='Error = %1.2e; Unitary Metric: %.5f; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost,
                                                                                                    self.anly.tf_unitary_scale.eval(),
                                                                                                  
                                                                                                   self.runtime,
@@ -176,12 +177,12 @@ class ConvergenceGeneral:
         ## state evolution
         inter_vecs = self.anly.get_inter_vecs()
         
-        for ii in range(len(self.sys_para.states_concerned_list)):
+        for ii in range(len(self.concerned)):
             plt.subplot(gs[index+ii, :],title="Evolution")
 
             pop_inter_vecs = inter_vecs[ii]
             
-            self.plot_inter_vecs_general(pop_inter_vecs,self.sys_para.states_concerned_list[ii])        
+            self.plot_inter_vecs_general(pop_inter_vecs,self.concerned[ii])        
         
         fig = plt.gcf()
         if self.sys_para.state_transfer:
@@ -191,7 +192,8 @@ class ConvergenceGeneral:
         if self.sys_para.Dts !=[]:
             plots= plots+1
         
-        fig.set_size_inches(15, int (plots+len(self.sys_para.states_concerned_list)*18))
+        
+        fig.set_size_inches(15, int (plots+len(self.concerned)*18))
 	
         display.display(plt.gcf())
         display.clear_output(wait=True)

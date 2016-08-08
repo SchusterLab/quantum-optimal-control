@@ -159,22 +159,23 @@ class run_session:
         else:
             l,rl,grads=self.get_error(np.reshape(x,[1,len(x)]))
         
-        
+        #print l,self.iterations
         if l <self.conv.conv_target :
             self.conv_time = time.time()-self.start_time
             self.conv_iter = self.iterations
             self.target = True
             print 'Target fidelity reached'
             grads= 0*grads
+            print self.tfs.final_state.eval()
         if self.iterations % self.update_step == 0 or self.target :
-            g, l,rl = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss], feed_dict=self.feed_dict)
-            
+            g, l,rl,metric = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale], feed_dict=self.feed_dict)
+            #np.save('uks_QFT_7',x)
             if self.show_plots:
                 self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
                 self.conv.update_convergence(l,rl,self.anly,True)
             else:
                 elapsed = time.time() - self.start_time
-                print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e'%(l,elapsed,self.iterations,g)
+                print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,self.iterations,g,metric)
         self.iterations=self.iterations+1
         
         
@@ -189,6 +190,7 @@ class run_session:
         self.conv_time = 0.
         self.conv_iter=0
         #print np.shape(x0)
+        print "Starting " + self.method + " Optimization"
         self.start_time = time.time()
         res = minimize(self.minimize_opt_fun,x0,method=method,jac=jac,options=options)
         if self.sys_para.Dts==[]:
@@ -205,6 +207,7 @@ class run_session:
             self.BFGS_time = time.time()-self.start_time
             print 'Switching to Adam optimizer'
         else:
+            
             if self.sys_para.show_plots == False:
                 self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
                 self.conv.update_convergence(l,rl,self.anly,True)
@@ -218,6 +221,10 @@ class run_session:
                 print res.message
                 print("Error = %1.2e" %l)
                 print ("Total time is " + str(time.time() - self.start_time))
+                np.save('final',self.tfs.final_states.eval())
+                np.save('target',self.tfs.target_states.eval())
+                np.save('lol',self.anly.get_inter_vecs()[0])
+
         
             
         return res, uks
