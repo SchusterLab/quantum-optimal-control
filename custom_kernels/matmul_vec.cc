@@ -7,7 +7,6 @@ REGISTER_OP("MatmulVecs")
     .Attr("input_num: int")
     .Attr("vecs_num: int")
     .Attr("id: int")
-    .Input("coeff: float")
     .Input("vecs: float")
     .Input("matrix: float")
     .Output("output: float");
