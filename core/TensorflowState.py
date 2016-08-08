@@ -2,10 +2,9 @@ import os
 
 import numpy as np
 import tensorflow as tf
-from helper_functions.grape_functions import c_to_r_mat
+from helper_functions.grape_functions import c_to_r_mat, sort_ev
 from custom_kernels.gradients.matexp_grad_vecs_v3 import *
 from custom_kernels.gradients.matexp_grad_v3 import *
-import os
 
 class TensorflowState:
     
@@ -45,6 +44,7 @@ class TensorflowState:
             for initial_vector in self.sys_para.initial_vectors:
                 tf_initial_vector = tf.constant(initial_vector,dtype=tf.float32)
                 self.tf_initial_vectors.append(tf_initial_vector)
+                self.packed_initial_vectors = tf.transpose(tf.pack(self.tf_initial_vectors))
     
     def init_tf_propagators(self):
         #tf initial and target propagator
@@ -53,6 +53,7 @@ class TensorflowState:
         else:
             self.tf_initial_unitary = tf.constant(self.sys_para.initial_unitary,dtype=tf.float32, name = 'U0')
             self.tf_target_state = tf.constant(self.sys_para.target_unitary,dtype=tf.float32)
+            self.target_states = tf.matmul(self.tf_target_state,self.packed_initial_vectors)
         print "Propagators initialized."
         
   
@@ -275,25 +276,48 @@ class TensorflowState:
             imags = tf.square(tf.sub(tf.reduce_sum(bc),tf.reduce_sum(ad)))
             norm = tf.add(reals,imags)
         return norm
+    def get_inner_product_gen(self,psi1,psi2):
+        #Take 2 states psi1,psi2, calculate their overlap.
+        state_num=self.sys_para.state_num
+        
+        psi_1_real = (psi1[0:state_num,:])
+        psi_1_imag = (psi1[state_num:2*state_num,:])
+        psi_2_real = (psi2[0:state_num,:])
+        psi_2_imag = (psi2[state_num:2*state_num,:])
+        # psi1 has a+ib, psi2 has c+id, we wanna get Sum ((ac+bd) + i (bc-ad)) magnitude
+        with tf.name_scope('inner_product'):
+            ac = tf.reduce_sum(tf.mul(psi_1_real,psi_2_real),0)
+            bd = tf.reduce_sum(tf.mul(psi_1_imag,psi_2_imag),0)
+            bc = tf.reduce_sum(tf.mul(psi_1_imag,psi_2_real),0)
+            ad = tf.reduce_sum(tf.mul(psi_1_real,psi_2_imag),0)
+            reals = tf.reduce_sum(tf.square(tf.add(ac,bd)))
+            imags = tf.reduce_sum(tf.square(tf.sub(bc,ad)))
+            norm = (tf.add(reals,imags))/len(self.sys_para.states_concerned_list)
+        return norm
     
     def init_training_loss(self):
         # Adding all penalties
         if self.sys_para.state_transfer == False:
+            
+            self.final_states = tf.matmul(self.final_state, self.packed_initial_vectors)
+            
+            self.loss = tf.abs(1-self.get_inner_product_gen(self.final_states,self.target_states))
+            #inner_product = tf.matmul(tf.transpose(self.tf_target_state),self.final_state)
+            #inner_product_trace_real = tf.reduce_sum(tf.pack([inner_product[ii,ii] for ii in self.sys_para.states_concerned_list]))\
+            #/float(len(self.sys_para.states_concerned_list))
+            
 
-            inner_product = tf.matmul(tf.transpose(self.tf_target_state),self.final_state)
-            inner_product_trace_real = tf.reduce_sum(tf.pack([inner_product[ii,ii] for ii in self.sys_para.states_concerned_list]))\
-            /float(len(self.sys_para.states_concerned_list))
-            inner_product_trace_imag = tf.reduce_sum(tf.pack([inner_product[self.sys_para.state_num+ii,ii] for ii in self.sys_para.states_concerned_list]))\
-            /float(len(self.sys_para.states_concerned_list))
+            #inner_product_trace_mag_squared = tf.square(inner_product_trace_real) 
+            
 
-            inner_product_trace_mag_squared = tf.square(inner_product_trace_real) + tf.square(inner_product_trace_imag)
-
-            self.loss = tf.abs(1 - inner_product_trace_mag_squared)
+            #self.loss = tf.abs(1 - inner_product_trace_mag_squared)
+            
         
         else:
             for inter_vec in self.inter_vecs:
                 self.final_state= inter_vec[:,self.sys_para.steps]
             self.inner_product = self.get_inner_product(self.tf_target_state,self.final_state)
+            self.unitary_scale = self.get_inner_product(self.final_state,self.final_state)
             self.loss = tf.abs(1 - self.inner_product, name ="Fidelity_error")
     
         # Regulizer
@@ -334,8 +358,12 @@ class TensorflowState:
             # Limiting the access to forbidden states
             self.inter_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
             inter_reg_alpha = self.inter_reg_alpha_coeff/float(self.sys_para.steps)
+            if self.sys_para.D:
+                v_sorted=tf.constant(c_to_r_mat(np.reshape(sort_ev(self.sys_para.v_c,self.sys_para.dressed),[len(self.sys_para.dressed),len(self.sys_para.dressed)])), dtype = tf.float32)
 
             for inter_vec in self.inter_vecs:
+                if self.sys_para.D:
+                    inter_vec = tf.matmul(tf.transpose(v_sorted),inter_vec)
                 for state in self.sys_para.states_forbidden_list:
                     forbidden_state_pop = tf.square(inter_vec[state,:]) +\
                                         tf.square(inter_vec[self.sys_para.state_num+state,:])
