@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def qft(N):
 
     phase = 2.0j * np.pi / (2**N)
@@ -49,6 +50,12 @@ def transmon_gate(gate,levels):
                 result[ii,jj]=gate[int(ii_b, 2),int(jj_b, 2)]
                 
     return result
+def rz(theta):
+    return [[np.exp(-1j * theta / 2), 0],[0, np.exp(1j * theta / 2)]]
+def rx (theta):
+    return [[np.cos(theta / 2), -1j * np.sin(theta / 2)],
+                     [-1j * np.sin(theta / 2), np.cos(theta / 2)]]
+
 
 def Bin(a,N):
     a_bin = np.binary_repr(a)
@@ -133,10 +140,14 @@ def append_separate_krons(op,name,num,state_num,Hops,Hnames,ops_max_amp,amp=4.0)
 
 def sort_ev(v,dressed):
     v_sorted=[]
-    for ii in range (len(dressed)):
-        v_sorted.append(np.transpose(v[:,get_state_index(ii,dressed)]))
     
-    return np.transpose(v_sorted)
+    for ii in range (len(dressed)):
+        v1=[]
+        for jj in range (len(dressed)):
+            v1.append(v[jj,get_state_index(ii,dressed)])
+        v_sorted.append(v1)
+    
+    return np.transpose(np.reshape(v_sorted, [len(dressed),len(dressed)]))
 
 def get_state_index(bareindex,dressed):
     if len(dressed) > 0:
