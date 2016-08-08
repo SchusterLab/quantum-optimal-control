@@ -85,13 +85,10 @@ class MatmulVecsOp : public OpKernel {
 
   void Compute(OpKernelContext* context) override {
     // Grab the input tensor
-    const Tensor& input_0_tensor = context->input(0);
-    auto input_0 = input_0_tensor.flat<float>();
-
-    const Tensor& input_1_tensor = context->input(1);
+    const Tensor& input_1_tensor = context->input(0);
     auto vecs = input_1_tensor.flat<float>();
 
-    const Tensor& input_2_tensor = context->input(2);
+    const Tensor& input_2_tensor = context->input(1);
     auto matrix_ = input_2_tensor.flat<float>();
 
     const int N = size_*size_;
