@@ -1,14 +1,14 @@
 #include "tensorflow/core/framework/op.h"
 #include "tensorflow/core/framework/tensor.h"
 #include <vector>
-#include <cmath>
 
-REGISTER_OP("MatrixExp")
+REGISTER_OP("MatmulVecs")
     .Attr("size: int")
     .Attr("input_num: int")
-    .Attr("exp_num: int")
-    .Attr("div: int")
+    .Attr("vecs_num: int")
+    .Attr("id: int")
     .Input("coeff: float")
+    .Input("vecs: float")
     .Input("matrix: float")
     .Output("output: float");
 
@@ -16,35 +16,43 @@ REGISTER_OP("MatrixExp")
 
 using namespace tensorflow;
 
-class MatrixExpOp : public OpKernel {
+class MatmulVecsOp : public OpKernel {
  public:
-  explicit MatrixExpOp(OpKernelConstruction* context) : OpKernel(context) {
+  explicit MatmulVecsOp(OpKernelConstruction* context) : OpKernel(context) {
   OP_REQUIRES_OK(context,
                    context->GetAttr("size", &size_));
   OP_REQUIRES_OK(context,
                    context->GetAttr("input_num", &input_num_));
   OP_REQUIRES_OK(context,
-                   context->GetAttr("exp_num", &exp_num_));
+                   context->GetAttr("vecs_num", &vecs_num_));
   OP_REQUIRES_OK(context,
-                   context->GetAttr("div", &div_));
+                   context->GetAttr("id", &id_));
   }
 
-  std::vector<float> matmul(std::vector<float> input_mat_1, std::vector<float> input_mat_2, int N){
+  std::vector<float> mat_vec_mul(std::vector<float> input_mat_1, std::vector<float> input_mat_2, int d_N, int d_M){
     float elem;
-    std::vector<float> output_mat(N);    
-    const int d = static_cast<int>(sqrt(N));
+    std::vector<float> output_mat(d_N*d_M);    
     int i;
     int j;
 
-    for (int n = 0; n < N ; n++) {
+    for (int n = 0; n < d_N*d_M ; n++) {
 
-      i = n / d;
-      j = n % d;
+      i = n / d_M;
+      j = n % d_M;
       elem = 0;
-      for (int k = 0; k < d ; k++) {
-        elem += input_mat_1[i*d + k] * input_mat_2[k*d + j];
+      for (int k = 0; k < d_N ; k++) {
+        elem += input_mat_1[i*d_N + k] * input_mat_2[k*d_M + j];
       }
       output_mat[n] = elem;
+    }
+    return output_mat;
+  }
+
+  std::vector<float> mataddscale(std::vector<float> input_mat_1, std::vector<float> input_mat_2, const float scale,int N){
+    std::vector<float> output_mat(N);
+
+    for (int n = 0; n < N ; n++) {
+      output_mat[n] = input_mat_1[n]+scale*input_mat_2[n];
     }
     return output_mat;
   }
@@ -82,60 +90,40 @@ class MatrixExpOp : public OpKernel {
     auto input_0 = input_0_tensor.flat<float>();
 
     const Tensor& input_1_tensor = context->input(1);
-    auto matrix_ = input_1_tensor.flat<float>();
+    auto vecs = input_1_tensor.flat<float>();
+
+    const Tensor& input_2_tensor = context->input(2);
+    auto matrix_ = input_2_tensor.flat<float>();
 
     const int N = size_*size_;
 
     // Create an output tensor
     Tensor* output_tensor = NULL;
-    OP_REQUIRES_OK(context, context->allocate_output(0, TensorShape({static_cast<int>(sqrt(N)),static_cast<int>(sqrt(N))}),
+    OP_REQUIRES_OK(context, context->allocate_output(0, TensorShape({static_cast<int>(sqrt(N)),vecs_num_}),
                                                      &output_tensor));
 
     std::vector<float> mat(N);
 
-    float div_factor = pow(2.0, div_);
+    mat = matset(&matrix_.data()[0],id_,N); 
 
-    mat = matscale(1./div_factor,&input_0.data()[0],matset(&matrix_.data()[0],0,N),N);
+    std::vector<float> mat_n = matset(&vecs.data()[0],0,size_*vecs_num_);
 
-    for (int ii = 1; ii < input_num_; ii++) {
-      mat = matadd(mat,matscale(1./div_factor,&input_0.data()[ii],matset(&matrix_.data()[0],ii,N),N),N);
-    }
-    
 
-    std::vector<float> mat_exp = matset(&matrix_.data()[0],input_num_,N);
-    std::vector<float> mat_n = mat; 
-    
-    for (int i = 0; i < N; i++) {
-        mat_exp[i] += mat[i];
-    }
-
-    float factorial = 1.0;    
-
-    for (int num  = 2; num < exp_num_+1; num++) {
-      factorial = factorial * num;
-      mat_n = matmul(mat_n,mat,N);
-      for (int i = 0; i < N; i++) {
-        mat_exp[i] += mat_n[i]/factorial;
-      }
-    }
-
-    for (int num = 0; num < div_; num++) {
-      mat_exp = matmul(mat_exp,mat_exp,N);
-    }
+    mat_n = mat_vec_mul(mat,mat_n,size_,vecs_num_);
 
 
     auto output = output_tensor->template flat<float>();
 
-    for (int i = 0; i < N; i++) {
-      output(i) = mat_exp[i];
+    for (int i = 0; i < size_*vecs_num_; i++) {
+      output(i) = mat_n[i];
     }
 
   }
   private:
    int size_;
    int input_num_;
-   int exp_num_;
-   int div_;
+   int vecs_num_; 
+   int id_; 
 };
 
-REGISTER_KERNEL_BUILDER(Name("MatrixExp").Device(DEVICE_CPU), MatrixExpOp);
+REGISTER_KERNEL_BUILDER(Name("MatmulVecs").Device(DEVICE_CPU), MatmulVecsOp);
