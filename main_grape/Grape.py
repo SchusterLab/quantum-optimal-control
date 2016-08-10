@@ -13,7 +13,7 @@ import time
 from IPython import display
 
 
-def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, penalty_coeffs = None,multi_mode = None, maxA = None ,use_gpu= True, draw= None, forbidden = None, initial_guess = None, evolve_only = False, evolve_error = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', limit_dc = None):
+def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, penalty_coeffs = None,multi_mode = None, maxA = None ,use_gpu= True, draw= None, forbidden = None, initial_guess = None, evolve_only = False, evolve_error = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', limit_dc = None, gate = None):
     
     
     if freq_unit == 'GHz':
@@ -25,6 +25,9 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
     elif freq_unit == 'Hz':
         time_unit = 's'
     
+    if gate == None:
+        gate = ''
+    file_name = gate + ' total_time: ' + str(total_time)+', steps: ' + str(steps)+', size: '+str(len(H0))
     if U0 == None:
         U0 = np.identity(len(H0))
     if convergence == None:
@@ -118,7 +121,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
     conv = Convergence()
     
     try:
-        SS = run_session(tfs,graph,conv,sys_para,method,switch = switch, show_plots = sys_para.show_plots)
+        SS = run_session(tfs,graph,conv,sys_para,method,switch = switch, show_plots = sys_para.show_plots, name = file_name)
         return SS.uks,SS.Uf
     except KeyboardInterrupt:
         display.clear_output()

@@ -1,0 +1,24 @@
+
+QFT total_time: 3.0, steps: 400, size: 4
+Error = :7.71e-01; Runtime: 0.0s; Iterations = 0, grads =   1.245e-02, unitary_metric = 0.99999
+Error = :9.87e-04; Runtime: 6.4s; Iterations = 9, grads =   1.742e-04, unitary_metric = 0.99999
+QFT total_time: 4.5, steps: 600, size: 8
+Error = :9.15e-01; Runtime: 0.0s; Iterations = 0, grads =   3.114e-03, unitary_metric = 1.00000
+Error = :9.50e-04; Runtime: 55.1s; Iterations = 45, grads =   8.780e-06, unitary_metric = 1.00000
+QFT total_time: 6.0, steps: 800, size: 16
+Error = :9.46e-01; Runtime: 0.0s; Iterations = 0, grads =   8.359e-04, unitary_metric = 1.00000
+Error = :2.03e-02; Runtime: 220.7s; Iterations = 100, grads =   3.521e-05, unitary_metric = 1.00000
+Error = :9.95e-04; Runtime: 393.6s; Iterations = 180, grads =   1.778e-06, unitary_metric = 1.00000
+QFT total_time: 7.5, steps: 1000, size: 32
+Error = :9.73e-01; Runtime: 0.0s; Iterations = 0, grads =   3.109e-04, unitary_metric = 1.00000
+Error = :3.52e-01; Runtime: 387.3s; Iterations = 100, grads =   3.032e-04, unitary_metric = 1.00000
+Error = :1.61e-01; Runtime: 769.7s; Iterations = 200, grads =   1.384e-04, unitary_metric = 1.00000
+Error = :6.85e-02; Runtime: 1144.5s; Iterations = 300, grads =   1.463e-04, unitary_metric = 1.00000
+Error = :2.74e-02; Runtime: 1508.2s; Iterations = 400, grads =   9.063e-06, unitary_metric = 1.00001
+Error = :1.19e-02; Runtime: 1867.7s; Iterations = 500, grads =   2.898e-06, unitary_metric = 1.00001
+Error = :6.21e-03; Runtime: 2227.4s; Iterations = 600, grads =   9.846e-07, unitary_metric = 1.00001
+Error = :3.66e-03; Runtime: 2586.8s; Iterations = 700, grads =   4.106e-07, unitary_metric = 1.00001
+Error = :2.29e-03; Runtime: 2945.9s; Iterations = 800, grads =   3.187e-07, unitary_metric = 1.00001
+Error = :1.52e-03; Runtime: 3305.2s; Iterations = 900, grads =   7.350e-08, unitary_metric = 1.00002
+Error = :1.01e-03; Runtime: 3663.7s; Iterations = 1000, grads =   8.568e-08, unitary_metric = 1.00002
+Error = :9.99e-04; Runtime: 3672.3s; Iterations = 1002, grads =   1.045e-07, unitary_metric = 1.00002

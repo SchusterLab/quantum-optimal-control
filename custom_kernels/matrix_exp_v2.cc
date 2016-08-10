@@ -1,6 +1,7 @@
 #include "tensorflow/core/framework/op.h"
 #include "tensorflow/core/framework/tensor.h"
 #include <vector>
+#include <cmath>
 
 REGISTER_OP("MatrixExp")
     .Attr("size: int")
@@ -92,10 +93,12 @@ class MatrixExpOp : public OpKernel {
 
     std::vector<float> mat(N);
 
-    mat = matscale(1./div_,&input_0.data()[0],matset(&matrix_.data()[0],0,N),N);
+    float div_factor = pow(2.0, div_);
+
+    mat = matscale(1./div_factor,&input_0.data()[0],matset(&matrix_.data()[0],0,N),N);
 
     for (int ii = 1; ii < input_num_; ii++) {
-      mat = matadd(mat,matscale(1./div_,&input_0.data()[ii],matset(&matrix_.data()[0],ii,N),N),N);
+      mat = matadd(mat,matscale(1./div_factor,&input_0.data()[ii],matset(&matrix_.data()[0],ii,N),N),N);
     }
     
 
@@ -116,7 +119,7 @@ class MatrixExpOp : public OpKernel {
       }
     }
 
-    for (int num = 0; num < div_-1; num++) {
+    for (int num = 0; num < div_; num++) {
       mat_exp = matmul(mat_exp,mat_exp,N);
     }
 

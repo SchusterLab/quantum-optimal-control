@@ -74,13 +74,10 @@ class Analysis:
         inter_vecs_mag_squared = []
         if self.sys_para.D:
             v_sorted=sort_ev(self.sys_para.v_c,self.sys_para.dressed)
-            np.save('v_c',self.sys_para.v_c)
-            np.save('v_s',v_sorted)
-            np.save('d',self.sys_para.dressed)
+            
         ii=0
         for tf_inter_vec in self.tf_inter_vecs:
             inter_vec = tf_inter_vec.eval()
-            np.save('WTH_'+str(ii),inter_vec)
             inter_vec_real = (inter_vec[0:state_num,:])
             inter_vec_imag = (inter_vec[state_num:2*state_num,:])
             inter_vec_c = inter_vec_real+1j*inter_vec_imag
@@ -90,6 +87,7 @@ class Analysis:
             #print np.shape (v_sorted)
             if self.sys_para.D:
                 inter_vec_mag_squared = []
+                cplx_vec = []
                 #for kk in range (len (self.sys_para.dressed)):
                     #inter_vec_mag_squared.append(np.square(np.abs(np.dot(self.sys_para.v_c[get_state_index(kk,self.sys_para.dressed)],inter_vec_c))))
                 dressed_vec_c= np.dot(np.transpose(v_sorted),inter_vec_c)
@@ -98,6 +96,7 @@ class Analysis:
             
                 #inter_vec_mag_squared = np.reshape(inter_vec_mag_squared,np.shape(inter_vec_c))
                 inter_vec_mag_squared = np.square(np.abs(dressed_vec_c))
+                cplx_vec.append(dressed_vec_c)
                 #inter_vec_mag_squared = np.square(np.abs(inter_vec_c))
             else:
                 inter_vec_mag_squared = np.square(np.abs(inter_vec_c))
@@ -107,4 +106,5 @@ class Analysis:
         #print (inter_vecs_mag_squared)
 	data_path = os.path.join(self.this_dir,'../Examples/data/GRAPE-inter_vecs')    
         np.save(data_path, np.array(inter_vecs_mag_squared))
+        
         return inter_vecs_mag_squared

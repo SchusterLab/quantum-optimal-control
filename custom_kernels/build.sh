@@ -65,3 +65,5 @@ g++ -std=c++11 -shared ../matrix_exp_vecs.cc -o matrix_exp_vecs.so -fPIC -I $TF_
 echo "matrix_exp_vecs_grads.cc"
 g++ -std=c++11 -shared ../matrix_exp_vecs_grads.cc -o matrix_exp_vecs_grads.so -fPIC -I $TF_INC
 
+echo "matmul_vec.cc"
+g++ -std=c++11 -shared ../matmul_vec.cc -o matmul_vec.so -fPIC -I $TF_INC

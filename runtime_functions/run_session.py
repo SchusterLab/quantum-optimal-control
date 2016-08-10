@@ -7,7 +7,7 @@ from scipy.optimize import minimize
 
 
 class run_session:
-    def __init__(self, tfs,graph,conv,sys_para,method,show_plots=True,single_simulation = False,switch = True):
+    def __init__(self, tfs,graph,conv,sys_para,method,show_plots=True,single_simulation = False,switch = True, name = ''):
         self.tfs=tfs
         self.graph = graph
         self.conv = conv
@@ -19,6 +19,7 @@ class run_session:
         self.show_plots = show_plots
         self.BFGS_time =0
         self.target = False
+        self.name = name
         
         with tf.Session(graph=graph) as self.session:
             
@@ -166,16 +167,20 @@ class run_session:
             self.target = True
             print 'Target fidelity reached'
             grads= 0*grads
-            print self.tfs.final_state.eval()
         if self.iterations % self.update_step == 0 or self.target :
             g, l,rl,metric = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale], feed_dict=self.feed_dict)
             #np.save('uks_QFT_7',x)
+            if self.iterations ==0:
+                self.start_time = time.time()
             if self.show_plots:
                 self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
                 self.conv.update_convergence(l,rl,self.anly,True)
             else:
                 elapsed = time.time() - self.start_time
                 print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,self.iterations,g,metric)
+                text_file = open("Output.txt", 'a')
+                text_file.write('Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,self.iterations,g,metric)+'\n')
+                text_file.close()
         self.iterations=self.iterations+1
         
         
@@ -185,6 +190,11 @@ class run_session:
             return rl,np.reshape(np.transpose(grads),[len(np.transpose(grads))])
 
     def optimize(self,x0, method='L-BFGS-B',jac = False, options=None):
+        
+        text_file = open("Output.txt", 'a')
+        text_file.write(self.name+'\n')
+        text_file.close()
+        
         self.conv.reset_convergence()
         self.first=True
         self.conv_time = 0.
@@ -221,8 +231,8 @@ class run_session:
                 print res.message
                 print("Error = %1.2e" %l)
                 print ("Total time is " + str(time.time() - self.start_time))
-                np.save('final',self.tfs.final_states.eval())
-                np.save('target',self.tfs.target_states.eval())
+                #np.save('final',self.tfs.final_states.eval())
+                #np.save('target',self.tfs.target_states.eval())
                 np.save('inter_vecs',self.anly.get_inter_vecs()[0])
 
         
