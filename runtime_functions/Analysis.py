@@ -32,26 +32,27 @@ class Analysis:
         M = self.tf_final_state.eval()
         CMat = self.RtoCMat(M)
 	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_final-state')
-        np.save(data_path, np.array(CMat))
+        if self.sys_para.save:
+            np.save(data_path, np.array(CMat))
         return CMat
         
     def get_ops_weight(self):        
         ops_weight = self.tf_ops_weight.eval()
         
-	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_ops-weight')
-        np.save(data_path, np.array(ops_weight))
         
         return ops_weight
     def get_raws(self):        
         ops_weight = self.raws.eval()
 	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_raws')
-        np.save(data_path, np.array(ops_weight))
+        if self.sys_para.save:
+            np.save(data_path, np.array(ops_weight))
         
         return ops_weight
     def get_xy_weight(self):        
         xy_weight = self.tf_xy_weight.eval()
 	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_xy-weight')
-        np.save(data_path, np.array(xy_weight))
+        if self.sys_para.save:
+            np.save(data_path, np.array(xy_weight))
         return xy_weight
     def get_raw_weight(self): 
 	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_raw-weight')
@@ -59,15 +60,16 @@ class Analysis:
         ops_weight = self.raws.eval()
         for ii in range (len(self.sys_para.Dts)):
             raw_weight.append(np.tanh(self.raw_weight[ii].eval()))
-            
-            np.save(data_path+str(ii), np.array(raw_weight[ii]))
+            if self.sys_para.save:
+                np.save(data_path+str(ii), np.array(raw_weight[ii]))
 
         
         return raw_weight
     def get_nonmodulated_weight(self):        
         xy_nocos = self.tf_xy_nocos.eval()
 	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_nocos-weight')
-        np.save(data_path, np.array(xy_nocos))
+        if self.sys_para.save:
+            np.save(data_path, np.array(xy_nocos))
         return xy_nocos
     
     
@@ -107,6 +109,7 @@ class Analysis:
         #print np.shape(inter_vecs_mag_squared)
         #print (inter_vecs_mag_squared)
 	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_inter_vecs')    
-        np.save(data_path, np.array(inter_vecs_mag_squared))
+        if self.sys_para.save:
+            np.save(data_path, np.array(inter_vecs_mag_squared))
         
         return inter_vecs_mag_squared
