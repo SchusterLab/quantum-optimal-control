@@ -67,7 +67,7 @@ class run_session:
                     if (self.iterations % self.conv.update_step == 0) or (l < self.conv.conv_target) or (g < self.conv.min_grad):    
                         
                         if self.sys_para.save:
-                            file_name = str(self.iterations)+'_'+self.name + '_'+str(self.sys_para.total_time)+'_'+str(self.sys_para.steps)
+                            file_name = 'iter: '+str(self.iterations)+'_'+self.name 
                             self.this_dir = os.path.dirname(__file__) 
                             data_path = os.path.join(self.this_dir,'../Examples/data/'+file_name+'_uks')
                 
@@ -182,7 +182,7 @@ class run_session:
         if self.iterations % self.update_step == 0 or self.target :
             g, l,rl,metric = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale], feed_dict=self.feed_dict)
             if self.sys_para.save:
-                file_name = str(self.iterations)+'_'+self.name + '_'+ str(self.sys_para.total_time)+'_'+str(self.sys_para.steps)
+                file_name = 'iter: '+str(self.iterations)+'_'+self.name 
                 self.this_dir = os.path.dirname(__file__) 
                 data_path = os.path.join(self.this_dir,'../Examples/data/'+file_name+'_uks')
                 

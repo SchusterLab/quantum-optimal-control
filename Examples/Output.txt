@@ -80,3 +80,6 @@ Error = :3.89e-01; Runtime: 30824.1s; Iterations = 2100, grads =   3.687e-07, un
 Error = :3.88e-01; Runtime: 32279.8s; Iterations = 2200, grads =   2.942e-07, unitary_metric = 0.99999
 Error = :3.86e-01; Runtime: 33735.8s; Iterations = 2300, grads =   2.401e-07, unitary_metric = 1.00000
 Error = :3.85e-01; Runtime: 35191.2s; Iterations = 2400, grads =   2.956e-07, unitary_metric = 1.00000
+ total_time: 6.28318530718, steps: 300, size: 4
+CNot total_time: 6.28318530718, steps: 300, size: 4
+CNot total_time: 6.28318530718, steps: 300, size: 4
