@@ -4,7 +4,7 @@ import os
 
 class Analysis:
     
-    def __init__(self, sys_para,tf_final_state, tf_ops_weight,tf_xy_weight, tf_xy_nocos, tf_unitary_scale, tf_inter_vecs, raw_weight = None, raws = None):
+    def __init__(self, sys_para,tf_final_state, tf_ops_weight,tf_xy_weight, tf_xy_nocos, tf_unitary_scale, tf_inter_vecs, raw_weight = None, raws = None, file_name =None):
         self.sys_para = sys_para
         self.tf_final_state = tf_final_state
         self.tf_ops_weight = tf_ops_weight
@@ -13,7 +13,9 @@ class Analysis:
         self.tf_unitary_scale = tf_unitary_scale
         if raw_weight != None:
             self.raw_weight = raw_weight
-            
+        if file_name == None:
+            file_name = ""
+        self.file_name = file_name
         if raws != None:
             self.raws = raws
         self.tf_inter_vecs = tf_inter_vecs
@@ -29,42 +31,42 @@ class Analysis:
     def get_final_state(self):
         M = self.tf_final_state.eval()
         CMat = self.RtoCMat(M)
-	data_path = os.path.join(self.this_dir,'../Examples/data/GRAPE-final-state')
+	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_final-state')
         np.save(data_path, np.array(CMat))
         return CMat
         
     def get_ops_weight(self):        
         ops_weight = self.tf_ops_weight.eval()
         
-	data_path = os.path.join(self.this_dir,'../Examples/data/GRAPE-ops-weight')
+	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_ops-weight')
         np.save(data_path, np.array(ops_weight))
         
         return ops_weight
     def get_raws(self):        
         ops_weight = self.raws.eval()
-	data_path = os.path.join(self.this_dir,'../Examples/data/GRAPE-raws')
+	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_raws')
         np.save(data_path, np.array(ops_weight))
         
         return ops_weight
     def get_xy_weight(self):        
         xy_weight = self.tf_xy_weight.eval()
-	data_path = os.path.join(self.this_dir,'../Examples/data/GRAPE-xy-weight')
+	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_xy-weight')
         np.save(data_path, np.array(xy_weight))
         return xy_weight
     def get_raw_weight(self): 
-	data_path = os.path.join(self.this_dir,'../Examples/data/GRAPE-raw-weight')
+	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_raw-weight')
         raw_weight =[]
         ops_weight = self.raws.eval()
         for ii in range (len(self.sys_para.Dts)):
             raw_weight.append(np.tanh(self.raw_weight[ii].eval()))
             
-            np.save(data_path, np.array(raw_weight[ii]))
+            np.save(data_path+str(ii), np.array(raw_weight[ii]))
 
         
         return raw_weight
     def get_nonmodulated_weight(self):        
         xy_nocos = self.tf_xy_nocos.eval()
-	data_path = os.path.join(self.this_dir,'../Examples/data/GRAPE-nocos-weight')
+	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_nocos-weight')
         np.save(data_path, np.array(xy_nocos))
         return xy_nocos
     
@@ -104,7 +106,7 @@ class Analysis:
             ii+=1
         #print np.shape(inter_vecs_mag_squared)
         #print (inter_vecs_mag_squared)
-	data_path = os.path.join(self.this_dir,'../Examples/data/GRAPE-inter_vecs')    
+	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_inter_vecs')    
         np.save(data_path, np.array(inter_vecs_mag_squared))
         
         return inter_vecs_mag_squared

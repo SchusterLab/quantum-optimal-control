@@ -126,7 +126,6 @@ class ConvergenceGeneral:
             plt.xlabel('Iteration')
             plt.yscale('log')
             plt.legend()
-            np.save("./data/GRAPE-costs", np.array(self.costs))
         else:
             if self.sys_para.evolve_error:
                 print "Error = %.9f"%self.last_cost

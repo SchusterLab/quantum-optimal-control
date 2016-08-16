@@ -13,7 +13,7 @@ import time
 from IPython import display
 
 
-def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, penalty_coeffs = None,multi_mode = None, maxA = None ,use_gpu= True, draw= None, forbidden = None, initial_guess = None, evolve_only = False, evolve_error = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', limit_dc = None, gate = None, forbid_dressed = True):
+def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, penalty_coeffs = None,multi_mode = None, maxA = None ,use_gpu= True, draw= None, forbidden = None, initial_guess = None, evolve_only = False, evolve_error = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', limit_dc = None, gate = None, forbid_dressed = True, save = False):
     
     
     if freq_unit == 'GHz':
@@ -56,7 +56,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
             
     
     
-    sys_para = SystemParametersGeneral(H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,multi_mode,maxAmp, draw,initial_guess, evolve_only, evolve_error, show_plots, H_time_scales,unitary_error,state_transfer,no_scaling,limit_dc, forbid_dressed)
+    sys_para = SystemParametersGeneral(H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,multi_mode,maxAmp, draw,initial_guess, evolve_only, evolve_error, show_plots, H_time_scales,unitary_error,state_transfer,no_scaling,limit_dc, forbid_dressed, save)
     if use_gpu:
         dev = '/gpu:0'
     else:

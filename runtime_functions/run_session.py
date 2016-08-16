@@ -169,7 +169,15 @@ class run_session:
             grads= 0*grads
         if self.iterations % self.update_step == 0 or self.target :
             g, l,rl,metric = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale], feed_dict=self.feed_dict)
-            #np.save('uks_QFT_7',x)
+            if self.sys_para.save:
+                file_name = str(self.iterations)+'_'+self.name + '_'+ str(self.sys_para.total_time)+'_'+str(self.sys_para.steps)
+                self.this_dir = os.path.dirname(__file__) 
+                data_path = os.path.join(self.this_dir,'../Examples/data/'+file_name+'_uks')
+                
+                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws, file_name = file_name)
+                
+                np.save(data_path,self.Get_uks())
+                
             if self.iterations ==0:
                 self.start_time = time.time()
             if self.show_plots:
