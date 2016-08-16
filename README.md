@@ -1,7 +1,7 @@
 # GRAPE-Tensorflow
 
  This is the packaged function:  
- **uks, U_final = Grape (H0, Hops, Hnames, U, total_time, steps,psi0, convergence = None, U0 = None, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None, show_plots = True, H_time_scales = None, Unitary_error = 1e-4, state_transfer = False, method = 'Adam', switch = True, no_scaling = False, freq_unit= 'GHz', limit_dc = None)**
+ **uks, U_final = Grape (H0, Hops, Hnames, U, total_time, steps,psi0, convergence = None, U0 = None, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None, show_plots = True, H_time_scales = None, Unitary_error = 1e-4, state_transfer = False, method = 'Adam', switch = True, no_scaling = False, freq_unit= 'GHz', limit_dc = None, gate = None, forbid_dressed = True, save = True)**
  
 # Returns:  
  **uks:** The optimized control pulses  ( a list of list of floats, each of them has length  = ctrl_steps(ctrl_op) ) same order as the input  
@@ -52,10 +52,14 @@
  **Unitary_error:** a float indicating the desired maximum error of the Taylor expansion of the exponential to choose a proper number of expansion terms, default is 1e-4  
  
  **state_transfer:** a boolean (default is False) if True, targetting state transfer. If false, targetting unitary evolution. If True, the U is expected to be a vector, not a matrix.    
- **method:** 'Adam', 'BFGS'   or 'L-BFGS-B'. Default is Adam  
+ **method:** 'Adam', 'BFGS'   or 'L-BFGS-B'. Default is L-BFGS-B  
  **switch:** a boolean (default is True) to switch from BFGS/L-BFGS-B to Adam if a precision loss happens  
  **no_scaling**:  a boolean (default is False)) to stop scaling and squaring  
  **freq_unit**: a string with default 'GHz'. Can be 'MHz', 'kHz' or 'Hz'  
  **limit_dc**: a list of control indices that we want to penalize their dc offset  
+ **gate**: a name for the simulation  
+ **forbid_dressed**: A boolean (default is True) to forbid dressed (hamiltonian's eigen vectors) vs bare states in coupled systems  
+ **save**: A boolean (default is True) to save the control ops, intermediate vectors, final unitary every update step  
+ 
  
  
