@@ -332,7 +332,6 @@ class TensorflowState:
             self.reg_loss = self.loss
             self.reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
             reg_alpha = self.reg_alpha_coeff/float(self.sys_para.steps)
-           
             self.reg_loss = self.reg_loss + reg_alpha * tf.nn.l2_loss(tf.mul(self.tf_one_minus_gaussian_envelope,self.ops_weight))
 
             # Constrain Z to have no dc value
@@ -370,7 +369,7 @@ class TensorflowState:
                 v_sorted=tf.constant(c_to_r_mat(np.reshape(sort_ev(self.sys_para.v_c,self.sys_para.dressed),[len(self.sys_para.dressed),len(self.sys_para.dressed)])), dtype = tf.float32)
 
             for inter_vec in self.inter_vecs:
-                if self.sys_para.D:
+                if self.sys_para.D and self.sys_para.forbid_dressed:
                     inter_vec = tf.matmul(tf.transpose(v_sorted),inter_vec)
                 for state in self.sys_para.states_forbidden_list:
                     forbidden_state_pop = tf.square(inter_vec[state,:]) +\

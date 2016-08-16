@@ -7,9 +7,10 @@ from scipy.special import factorial
 
 class SystemParametersGeneral:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,limit_dc):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,limit_dc, forbid_dressed):
         # Input variable
         self.state_transfer = state_transfer
+        self.forbid_dressed = forbid_dressed
         self.no_scaling = no_scaling
         self.H0_c = H0
         self.ops_c = Hops
@@ -132,13 +133,14 @@ class SystemParametersGeneral:
             self.scaling =0
         while True:
 
-            if len(self.H0_c) < 64:
+            if len(self.H0_c) < 58:
                 for ii in range (self.steps):
                     U_f = np.dot(U_f,self.approx_expm((0-1j)*self.dt*H, exp_t, self.scaling))
                 Metric = np.abs(np.trace(np.dot(np.conjugate(np.transpose(U_f)), U_f)))/(self.state_num)
             else:
                 max_term = np.max(np.abs(-(0+1j) * self.dt*H))
-                Metric = 1 + np.abs((self.approx_exp(max_term, exp_t, self.scaling)**self.steps - np.exp(max_term)**self.steps)/np.exp(max_term)**self.steps)
+                
+                Metric = 1 + 100*np.abs((self.approx_exp(max_term, exp_t, self.scaling) - np.exp(max_term))/np.exp(max_term))
 
             if exp_t == 3:
                 break
@@ -232,7 +234,7 @@ class SystemParametersGeneral:
         if self.state_transfer or self.no_scaling:
             comparisons = 1
         else:
-            comparisons = 5
+            comparisons = 6
         d = 0
         while comparisons >0:
             
@@ -244,8 +246,10 @@ class SystemParametersGeneral:
         self.complexities = np.add(self.exps,self.scalings)
         a = np.argmin(self.complexities)
         
-        self.exp_terms = self.exps[a]
+        self.exp_terms = self.exps[a]+1
         self.scaling = self.scalings[a]
+        
+        
         print "Using "+ str(self.exp_terms) + " Taylor terms and "+ str(self.scaling)+" Scaling & Squaring terms"
         
         i_array = np.eye(2*self.state_num)
@@ -311,7 +315,7 @@ class SystemParametersGeneral:
             initial_mean = 0
             index = 0
             
-            initial_stddev = (10./np.sqrt(self.steps))
+            initial_stddev = (1./np.sqrt(self.steps))
             if self.Dts != []: # We have different time scales
                 self.current = []
                 if self.ops_len - len(self.Dts) > 0: # if there exists operators that don't need interpolation

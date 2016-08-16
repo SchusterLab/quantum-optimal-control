@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from IPython import display
+from helper_functions.grape_functions import sort_ev
+
 
 class ConvergenceGeneral:
     
@@ -65,8 +67,14 @@ class ConvergenceGeneral:
         forbidden =np.zeros(self.sys_para.steps+1)
         if self.sys_para.states_forbidden_list!= []:
             for forbid in self.sys_para.states_forbidden_list:
-                forbidden = forbidden +np.array(pop_inter_vecs[forbid,:])
-            plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps+1)]), forbidden,label='forbidden')
+                if self.sys_para.forbid_dressed:
+                    forbidden = forbidden +np.array(pop_inter_vecs[forbid,:])
+                else:
+                    v_sorted=sort_ev(self.sys_para.v_c,self.sys_para.dressed)
+                    dressed_vec= np.dot(v_sorted,np.sqrt(pop_inter_vecs))
+                    forbidden = forbidden +np.array(np.square(np.abs(dressed_vec[forbid,:])))
+                    
+            plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps+1)]), forbidden,'c',label='forbidden')
         
         plt.ylabel('Population')
         plt.ylim(-0.1,1.1)
@@ -105,7 +113,7 @@ class ConvergenceGeneral:
             
             
           
-            plt.subplot(gs[index, :],title='Error = %1.2e; Unitary Metric: %.5f; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost,
+            plt.subplot(gs[index, :],title='Error = %1.2e; Other errors = %1.2e; Unitary Metric: %.5f; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost, self.last_reg_cost-self.last_cost,
                                                                                                    self.anly.tf_unitary_scale.eval(),
                                                                                                  
                                                                                                   self.runtime,

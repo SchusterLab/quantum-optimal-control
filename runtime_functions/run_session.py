@@ -231,9 +231,7 @@ class run_session:
                 print res.message
                 print("Error = %1.2e" %l)
                 print ("Total time is " + str(time.time() - self.start_time))
-                #np.save('final',self.tfs.final_states.eval())
-                #np.save('target',self.tfs.target_states.eval())
-                np.save('inter_vecs',self.anly.get_inter_vecs()[0])
+                
 
         
             
