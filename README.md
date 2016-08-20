@@ -23,7 +23,7 @@
                 'conv_target':1e-8,'learning_rate_decay':2500, 'min_grad': 1e-25}   
  
  **Initial_guess:** A list of k elements, each of them is a steps size array, defining the initial pulses for all operators. If not provided, a default value of a gaussian random distribution will be used.  
- **reg_coeffs:** A dictionary of regulaization coeffecients with default values: reg_coeffs = {'envelope' : 0.01, 'dc':0.01, 'dwdt':0.01,'d2wdt2':0.001*0.0001, 'forbidden':100}   
+ **penalty_coeffs:** A dictionary of regulaization coeffecients with default values: reg_coeffs = {'envelope' : 0.01, 'dc':0.01, 'dwdt':0.01,'d2wdt2':0.001*0.0001, 'forbidden':100}   
  where envelope: imposes a Gaussian envelope    
  dc: limits dc value  
  dwdt: limits the first derivative of the pulses  
