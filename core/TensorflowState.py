@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 import tensorflow as tf
+import math
 from helper_functions.grape_functions import c_to_r_mat, sort_ev
 from custom_kernels.gradients.matexp_grad_vecs_v3 import *
 from custom_kernels.gradients.matexp_grad_v3 import *
@@ -338,9 +339,11 @@ class TensorflowState:
             self.z_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
             z_reg_alpha = self.z_reg_alpha_coeff/float(self.sys_para.steps)
             for state in self.sys_para.limit_dc:
-            
-                self.reg_loss = self.reg_loss + z_reg_alpha*tf.square(tf.reduce_sum(self.ops_weight[state,:]))
-            
+                segment_num = self.sys_para.limit_dc_segment_num
+                segment = int(math.ceil(self.sys_para.steps/segment_num))
+                for kk in range(segment_num-1):
+                    self.reg_loss = self.reg_loss + z_reg_alpha*tf.square(tf.reduce_sum(self.ops_weight[state,kk*segment:(kk+1)*segment]))
+                self.reg_loss = self.reg_loss + z_reg_alpha*tf.square(tf.reduce_sum(self.ops_weight[state,(segment_num-1)*segment:]))
             
             
 
