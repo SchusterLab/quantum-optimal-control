@@ -12,8 +12,11 @@ import random as rd
 import time
 from IPython import display
 
+import h5py
+import os
 
-def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, penalty_coeffs = None,multi_mode = None, maxA = None ,use_gpu= True, draw= None, forbidden = None, initial_guess = None, evolve_only = False, evolve_error = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', limit_dc = None, limit_dc_segment_num= 1, gate = None, forbid_dressed = True, save = True):
+
+def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, penalty_coeffs = None,multi_mode = None, maxA = None ,use_gpu= True, draw= None, forbidden = None, initial_guess = None, evolve_only = False, evolve_error = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', limit_dc = None, limit_dc_segment_num= 1, gate = None, forbid_dressed = True, save = True, data_path = None):
     
     
     if freq_unit == 'GHz':
@@ -25,9 +28,34 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
     elif freq_unit == 'Hz':
         time_unit = 's'
     
-    if gate == None:
-        gate = ''
-    file_name = gate + ' total_time: ' + str(total_time)+', steps: ' + str(steps)+', size: '+str(len(H0))
+    if save:
+        if gate == None:
+            raise ValueError('Grape function input: gate, is not specified.')
+
+        if data_path == None:
+            raise ValueError('Grape function input: data_path, is not specified.')
+
+        #file_name = gate + ' total_time: ' + str(total_time)+', steps: ' + str(steps)+', size: '+str(len(H0))
+
+        file_name = gate
+
+        file_num = 0
+        while (os.path.exists(os.path.join(data_path,str(file_num).zfill(5) + "_"+ file_name+".h5"))):
+            file_num+=1
+
+        file_name = str(file_num).zfill(5) + "_"+ file_name+ ".h5"
+
+        file_path = os.path.join(data_path,file_name)
+
+        with h5py.File(file_path, 'w') as hf:
+            hf.create_dataset('H0',data=H0)
+            hf.create_dataset('Hops',data=Hops)
+            hf.create_dataset('Hnames',data=Hnames)
+            hf.create_dataset('U',data=U)
+            hf.create_dataset('total_time', data=total_time)
+            hf.create_dataset('steps', data=steps)
+            hf.create_dataset('states_concerned_list', data=states_concerned_list)
+    
     if U0 == None:
         U0 = np.identity(len(H0))
     if convergence == None:
