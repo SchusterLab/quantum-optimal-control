@@ -32,12 +32,12 @@ class ConvergenceGeneral:
         	self.plot_summary()
 	else:
 		print '###### last cost: ' + str(last_cost) + ' ######'
-        if self.sys_para.state_transfer == False:
-            self.anly.get_final_state()
-        self.anly.get_ops_weight()
+        	if self.sys_para.state_transfer == False:
+            		self.anly.get_final_state()
+        	self.anly.get_ops_weight()
 		#self.anly.get_xy_weight()
 		#self.anly.get_nonmodulated_weight()
-        self.anly.get_inter_vecs()			
+        	self.anly.get_inter_vecs()			
     
     def get_convergence(self):
         self.costs.append(self.last_cost)

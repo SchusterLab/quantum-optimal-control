@@ -2,9 +2,11 @@ import numpy as np
 from helper_functions.grape_functions import sort_ev,get_state_index
 import os
 
+from helper_functions.datamanagement import H5File
+
 class Analysis:
     
-    def __init__(self, sys_para,tf_final_state, tf_ops_weight,tf_xy_weight, tf_xy_nocos, tf_unitary_scale, tf_inter_vecs, raw_weight = None, raws = None, file_name =None):
+    def __init__(self, sys_para,tf_final_state, tf_ops_weight,tf_xy_weight, tf_xy_nocos, tf_unitary_scale, tf_inter_vecs, raw_weight = None, raws = None, iter_num = 0 ):
         self.sys_para = sys_para
         self.tf_final_state = tf_final_state
         self.tf_ops_weight = tf_ops_weight
@@ -13,9 +15,10 @@ class Analysis:
         self.tf_unitary_scale = tf_unitary_scale
         if raw_weight != None:
             self.raw_weight = raw_weight
-        if file_name == None:
-            file_name = ""
-        self.file_name = file_name
+        #if file_name == None:
+        #    file_name = ""
+        #self.file_name = file_name
+        self.iter_num = iter_num
         if raws != None:
             self.raws = raws
         self.tf_inter_vecs = tf_inter_vecs
@@ -28,12 +31,17 @@ class Analysis:
         
         return (M_real+1j*M_imag)
         
-    def get_final_state(self):
+    def get_final_state(self,save=True):
         M = self.tf_final_state.eval()
         CMat = self.RtoCMat(M)
-	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_final-state')
-        if self.sys_para.save:
-            np.save(data_path, np.array(CMat))
+	#data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_final-state')
+        if self.sys_para.save and save:
+            with H5File(self.sys_para.file_path) as hf:
+                hf.append('final_state',np.array(M))
+            #with h5py.File(self.sys_para.file_path, 'a') as hf:
+            #    g = hf.require_group("CMat")
+            #    g.create_dataset(str(self.iter_num),data=np.array(CMat))
+            #np.save(data_path, np.array(CMat))
         return CMat
         
     def get_ops_weight(self):        
@@ -43,33 +51,53 @@ class Analysis:
         return ops_weight
     def get_raws(self):        
         ops_weight = self.raws.eval()
-	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_raws')
+	#data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_raws')
         if self.sys_para.save:
-            np.save(data_path, np.array(ops_weight))
+            with H5File(self.sys_para.file_path) as hf:
+                hf.append('ops_weight',np.array(ops_weight))
+            #with h5py.File(self.sys_para.file_path, 'a') as hf:
+            #    g = hf.require_group("ops_weight")
+            #    g.create_dataset(str(self.iter_num),data=np.array(ops_weight))
+            #np.save(data_path, np.array(ops_weight))
         
         return ops_weight
     def get_xy_weight(self):        
         xy_weight = self.tf_xy_weight.eval()
-	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_xy-weight')
+	#data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_xy-weight')
         if self.sys_para.save:
-            np.save(data_path, np.array(xy_weight))
+            with H5File(self.sys_para.file_path) as hf:
+                hf.append('xy_weight',np.array(xy_weight))
+            #with h5py.File(self.sys_para.file_path, 'a') as hf:
+            #    g = hf.require_group("xy_weight")
+            #    g.create_dataset(str(self.iter_num),data=np.array(xy_weight))
+            #np.save(data_path, np.array(xy_weight))
         return xy_weight
     def get_raw_weight(self): 
-	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_raw-weight')
+	#data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_raw-weight')
         raw_weight =[]
         ops_weight = self.raws.eval()
         for ii in range (len(self.sys_para.Dts)):
-            raw_weight.append(np.tanh(self.raw_weight[ii].eval()))
+            raw_weight.append(np.tanh(self.raw_weight[ii].eval()).flatten())
             if self.sys_para.save:
-                np.save(data_path+str(ii), np.array(raw_weight[ii]))
+                with H5File(self.sys_para.file_path) as hf:
+                    hf.append('raw_weight',np.array(raw_weight[ii]))
+                #with h5py.File(self.sys_para.file_path, 'a') as hf:
+                #    g = hf.require_group("raw_weight")
+                #    g.create_dataset(str(self.iter_num),data=np.array(raw_weight[ii]))
+                #np.save(data_path+str(ii), np.array(raw_weight[ii]))
 
         
         return raw_weight
     def get_nonmodulated_weight(self):        
         xy_nocos = self.tf_xy_nocos.eval()
-	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_nocos-weight')
+	#data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_nocos-weight')
         if self.sys_para.save:
-            np.save(data_path, np.array(xy_nocos))
+            with H5File(self.sys_para.file_path) as hf:
+                hf.append('xy_nocos',np.array(xy_nocos))
+            #with h5py.File(self.sys_para.file_path, 'a') as hf:
+            #    g = hf.require_group("xy_nocos")
+            #    g.create_dataset(str(self.iter_num),data=np.array(xy_nocos))
+            #np.save(data_path, np.array(xy_nocos))
         return xy_nocos
     
     
@@ -108,8 +136,13 @@ class Analysis:
             ii+=1
         #print np.shape(inter_vecs_mag_squared)
         #print (inter_vecs_mag_squared)
-	data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_inter_vecs')    
+	#data_path = os.path.join(self.this_dir,'../Examples/data/'+self.file_name+'_inter_vecs')    
         if self.sys_para.save:
-            np.save(data_path, np.array(inter_vecs_mag_squared))
+            with H5File(self.sys_para.file_path) as hf:
+                hf.append('inter_vecs_mag_squared',np.array(inter_vecs_mag_squared))
+            #with h5py.File(self.sys_para.file_path, 'a') as hf:
+            #    g = hf.require_group("inter_vecs_mag_squared")
+            #    g.create_dataset(str(self.iter_num),data=np.array(inter_vecs_mag_squared))
+            #np.save(data_path, np.array(inter_vecs_mag_squared))
         
         return inter_vecs_mag_squared

@@ -5,6 +5,8 @@ import os
 import time
 from scipy.optimize import minimize
 
+from helper_functions.datamanagement import H5File
+
 
 class run_session:
     def __init__(self, tfs,graph,conv,sys_para,method,show_plots=True,single_simulation = False,switch = True, name = ''):
@@ -67,12 +69,13 @@ class run_session:
                     if (self.iterations % self.conv.update_step == 0) or (l < self.conv.conv_target) or (g < self.conv.min_grad):    
                         
                         if self.sys_para.save:
-                            file_name = 'iter: '+str(self.iterations)+'_'+self.name 
-                            self.this_dir = os.path.dirname(__file__) 
-                            data_path = os.path.join(self.this_dir,'../Examples/data/'+file_name+'_uks')
+                            iter_num = self.iterations
+                            #self.this_dir = os.path.dirname(__file__) 
+                            #data_path = os.path.join(self.this_dir,'../Examples/data/'+file_name+'_uks')
                 
-                            self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws, file_name = file_name)
-                            np.save(data_path,self.Get_uks())
+                            self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws, iter_num = iter_num)
+                            with H5File(self.sys_para.file_path) as hf:
+                                hf.append('uks',np.array(self.Get_uks()))
                             
                         if self.show_plots and (not self.sys_para.save):
                             self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
@@ -107,7 +110,7 @@ class run_session:
                                 print 'Error = :%1.2e; Runtime: %.1fs; grads =  %10.3e'%(l,elapsed,g)
                                 self.uks= self.Get_uks()
                                 if not self.sys_para.state_transfer:
-                                    self.Uf = self.anly.get_final_state()
+                                    self.Uf = self.anly.get_final_state(save=False)
                                 else:
                                     self.Uf=[]
                            
@@ -182,13 +185,16 @@ class run_session:
         if self.iterations % self.update_step == 0 or self.target :
             g, l,rl,metric = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale], feed_dict=self.feed_dict)
             if self.sys_para.save:
-                file_name = 'iter: '+str(self.iterations)+'_'+self.name 
-                self.this_dir = os.path.dirname(__file__) 
-                data_path = os.path.join(self.this_dir,'../Examples/data/'+file_name+'_uks')
+                iter_num = self.iterations
+                #self.this_dir = os.path.dirname(__file__) 
+                #data_path = os.path.join(self.this_dir,'../Examples/data/'+file_name+'_uks')
                 
-                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws, file_name = file_name)
+                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws, iter_num = iter_num)
                 
-                np.save(data_path,self.Get_uks())
+                #np.save(data_path,self.Get_uks())
+                
+                with H5File(self.sys_para.file_path) as hf:
+                    hf.append('uks',np.array(self.Get_uks()))
                 
             if self.iterations ==0:
                 self.start_time = time.time()
@@ -246,7 +252,7 @@ class run_session:
             self.uks= self.Get_uks()
             
             if not self.sys_para.state_transfer:
-                self.Uf = self.anly.get_final_state()
+                self.Uf = self.anly.get_final_state(save=False)
             else:
                 self.Uf=[]
             if self.show_plots == False:

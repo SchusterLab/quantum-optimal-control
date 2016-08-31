@@ -12,7 +12,7 @@ import random as rd
 import time
 from IPython import display
 
-import h5py
+from helper_functions.datamanagement import H5File
 import os
 
 
@@ -27,6 +27,8 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
         time_unit = 'ms'
     elif freq_unit == 'Hz':
         time_unit = 's'
+        
+    file_path = None
     
     if save:
         if gate == None:
@@ -47,14 +49,14 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
 
         file_path = os.path.join(data_path,file_name)
 
-        with h5py.File(file_path, 'w') as hf:
-            hf.create_dataset('H0',data=H0)
-            hf.create_dataset('Hops',data=Hops)
-            hf.create_dataset('Hnames',data=Hnames)
-            hf.create_dataset('U',data=U)
-            hf.create_dataset('total_time', data=total_time)
-            hf.create_dataset('steps', data=steps)
-            hf.create_dataset('states_concerned_list', data=states_concerned_list)
+        with H5File(file_path) as hf:
+            hf.add('H0',data=H0)
+            hf.add('Hops',data=Hops)
+            hf.add('Hnames',data=Hnames)
+            hf.add('U',data=U)
+            hf.add('total_time', data=total_time)
+            hf.add('steps', data=steps)
+            hf.add('states_concerned_list', data=states_concerned_list)
     
     if U0 == None:
         U0 = np.identity(len(H0))
@@ -84,7 +86,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
             
     
     
-    sys_para = SystemParametersGeneral(H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,multi_mode,maxAmp, draw,initial_guess, evolve_only, evolve_error, show_plots, H_time_scales,unitary_error,state_transfer,no_scaling,limit_dc, limit_dc_segment_num, forbid_dressed, save)
+    sys_para = SystemParametersGeneral(H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,multi_mode,maxAmp, draw,initial_guess, evolve_only, evolve_error, show_plots, H_time_scales,unitary_error,state_transfer,no_scaling,limit_dc, limit_dc_segment_num, forbid_dressed, save, file_path)
     if use_gpu:
         dev = '/gpu:0'
     else:

@@ -7,8 +7,9 @@ from scipy.special import factorial
 
 class SystemParametersGeneral:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,limit_dc, limit_dc_segment_num,forbid_dressed, save):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,limit_dc, limit_dc_segment_num,forbid_dressed, save, file_path):
         # Input variable
+        self.file_path = file_path
         self.limit_dc_segment_num = limit_dc_segment_num
         self.state_transfer = state_transfer
         self.forbid_dressed = forbid_dressed
