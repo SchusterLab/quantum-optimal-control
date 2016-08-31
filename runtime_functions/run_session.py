@@ -75,6 +75,8 @@ class run_session:
                 
                             self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws, iter_num = iter_num)
                             with H5File(self.sys_para.file_path) as hf:
+                                hf.append('error',np.array(l))
+                                hf.append('reg_error',np.array(rl))
                                 hf.append('uks',np.array(self.Get_uks()))
                             
                         if self.show_plots and (not self.sys_para.save):
@@ -194,6 +196,8 @@ class run_session:
                 #np.save(data_path,self.Get_uks())
                 
                 with H5File(self.sys_para.file_path) as hf:
+                    hf.append('error',np.array(l))
+                    hf.append('reg_error',np.array(rl))
                     hf.append('uks',np.array(self.Get_uks()))
                 
             if self.iterations ==0:
