@@ -24,12 +24,12 @@
 
 **matrix_exp.so**: CPU kernel for exponentiating a matrix
 
-cuda_matexp_vecs.so: GPU kernel for exp matrix - vector multiplication
+**cuda_matexp_vecs.so**: GPU kernel for exp matrix - vector multiplication
 
-cuda_matexp_vecs_grads.so: Identitcal as cuda_matexp_vecs.so, but with different name such that graident python file wont be confused, as this operation is required in gradient calculation.
+**cuda_matexp_vecs_grads.so**: Identitcal as cuda_matexp_vecs.so, but with different name such that graident python file wont be confused, as this operation is required in gradient calculation.
 
-cuda_matexp_vecs_v2.so: GPU kernel for exp matrix - vector multiplication, that takes arbitrary input controls, and matrix_list as tensorflow constant
+**cuda_matexp_vecs_v2.so**: GPU kernel for exp matrix - vector multiplication, that takes arbitrary input controls, and matrix_list as tensorflow constant
 
-cuda_matexp_vecs_grads_v2.so: Identitcal as cuda_matexp_vecs_v2.so, but with different name such that graident python file wont be confused, as this operation is required in gradient calculation.
+**cuda_matexp_vecs_grads_v2.so**: Identitcal as cuda_matexp_vecs_v2.so, but with different name such that graident python file wont be confused, as this operation is required in gradient calculation.
 
-cuda_matmul_vec.cc: For matrix vector multiplication. Used in backward propagation gradient.
+**cuda_matmul_vec.cc**: For matrix vector multiplication. Used in backward propagation gradient.
