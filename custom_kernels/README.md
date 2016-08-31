@@ -32,4 +32,10 @@
 
 **cuda_matexp_vecs_grads_v2.so**: Identitcal as cuda_matexp_vecs_v2.so, but with different name such that graident python file wont be confused, as this operation is required in gradient calculation.
 
-**cuda_matmul_vec.cc**: For matrix vector multiplication. Used in backward propagation gradient.
+**cuda_matmul_vec.so**: GPU kernel for matrix vector multiplication. Used in backward propagation gradient.
+
+**matrix_exp_vecs.so**: CPU kernel for exp matrix - vector multiplication, that takes arbitrary input controls, and matrix_list as tensorflow constant
+
+**matrix_exp_vecs_grads.so**: Identitcal as cuda_matexp_vecs_v2.so, but with different name such that graident python file wont be confused, as this operation is required in gradient calculation.
+
+**matmul_vec.so**: CPU kernel for matrix vector multiplication. Used in backward propagation gradient.
