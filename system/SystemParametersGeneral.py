@@ -304,8 +304,6 @@ class SystemParametersGeneral:
 
         a=0.00
 
-        #manual_pulse.append(gaussian_envelope * cos(np.linspace(0,self.total_time,self.steps),a,self.freq_ge))
-        #manual_pulse.append(gaussian_envelope * sin(np.linspace(0,self.total_time,self.steps),a,self.freq_ge))
         manual_pulse.append(np.zeros(self.steps))
 
 

@@ -37,8 +37,6 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
         if data_path == None:
             raise ValueError('Grape function input: data_path, is not specified.')
 
-        #file_name = gate + ' total_time: ' + str(total_time)+', steps: ' + str(steps)+', size: '+str(len(H0))
-
         file_name = gate
 
         file_num = 0

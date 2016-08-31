@@ -169,22 +169,9 @@ class TensorflowState:
         for ii in range (self.sys_para.ops_len):
             self.weights_unpacked.append(self.sys_para.ops_max_amp[ii]*self.ops_weight[ii,:])
 
-        #with tf.name_scope('kernel_weights'):
-
-            #self.H_weights = []
-            #for jj in range (self.sys_para.steps):
-                #temp =[]
-
-                #for kk in range (self.sys_para.ops_len+1):
-                    #temp.append(self.weights_unpacked[kk][jj])
-                #self.H_weights.append(tf.pack(temp))
-
         
         self.H_weights = tf.pack(self.weights_unpacked,name="packed_weights")
-        
-        #self.ops_weight = tf.tanh(self.ops_weight_base)
-        
-        
+           
 
 
         print "Operators weight initialized."
@@ -310,16 +297,6 @@ class TensorflowState:
             self.final_states = tf.matmul(self.final_state, self.packed_initial_vectors)
             
             self.loss = tf.abs(1-self.get_inner_product_gen(self.final_states,self.target_states))
-            #inner_product = tf.matmul(tf.transpose(self.tf_target_state),self.final_state)
-            #inner_product_trace_real = tf.reduce_sum(tf.pack([inner_product[ii,ii] for ii in self.sys_para.states_concerned_list]))\
-            #/float(len(self.sys_para.states_concerned_list))
-            
-
-            #inner_product_trace_mag_squared = tf.square(inner_product_trace_real) 
-            
-
-            #self.loss = tf.abs(1 - inner_product_trace_mag_squared)
-            
         
         else:
             for inter_vec in self.inter_vecs:
@@ -354,16 +331,12 @@ class TensorflowState:
             self.dwdt_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
             dwdt_reg_alpha = self.dwdt_reg_alpha_coeff/float(self.sys_para.steps)
             self.reg_loss = self.reg_loss + dwdt_reg_alpha*tf.nn.l2_loss((new_weights[:,1:]-new_weights[:,:self.sys_para.steps+3])/self.sys_para.dt) 
-            #+ dwdt_reg_alpha*tf.nn.l2_loss((self.ops_weight[:,0] + self.ops_weight[:,self.sys_para.steps])/self.sys_para.dt)
-
-
 
             # Limiting the d2wdt2 of control pulse
             self.d2wdt2_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
             d2wdt2_reg_alpha = self.d2wdt2_reg_alpha_coeff/float(self.sys_para.steps)
             self.reg_loss = self.reg_loss + d2wdt2_reg_alpha*tf.nn.l2_loss((new_weights[:,2:] -\
                             2*new_weights[:,1:self.sys_para.steps+3] +new_weights[:,:self.sys_para.steps+2])/(self.sys_para.dt**2))
-            #+d2wdt2_reg_alpha*tf.nn.l2_loss((self.ops_weight[:,1]-self.ops_weight[:,0] - 2*self.ops_weight[:,self.sys_para.steps] + self.ops_weight[:,self.sys_para.steps-1] )/(self.sys_para.dt**2))
 
             # Limiting the access to forbidden states
             self.inter_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
@@ -378,12 +351,7 @@ class TensorflowState:
                     forbidden_state_pop = tf.square(inter_vec[state,:]) +\
                                         tf.square(inter_vec[self.sys_para.state_num+state,:])
                     self.reg_loss = self.reg_loss + inter_reg_alpha * tf.nn.l2_loss(forbidden_state_pop)
-
-            #ends = 1/float(self.sys_para.steps)
-            #end_steps = int(self.sys_para.steps *0.05)
-
-            #self.reg_loss = self.reg_loss + ends*(tf.add(tf.nn.l2_loss(self.ops_weight[:,:end_steps]),tf.nn.l2_loss(self.ops_weight[:,self.sys_para.steps-end_steps:])))
-           
+                    
         print "Training loss initialized."
             
     def init_optimizer(self):
@@ -438,7 +406,7 @@ class TensorflowState:
          
             
             print "Graph built!"
-            #tf.train.SummaryWriter.add_graph(graph)
+
             tf.train.SummaryWriter('./tmp/graph',graph)
         
         return graph

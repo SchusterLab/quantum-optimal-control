@@ -70,8 +70,6 @@ class run_session:
                         
                         if self.sys_para.save:
                             iter_num = self.iterations
-                            #self.this_dir = os.path.dirname(__file__) 
-                            #data_path = os.path.join(self.this_dir,'../Examples/data/'+file_name+'_uks')
                 
                             self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws, iter_num = iter_num)
                             with H5File(self.sys_para.file_path) as hf:
@@ -188,12 +186,9 @@ class run_session:
             g, l,rl,metric = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale], feed_dict=self.feed_dict)
             if self.sys_para.save:
                 iter_num = self.iterations
-                #self.this_dir = os.path.dirname(__file__) 
-                #data_path = os.path.join(self.this_dir,'../Examples/data/'+file_name+'_uks')
                 
                 self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws, iter_num = iter_num)
-                
-                #np.save(data_path,self.Get_uks())
+
                 
                 with H5File(self.sys_para.file_path) as hf:
                     hf.append('error',np.array(l))

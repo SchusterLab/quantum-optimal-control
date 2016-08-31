@@ -35,8 +35,6 @@ class ConvergenceGeneral:
         	if self.sys_para.state_transfer == False:
             		self.anly.get_final_state()
         	self.anly.get_ops_weight()
-		#self.anly.get_xy_weight()
-		#self.anly.get_nonmodulated_weight()
         	self.anly.get_inter_vecs()			
     
     def get_convergence(self):
@@ -149,9 +147,7 @@ class ConvergenceGeneral:
         for jj in range (self.sys_para.ops_len):
            
             plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[jj]*ops_weight[jj,:]),label='u'+self.sys_para.Hnames[jj])
-    #plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[0]*ops_weight[1,:]),'c',label='y')
-        #plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),(self.sys_para.qm_g1/(2*np.pi))\
-         #    *np.array(self.sys_para.ops_max_amp[1]*ops_weight[2,:]),'g',label='(g/2pi)z')
+
         if self.sys_para.evolve:
             plt.title('Pulse')
         else:
@@ -172,7 +168,6 @@ class ConvergenceGeneral:
 
 
             for kk in range (len(self.sys_para.Dts)):
-                #plt.plot(np.array([self.sys_para.Dts[kk]* ii for ii in range(self.sys_para.ctrl_steps[kk])]),np.array(3*np.transpose(raw_weight[kk])),label=self.sys_para.Hnames[self.sys_para.ops_len -len(self.sys_para.Dts)+kk])
 
                 plt.plot(np.array([self.sys_para.Dts[kk]* ii for ii in range(self.sys_para.ctrl_steps[kk])]),np.array(self.sys_para.ops_max_amp[self.sys_para.ops_len -len(self.sys_para.Dts) +kk]*np.transpose(raw_weight[kk])),label=self.sys_para.Hnames[self.sys_para.ops_len -len(self.sys_para.Dts)+kk])
             
