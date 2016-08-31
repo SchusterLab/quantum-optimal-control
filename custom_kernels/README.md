@@ -24,6 +24,8 @@
 
 **matrix_exp.so**: CPU kernel for exponentiating a matrix
 
+**matrix_exp_v2.so**: CPU kernel for exponentiating a matrix, that takes arbitrary input controls, and matrix_list as tensorflow constant, and with scaling and squaring capability
+
 **cuda_matexp_vecs.so**: GPU kernel for exp matrix - vector multiplication
 
 **cuda_matexp_vecs_grads.so**: Identitcal as cuda_matexp_vecs.so, but with different name such that graident python file wont be confused, as this operation is required in gradient calculation.
