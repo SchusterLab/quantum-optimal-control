@@ -10,6 +10,8 @@
 
 **matadd_coeff_v4.cu.o**: C=A + coeff x coeff_2 x B, coeff as float pointer, coeff_2 as float
 
+**matadd_prepare.cu.** : D = coeff_a x A + coeff_b x B + coeff_c x C, all coeff as pointer
+
 **matmul.cu.o**: C=AxB
 
 **matmul_v2.cu.o**: C=AxB, with NxM dimension (for matrix-vec)
