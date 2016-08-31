@@ -2,17 +2,17 @@
 
 **dev_array.h**: a helper function for allocate and release of GPU memory
 
-**matadd_coeff.cu.o**: C=A+coeff*B, coeff as float
+**matadd_coeff.cu.o**: C=A + coeff x B, coeff as float
 
-**matadd_coeff_v2.cu.o**:C=A+coeff*B, coeff as float pointer
+**matadd_coeff_v2.cu.o**:C=A + coeff x B, coeff as float pointer
 
-**matadd_coeff_v3.cu.o**: C=A+coeff*B, coeff as float, with N*M dimension (for matrix-vec)
+**matadd_coeff_v3.cu.o**: C=A + coeff x B, coeff as float, with N*M dimension (for matrix-vec)
 
-**matadd_coeff_v4.cu.o**: C=A+coeff*coeff_2*B, coeff as float pointer, coeff_2 as float
+**matadd_coeff_v4.cu.o**: C=A + coeff x coeff_2 x B, coeff as float pointer, coeff_2 as float
 
-**matmul.cu.o**: C=A*B
+**matmul.cu.o**: C=AxB
 
-**matmul_v2.cu.o**: C=A*B, with N*M dimension (for matrix-vec)
+**matmul_v2.cu.o**: C=AxB, with NxM dimension (for matrix-vec)
 
 **cuda_matexp.so**: GPU kernel for exponentiating a matrix
 
