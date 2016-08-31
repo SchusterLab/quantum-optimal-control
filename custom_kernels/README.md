@@ -1,4 +1,4 @@
-## Example commands to build CUDA kernels:
+
 
 **dev_array.h**: a helper function for allocate and release of GPU memory
 
