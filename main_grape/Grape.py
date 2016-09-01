@@ -16,7 +16,7 @@ from helper_functions.datamanagement import H5File
 import os
 
 
-def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, penalty_coeffs = None,multi_mode = None, maxA = None ,use_gpu= True, draw= None, forbidden = None, initial_guess = None, evolve_only = False, evolve_error = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', limit_dc = None, limit_dc_segment_num= 1, gate = None, forbid_dressed = True, save = True, data_path = None):
+def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, penalty_coeffs = None,dressed_info = None, maxA = None ,use_gpu= True, draw= None, forbidden = None, initial_guess = None, evolve_only = False, evolve_error = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', limit_dc = None, limit_dc_segment_num= 1, gate = None, forbid_dressed = True, save = True, data_path = None):
     
     
     if freq_unit == 'GHz':
@@ -85,7 +85,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
             
     
     
-    sys_para = SystemParametersGeneral(H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,multi_mode,maxAmp, draw,initial_guess, evolve_only, evolve_error, show_plots, H_time_scales,unitary_error,state_transfer,no_scaling,limit_dc, limit_dc_segment_num, forbid_dressed, save, file_path)
+    sys_para = SystemParametersGeneral(H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,dressed_info,maxAmp, draw,initial_guess, evolve_only, evolve_error, show_plots, H_time_scales,unitary_error,state_transfer,no_scaling,limit_dc, limit_dc_segment_num, forbid_dressed, save, file_path)
     if use_gpu:
         dev = '/gpu:0'
     else:
@@ -98,7 +98,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
     conv = Convergence(sys_para,time_unit,convergence,penalty_coeffs)
     
     try:
-        SS = run_session(tfs,graph,conv,sys_para,method,switch = switch, show_plots = sys_para.show_plots, name = file_name)
+        SS = run_session(tfs,graph,conv,sys_para,method,switch = switch, show_plots = sys_para.show_plots)
         return SS.uks,SS.Uf
     except KeyboardInterrupt:
         display.clear_output()

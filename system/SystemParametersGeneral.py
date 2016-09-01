@@ -7,7 +7,7 @@ from scipy.special import factorial
 
 class SystemParametersGeneral:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,multi_mode,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,limit_dc, limit_dc_segment_num,forbid_dressed, save, file_path):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,dressed_info,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,limit_dc, limit_dc_segment_num,forbid_dressed, save, file_path):
         # Input variable
         self.file_path = file_path
         self.limit_dc_segment_num = limit_dc_segment_num
@@ -63,18 +63,18 @@ class SystemParametersGeneral:
         else:
             self.draw_list = []
             self.draw_names = []
-        if multi_mode !=None:
+        if dressed_info !=None:
             self.multi = True
-            self.v_c = multi_mode['vectors']
-            self.dressed = multi_mode['dressed']
-            self.mode_state_num = multi_mode['mnum']
-            self.qubit_state_num = multi_mode['qnum']
-            self.freq_ge= multi_mode['f']
-            self.w_c = multi_mode['es']
-            self.qm_g1 = multi_mode['g1']
-            self.D = multi_mode['D']
-            self.Interpolation = multi_mode['Interpolation']
-            self.Modulation = multi_mode['Modulation']
+            self.v_c = dressed_info['vectors']
+            self.dressed = dressed_info['dressed']
+            self.mode_state_num = dressed_info['mnum']
+            self.qubit_state_num = dressed_info['qnum']
+            self.freq_ge= dressed_info['f']
+            self.w_c = dressed_info['es']
+            self.qm_g1 = dressed_info['g1']
+            self.D = dressed_info['D']
+            self.Interpolation = dressed_info['Interpolation']
+            self.Modulation = dressed_info['Modulation']
             self.H0_diag=np.diag(self.w_c)
         self.evolve = evolve
         self.evolve_error = evolve_error
