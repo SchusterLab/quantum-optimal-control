@@ -10,7 +10,10 @@ REGISTER_OP("MatrixExp")
     .Attr("div: int")
     .Input("coeff: float")
     .Input("matrix: float")
-    .Output("output: float");
+    .Output("output: float")
+    .Doc(R"doc(
+CPU kernel for exponentiating a matrix, that takes arbitrary input controls, and matrix_list as tensorflow constant, and with scaling and squaring capability.
+)doc");
 
 #include "tensorflow/core/framework/op_kernel.h"
 

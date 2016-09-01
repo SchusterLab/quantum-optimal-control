@@ -10,7 +10,10 @@ REGISTER_OP("MatrixExpVecs")
     .Input("coeff: float")
     .Input("vecs: float")
     .Input("matrix: float")
-    .Output("output: float");
+    .Output("output: float")
+    .Doc(R"doc(
+CPU kernel for exp matrix - vector multiplication, that takes arbitrary input controls, and matrix_list as tensorflow constant.
+)doc");
 
 #include "tensorflow/core/framework/op_kernel.h"
 

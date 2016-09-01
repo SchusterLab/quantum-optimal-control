@@ -31,10 +31,7 @@ REGISTER_OP("MatrixExpVecsGrads")
     .Input("matrix: float")
     .Output("output: float")
     .Doc(R"doc(
-Adds 1 to all elements of the tensor.
-
-output: A Tensor.
-  output = input + 1
+Identitcal as cuda_matexp_vecs_v2.so, but with different name such that graident python file wont be confused, as this operation is required in gradient calculation.
 )doc");
 
 void matrixMultiplication(const float* A, const float* B, float* C, const int N, const int M);
@@ -72,8 +69,6 @@ class MatrixExpVecsGradsOp : public OpKernel {
     OP_REQUIRES_OK(context, context->allocate_output(0, TensorShape({static_cast<int>(sqrt(N)),vecs_num_}),
                                                      &output_tensor));
     auto output = output_tensor->template flat<float>();
-
-    // Set all but the first element of the output tensor to 0.
  
     int dim = static_cast<int>(sqrt(N));
     const int dim_m = vecs_num_;
@@ -93,7 +88,6 @@ class MatrixExpVecsGradsOp : public OpKernel {
 
 
     // Call the cuda kernel launcher
-    //matrixPrepare(d_m0.getData(), d_m1.getData(), d_m2.getData(),&input_0.data()[0], &input_0.data()[1],&input_0.data()[2], d_mat.getData(), dim);
 
     d_mat.set(&matrix_.data()[0], N);
 
@@ -110,12 +104,6 @@ class MatrixExpVecsGradsOp : public OpKernel {
     d_mat_exp.set(vecs.data(), vecs_size);
 
     float inv_factorial = 1.0;
-
-    //matrixMultiplication(d_mat.getData(), vecs.data(), d_mat_n_temp.getData(), dim, dim_m);
-    //matrixAddV3(d_mat_exp.getData(), d_mat_n_temp.getData(), inv_factorial, d_mat_exp_temp.getData(), dim, dim_m);
-
-    //d_mat_n.set(d_mat_n_temp.getData(), vecs_size);
-    //d_mat_exp.set(d_mat_exp_temp.getData(), vecs_size);
 
     for (int num  = 1; num < exp_num_; num++) {
       inv_factorial = inv_factorial/ num;

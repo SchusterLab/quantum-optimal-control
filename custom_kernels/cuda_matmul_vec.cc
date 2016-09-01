@@ -30,10 +30,7 @@ REGISTER_OP("MatmulVecs")
     .Input("matrix: float")
     .Output("output: float")
     .Doc(R"doc(
-Adds 1 to all elements of the tensor.
-
-output: A Tensor.
-  output = input + 1
+GPU kernel for matrix vector multiplication. Used in backward propagation gradient.
 )doc");
 
 void matrixMultiplication(const float* A, const float* B, float* C, const int N, const int M);
@@ -66,8 +63,6 @@ class MatmulVecsOp : public OpKernel {
     OP_REQUIRES_OK(context, context->allocate_output(0, TensorShape({static_cast<int>(sqrt(N)),vecs_num_}),
                                                      &output_tensor));
     auto output = output_tensor->template flat<float>();
-
-    // Set all but the first element of the output tensor to 0.
  
     int dim = static_cast<int>(sqrt(N));
     const int dim_m = vecs_num_;

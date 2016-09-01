@@ -12,7 +12,10 @@ REGISTER_OP("MatrixExp")
     .Input("coeff_0: float32")
     .Input("coeff_1: float32")
     .Input("coeff_2: float32")
-    .Output("output: float32");
+    .Output("output: float32")
+    .Doc(R"doc(
+CPU kernel for exponentiating a matrix.
+)doc");
 
 #include "tensorflow/core/framework/op_kernel.h"
 

@@ -9,7 +9,10 @@ REGISTER_OP("MatmulVecs")
     .Attr("id: int")
     .Input("vecs: float")
     .Input("matrix: float")
-    .Output("output: float");
+    .Output("output: float")
+    .Doc(R"doc(
+CPU kernel for matrix vector multiplication. Used in backward propagation gradient.
+)doc");
 
 #include "tensorflow/core/framework/op_kernel.h"
 

@@ -10,7 +10,10 @@ REGISTER_OP("MatrixExpVecsGrads")
     .Input("coeff: float")
     .Input("vecs: float")
     .Input("matrix: float")
-    .Output("output: float");
+    .Output("output: float")
+    .Doc(R"doc(
+Identitcal as cuda_matexp_vecs_v2.so, but with different name such that graident python file wont be confused, as this operation is required in gradient calculation.
+)doc");
 
 #include "tensorflow/core/framework/op_kernel.h"
 

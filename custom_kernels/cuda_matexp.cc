@@ -33,10 +33,7 @@ REGISTER_OP("MatrixExp")
     .Input("coeff_2: float32")
     .Output("output: float")
     .Doc(R"doc(
-Adds 1 to all elements of the tensor.
-
-output: A Tensor.
-  output = input + 1
+GPU kernel for exponentiating a matrix.
 )doc");
 
 void matrixMultiplication(const float* A, const float* B, float* C, const int N);
@@ -79,7 +76,6 @@ class MatrixExpOp : public OpKernel {
                                                      &output_tensor));
     auto output = output_tensor->template flat<float>();
 
-    // Set all but the first element of the output tensor to 0.
  
     int dim = static_cast<int>(sqrt(N));
     

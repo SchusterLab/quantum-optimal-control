@@ -31,10 +31,7 @@ REGISTER_OP("MatrixExp")
     .Input("matrix: float")
     .Output("output: float")
     .Doc(R"doc(
-Adds 1 to all elements of the tensor.
-
-output: A Tensor.
-  output = input + 1
+GPU kernel for exponentiating a matrix, that takes arbitrary input controls, and matrix_list as tensorflow constant, and with scaling and squaring capability.
 )doc");
 
 void matrixMultiplication(const float* A, const float* B, float* C, const int N);
@@ -71,8 +68,6 @@ class MatrixExpOp : public OpKernel {
     OP_REQUIRES_OK(context, context->allocate_output(0, TensorShape({static_cast<int>(sqrt(N)),static_cast<int>(sqrt(N))}),
                                                      &output_tensor));
     auto output = output_tensor->template flat<float>();
-
-    // Set all but the first element of the output tensor to 0.
  
     int dim = static_cast<int>(sqrt(N));
 
@@ -90,7 +85,6 @@ class MatrixExpOp : public OpKernel {
 
 
     // Call the cuda kernel launcher
-    //matrixPrepare(d_m0.getData(), d_m1.getData(), d_m2.getData(),&input_0.data()[0], &input_0.data()[1],&input_0.data()[2], d_mat.getData(), dim);
 
     d_mat.set(&matrix_.data()[0], N);
 
