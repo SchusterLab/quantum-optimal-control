@@ -6,9 +6,56 @@ from IPython import display
 from helper_functions.grape_functions import sort_ev
 
 
-class ConvergenceGeneral:
+class Convergence:
     
+    def __init__(self,sys_para,time_unit,convergence,penalty_coeffs):
+        # paramters
+        self.sys_para = sys_para
+        self.Modulation = self.sys_para.Modulation
+        self.Interpolation = self.sys_para.Interpolation
+        self.time_unit = time_unit
 
+        if 'rate' in convergence:
+            self.rate = convergence['rate']
+        else:
+            self.rate = 0.01
+
+        if 'update_step' in convergence:
+            self.update_step = convergence['update_step']
+        else:
+            self.update_step = 100
+
+        if 'conv_target' in convergence:
+            self.conv_target = convergence['conv_target']
+        else:
+            self.conv_target = 1e-8
+
+        if 'max_iterations' in convergence:
+            self.max_iterations = convergence['max_iterations']
+        else:
+            self.max_iterations = 5000
+
+        if 'learning_rate_decay' in convergence:
+            self.learning_rate_decay = convergence['learning_rate_decay']
+        else:
+            self.learning_rate_decay = 2500
+
+        if 'min_grad' in convergence:
+            self.min_grad = convergence['min_grad']
+        else:
+            self.min_grad = 1e-25
+
+        self.reg_alpha_coeff = penalty_coeffs['envelope']
+
+        self.z_reg_alpha_coeff = penalty_coeffs['dc']
+
+        self.dwdt_reg_alpha_coeff = penalty_coeffs['dwdt']
+        self.d2wdt2_reg_alpha_coeff = penalty_coeffs['d2wdt2']
+
+        self.inter_reg_alpha_coeff = penalty_coeffs['forbidden']
+
+        self.reset_convergence()
+        plt.figure()
     
     def reset_convergence(self):
         self.costs=[]
@@ -202,6 +249,3 @@ class ConvergenceGeneral:
         if self.sys_para.evolve_error:
             print "Error = %.9f"%self.last_cost
 	        
-
-    def __init__(self):
-	plt.figure()
