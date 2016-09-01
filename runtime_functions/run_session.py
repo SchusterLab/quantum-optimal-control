@@ -9,7 +9,7 @@ from helper_functions.datamanagement import H5File
 
 
 class run_session:
-    def __init__(self, tfs,graph,conv,sys_para,method,show_plots=True,single_simulation = False,switch = True, name = ''):
+    def __init__(self, tfs,graph,conv,sys_para,method,show_plots=True,single_simulation = False,switch = True):
         self.tfs=tfs
         self.graph = graph
         self.conv = conv
@@ -21,7 +21,6 @@ class run_session:
         self.show_plots = show_plots
         self.BFGS_time =0
         self.target = False
-        self.name = name
         
         with tf.Session(graph=graph) as self.session:
             
@@ -217,10 +216,6 @@ class run_session:
             return rl,np.reshape(np.transpose(grads),[len(np.transpose(grads))])
 
     def optimize(self,x0, method='L-BFGS-B',jac = False, options=None):
-        
-        text_file = open("Output.txt", 'a')
-        text_file.write(self.name+'\n')
-        text_file.close()
         
         self.conv.reset_convergence()
         self.first=True
