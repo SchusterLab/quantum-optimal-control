@@ -1,5 +1,24 @@
 import numpy as np
+import scipy.linalg as la
 
+
+def get_dressed_info(H0,D):
+    w_c, v_c = la.eig(H0)
+    dressed=[]
+    D= True
+    if D:
+        for ii in range (len(v_c)):
+            index=np.argmax(np.abs(v_c[:,ii]))
+            if index not in dressed:
+                dressed.append(index)
+            else:
+                temp= (np.abs(v_c[:,ii])).tolist()
+                while index in dressed:
+                    temp[index]=0
+                    index=np.argmax(temp)
+                dressed.append(index)
+            
+    return w_c, v_c, dressed
 
 def qft(N):
 
