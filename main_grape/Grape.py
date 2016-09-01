@@ -2,9 +2,9 @@ import tensorflow as tf
 import numpy as np
 import scipy.linalg as la
 from core.TensorflowState import TensorflowState
-from system.SystemParameters import SystemParameters
-from runtime_functions.Convergence import Convergence
-from runtime_functions.run_session import run_session
+from core.SystemParameters import SystemParameters
+from core.Convergence import Convergence
+from core.run_session import run_session
 
 
 
