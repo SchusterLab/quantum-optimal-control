@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import scipy.linalg as la
 from core.TensorflowState import TensorflowState
-from system.SystemParametersGeneral import SystemParametersGeneral
+from system.SystemParameters import SystemParameters
 from runtime_functions.Convergence import Convergence
 from runtime_functions.run_session import run_session
 
@@ -85,7 +85,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
             
     
     
-    sys_para = SystemParametersGeneral(H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,dressed_info,maxAmp, draw,initial_guess, evolve_only, evolve_error, show_plots, H_time_scales,unitary_error,state_transfer,no_scaling,limit_dc, limit_dc_segment_num, forbid_dressed, save, file_path)
+    sys_para = SystemParameters(H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,dressed_info,maxAmp, draw,initial_guess, evolve_only, evolve_error, show_plots, H_time_scales,unitary_error,state_transfer,no_scaling,limit_dc, limit_dc_segment_num, forbid_dressed, save, file_path)
     if use_gpu:
         dev = '/gpu:0'
     else:

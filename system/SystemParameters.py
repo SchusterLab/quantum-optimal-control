@@ -5,7 +5,7 @@ from helper_functions.grape_functions import get_state_index
 import scipy.linalg as la
 from scipy.special import factorial
 
-class SystemParametersGeneral:
+class SystemParameters:
 
     def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,dressed_info,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,limit_dc, limit_dc_segment_num,forbid_dressed, save, file_path):
         # Input variable
