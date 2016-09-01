@@ -64,17 +64,10 @@ class SystemParametersGeneral:
             self.draw_list = []
             self.draw_names = []
         if dressed_info !=None:
-            self.multi = True
             self.v_c = dressed_info['vectors']
             self.dressed = dressed_info['dressed']
-            self.mode_state_num = dressed_info['mnum']
-            self.qubit_state_num = dressed_info['qnum']
-            self.freq_ge= dressed_info['f']
             self.w_c = dressed_info['es']
-            self.qm_g1 = dressed_info['g1']
             self.D = dressed_info['D']
-            self.Interpolation = dressed_info['Interpolation']
-            self.Modulation = dressed_info['Modulation']
             self.H0_diag=np.diag(self.w_c)
         self.evolve = evolve
         self.evolve_error = evolve_error
