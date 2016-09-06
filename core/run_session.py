@@ -77,10 +77,6 @@ class run_session:
                             
                             self.conv.update_convergence(l,rl,self.anly,self.show_plots)
 
-                        # Save the variables to disk.
-                            this_dir = os.path.dirname(__file__)
-                            tmp_path = os.path.join(this_dir,'../Examples/tmp/grape.ckpt')
-                            save_path = tfs.saver.save(self.session, tmp_path)
                             if (self.iterations >= max_iterations) or (l < self.conv.conv_target): 
                                 
                                 self.uks= self.Get_uks()

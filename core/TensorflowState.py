@@ -362,7 +362,5 @@ class TensorflowState:
          
             
             print "Graph built!"
-
-            tf.train.SummaryWriter('./tmp/graph',graph)
         
         return graph
