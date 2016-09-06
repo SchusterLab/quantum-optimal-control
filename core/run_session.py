@@ -196,10 +196,6 @@ class run_session:
             else:
                 elapsed = time.time() - self.start_time
                 print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,self.iterations,g,metric)
-                text_file = open("Output.txt", 'a')
-                text_file.write('Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,self.iterations,g,metric)+'\n')
-                text_file.close()
-        self.iterations=self.iterations+1
         
         
         if self.method == 'L-BFGS-B':
