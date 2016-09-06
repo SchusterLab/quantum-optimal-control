@@ -48,6 +48,7 @@
  **freq_unit**: a string with default 'GHz'. Can be 'MHz', 'kHz' or 'Hz'  
 
  **forbid_dressed**: A boolean (default is True) to forbid dressed (hamiltonian's eigen vectors) vs bare states in coupled systems 
+ 
  **file_name**: file name for saving the simulation  
  **save**: A boolean (default is True) to save the control ops, intermediate vectors, final unitary every update step  
  **data_path**: path for saving the simulation  
