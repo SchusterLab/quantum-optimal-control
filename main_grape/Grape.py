@@ -16,7 +16,7 @@ from helper_functions.datamanagement import H5File
 import os
 
 
-def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, reg_coeffs = None,dressed_info = None, maxA = None ,use_gpu= True, draw= None, initial_guess = None, evolve_only = False, evolve_error = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', file_name = None, save = True, data_path = None):
+def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, reg_coeffs = None,dressed_info = None, maxA = None ,use_gpu= True, draw= None, initial_guess = None, evolve_only = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', file_name = None, save = True, data_path = None):
     
     
     if freq_unit == 'GHz':
@@ -76,7 +76,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
             
     
     
-    sys_para = SystemParameters(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxAmp, draw,initial_guess, evolve_only, evolve_error, show_plots, H_time_scales,unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path)
+    sys_para = SystemParameters(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxAmp, draw,initial_guess, evolve_only, show_plots, H_time_scales,unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path)
     if use_gpu:
         dev = '/gpu:0'
     else:

@@ -7,7 +7,7 @@ from scipy.special import factorial
 
 class SystemParameters:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxA, draw,initial_guess,evolve, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path):
         # Input variable
         self.dressed_info = dressed_info
         self.reg_coeffs = reg_coeffs
@@ -65,7 +65,6 @@ class SystemParameters:
             self.H0_diag=np.diag(self.w_c)
             
         self.evolve = evolve
-        self.evolve_error = evolve_error
         self.init_system()
         self.init_vectors()
         self.init_operators()
@@ -124,7 +123,7 @@ class SystemParameters:
             self.scaling =0
         while True:
 
-            if len(self.H0_c) < 58:
+            if len(self.H0_c) < 10:
                 for ii in range (self.steps):
                     U_f = np.dot(U_f,self.approx_expm((0-1j)*self.dt*H, exp_t, self.scaling))
                 Metric = np.abs(np.trace(np.dot(np.conjugate(np.transpose(U_f)), U_f)))/(self.state_num)

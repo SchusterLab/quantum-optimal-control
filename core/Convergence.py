@@ -164,8 +164,7 @@ class Convergence:
             plt.yscale('log')
             plt.legend()
         else:
-            if self.sys_para.evolve_error:
-                print "Error = %.9f"%self.last_cost
+            print "Error = %.9f"%self.last_cost
         ## unitary evolution
         if not self.sys_para.state_transfer:
             M = self.anly.get_final_state()
@@ -238,6 +237,3 @@ class Convergence:
 	
         display.display(plt.gcf())
         display.clear_output(wait=True)
-        if self.sys_para.evolve_error:
-            print "Error = %.9f"%self.last_cost
-	        
