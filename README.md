@@ -1,7 +1,7 @@
 # GRAPE-Tensorflow
 
  This is the packaged function:  
- **uks, U_final = Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, reg_coeffs = None,dressed_info = None, maxA = None ,use_gpu= True, draw= None, initial_guess = None, evolve_only = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', file_name = None, save = True, data_path = None)**
+ **uks, U_final = Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence, U0, reg_coeffs,dressed_info, maxA ,use_gpu, draw, initial_guess, evolve_only,show_plots, H_time_scales, unitary_error, method,state_transfer, switch,no_scaling, freq_unit, file_name, save, data_path)**
  
 # Returns:  
  **uks:** The optimized control pulses  ( a list of list of floats, each of them has length  = ctrl_steps(ctrl_op) ) same order as the input  
