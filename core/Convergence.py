@@ -107,7 +107,7 @@ class Convergence:
                 if self.sys_para.dressed_info is None or ('forbid_dressed' in self.sys_para.reg_coeffs and self.sys_para.reg_coeffs['forbid_dressed']) :
                     forbidden = forbidden +np.array(pop_inter_vecs[forbid,:])
                 else:
-                    v_sorted=sort_ev(self.sys_para.v_c,self.sys_para.dressed)
+                    v_sorted=sort_ev(self.sys_para.v_c,self.sys_para.dressed_id)
                     dressed_vec= np.dot(v_sorted,np.sqrt(pop_inter_vecs))
                     forbidden = forbidden +np.array(np.square(np.abs(dressed_vec[forbid,:])))
                     
