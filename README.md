@@ -1,7 +1,7 @@
 # GRAPE-Tensorflow
 
  This is the packaged function:  
- **uks, U_final = Grape (H0, Hops, Hnames, U, total_time, steps,psi0, convergence = None, U0 = None, reg_coeffs = None, multi_mode = None, maxA = None, use_gpu = True, draw= None, forbidden = None, initial_guess = None, show_plots = True, H_time_scales = None, Unitary_error = 1e-4, state_transfer = False, method = 'Adam', switch = True, no_scaling = False, freq_unit= 'GHz', limit_dc = None, gate = None, forbid_dressed = True, save = True)**
+ **uks, U_final = Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, reg_coeffs = None,dressed_info = None, maxA = None ,use_gpu= True, draw= None, initial_guess = None, evolve_only = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', file_name = None, save = True, data_path = None)**
  
 # Returns:  
  **uks:** The optimized control pulses  ( a list of list of floats, each of them has length  = ctrl_steps(ctrl_op) ) same order as the input  
@@ -23,17 +23,9 @@
                 'conv_target':1e-8,'learning_rate_decay':2500, 'min_grad': 1e-25}   
  
  **Initial_guess:** A list of k elements, each of them is a steps size array, defining the initial pulses for all operators. If not provided, a default value of a gaussian random distribution will be used.  
- **penalty_coeffs:** A dictionary of regulaization coeffecients with default values: reg_coeffs = {'envelope' : 0.01, 'dc':0.01, 'dwdt':0.01,'d2wdt2':0.001*0.0001, 'forbidden':100}   
- where envelope: imposes a Gaussian envelope    
- dc: limits dc value  
- dwdt: limits the first derivative of the pulses  
- d2wdt2: limits the second derivative of the pulses  
- forbidden: limits forbidden states occupation  
-   
- **multi_mode  :** A dictionary including the details of our specific system (a qubit with multimodes) to treat it differently (having more options for it like modulation and dressed state treatment)  
- Ex: multi_mode = {'dressed':dressed, 'vectors':v_c, 'qnum':qubit_state_num, 'mnum': mode_state_num,\
-               'f':freq_ge, 'es':w_c, 'g1':qm_g1, 'D':D, 'Interpolation':True, 'Modulation':True}  
-   
+ **reg_coeffs:** A dictionary of regulaization coeffecients
+
+ **dressed_info :** A dictionary including the eigenvalues and eigenstates of dressed states
  
  **maxA:** a list of the maximum amplitudes of the control pulses (default value is 4)  
    
@@ -42,8 +34,6 @@
  **draw:** a list including the indices and names for the states to include in drawing state occupation. Ex: states_draw_list = [0,1,mode_state_num,mode_state_num+1,mode_state_num**2]
  states_draw_names = ['g00','g01','g10','g11','e00'] and  draw = [states_draw_list,states_draw_names]  
  default value is to draw states with indices 0-3  
- 
- **forbidden:** a list of integer indices indicating the states to penalize  
  
  **show_plots:** a boolean (default is True) toggling between progress bar and graphs  
  
@@ -56,10 +46,11 @@
  **switch:** a boolean (default is True) to switch from BFGS/L-BFGS-B to Adam if a precision loss happens  
  **no_scaling**:  a boolean (default is False)) to stop scaling and squaring  
  **freq_unit**: a string with default 'GHz'. Can be 'MHz', 'kHz' or 'Hz'  
- **limit_dc**: a list of control indices that we want to penalize their dc offset  
- **gate**: a name for the simulation  
- **forbid_dressed**: A boolean (default is True) to forbid dressed (hamiltonian's eigen vectors) vs bare states in coupled systems  
+
+ **forbid_dressed**: A boolean (default is True) to forbid dressed (hamiltonian's eigen vectors) vs bare states in coupled systems 
+ **file_name**: file name for saving the simulation  
  **save**: A boolean (default is True) to save the control ops, intermediate vectors, final unitary every update step  
+ **data_path**: path for saving the simulation  
  
  
  
