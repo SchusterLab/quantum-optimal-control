@@ -41,7 +41,7 @@ class SystemParameters:
             self.dts =[]
         self.Modulation = False
         self.Interpolation = False
-        self.D = False
+        self.is_dressed = False
         self.U0_c = U0
         self.initial_unitary = c_to_r_mat(U0) #CtoRMat is converting complex matrices to their equivalent real (double the size) matrices
         if self.state_transfer == False:
@@ -58,10 +58,10 @@ class SystemParameters:
         
         
         if dressed_info !=None:
-            self.v_c = dressed_info['vectors']
-            self.dressed = dressed_info['dressed']
-            self.w_c = dressed_info['es']
-            self.D = dressed_info['D']
+            self.v_c = dressed_info['eigenvectors']
+            self.dressed_id = dressed_info['dressed_id']
+            self.w_c = dressed_info['eigenvalues']
+            self.is_dressed = dressed_info['is_dressed']
             self.H0_diag=np.diag(self.w_c)
             
         self.evolve = evolve
@@ -186,8 +186,8 @@ class SystemParameters:
         self.initial_vectors=[]
 
         for state in self.states_concerned_list:
-            if self.D:
-                self.initial_vector_c= self.v_c[:,get_state_index(state,self.dressed)]
+            if self.is_dressed:
+                self.initial_vector_c= self.v_c[:,get_state_index(state,self.dressed_id)]
             else:
                 self.initial_vector_c=np.zeros(self.state_num)
                 self.initial_vector_c[state]=1

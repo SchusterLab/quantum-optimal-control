@@ -85,8 +85,8 @@ class Analysis:
     def get_inter_vecs(self):
         state_num = self.sys_para.state_num
         inter_vecs_mag_squared = []
-        if self.sys_para.D:
-            v_sorted=sort_ev(self.sys_para.v_c,self.sys_para.dressed)
+        if self.sys_para.is_dressed:
+            v_sorted=sort_ev(self.sys_para.v_c,self.sys_para.dressed_id)
             
         ii=0
         for tf_inter_vec in self.tf_inter_vecs:
@@ -95,7 +95,7 @@ class Analysis:
             inter_vec_imag = (inter_vec[state_num:2*state_num,:])
             inter_vec_c = inter_vec_real+1j*inter_vec_imag
 
-            if self.sys_para.D:
+            if self.sys_para.is_dressed:
                 inter_vec_mag_squared = []
                 cplx_vec = []
 

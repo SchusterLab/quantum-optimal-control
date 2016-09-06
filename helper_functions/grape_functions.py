@@ -2,23 +2,21 @@ import numpy as np
 import scipy.linalg as la
 
 
-def get_dressed_info(H0,D):
+def get_dressed_info(H0):
     w_c, v_c = la.eig(H0)
-    dressed=[]
-    D= True
-    if D:
-        for ii in range (len(v_c)):
-            index=np.argmax(np.abs(v_c[:,ii]))
-            if index not in dressed:
-                dressed.append(index)
-            else:
-                temp= (np.abs(v_c[:,ii])).tolist()
-                while index in dressed:
-                    temp[index]=0
-                    index=np.argmax(temp)
-                dressed.append(index)
+    dressed_id=[]
+    for ii in range(len(v_c)):
+        index = np.argmax(np.abs(v_c[:, ii]))
+        if index not in dressed_id:
+            dressed_id.append(index)
+        else:
+            temp = (np.abs(v_c[:, ii])).tolist()
+            while index in dressed_id:
+                temp[index] = 0
+                index = np.argmax(temp)
+            dressed_id.append(index)
             
-    return w_c, v_c, dressed
+    return w_c, v_c, dressed_id
 
 def qft(N):
 
@@ -157,20 +155,20 @@ def append_separate_krons(op,name,num,state_num,Hops,Hnames,ops_max_amp,amp=4.0)
     return Hops,Hnames,ops_max_amp
 
 
-def sort_ev(v,dressed):
+def sort_ev(v,dressed_id):
     v_sorted=[]
     
-    for ii in range (len(dressed)):
+    for ii in range (len(dressed_id)):
         v1=[]
-        for jj in range (len(dressed)):
-            v1.append(v[jj,get_state_index(ii,dressed)])
+        for jj in range (len(dressed_id)):
+            v1.append(v[jj,get_state_index(ii,dressed_id)])
         v_sorted.append(v1)
     
-    return np.transpose(np.reshape(v_sorted, [len(dressed),len(dressed)]))
+    return np.transpose(np.reshape(v_sorted, [len(dressed_id),len(dressed_id)]))
 
-def get_state_index(bareindex,dressed):
-    if len(dressed) > 0:
-        return dressed.index(bareindex)
+def get_state_index(bareindex,dressed_id):
+    if len(dressed_id) > 0:
+        return dressed_id.index(bareindex)
     else:
         return bareindex
     
