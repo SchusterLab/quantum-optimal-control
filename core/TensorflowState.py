@@ -183,7 +183,7 @@ class TensorflowState:
         for ii in range(self.sys_para.steps):
             self.inter_states.append(tf.zeros([2*self.sys_para.state_num,2*self.sys_para.state_num],
                                               dtype=tf.float32,name="inter_state_"+str(ii)))
-        print "Intermediate propagators initialized."
+        print "Intermediate propagation variables initialized."
             
     def get_inter_state_op(self,layer):
         # build operator for intermediate state propagation
@@ -216,7 +216,7 @@ class TensorflowState:
         
         self.unitary_scale = (0.5/self.sys_para.state_num)*tf.reduce_sum(tf.matmul(tf.transpose(self.final_state),self.final_state))
         
-        print "Intermediate propagators correlations initialized."
+        print "Intermediate propagators initialized."
         
     def init_tf_inter_vectors(self):
         self.inter_vecs=[]
