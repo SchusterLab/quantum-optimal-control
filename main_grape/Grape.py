@@ -16,7 +16,7 @@ from helper_functions.datamanagement import H5File
 import os
 
 
-def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, reg_coeffs = None,dressed_info = None, maxA = None ,use_gpu= True, draw= None, initial_guess = None, evolve_only = False, evolve_error = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', gate = None, save = True, data_path = None):
+def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, reg_coeffs = None,dressed_info = None, maxA = None ,use_gpu= True, draw= None, initial_guess = None, evolve_only = False, evolve_error = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', file_name = None, save = True, data_path = None):
     
     
     if freq_unit == 'GHz':
@@ -31,13 +31,12 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
     file_path = None
     
     if save:
-        if gate == None:
-            raise ValueError('Grape function input: gate, is not specified.')
+        if file_name == None:
+            raise ValueError('Grape function input: file_name, is not specified.')
 
         if data_path == None:
             raise ValueError('Grape function input: data_path, is not specified.')
 
-        file_name = gate
 
         file_num = 0
         while (os.path.exists(os.path.join(data_path,str(file_num).zfill(5) + "_"+ file_name+".h5"))):
