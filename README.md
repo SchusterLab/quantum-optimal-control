@@ -16,7 +16,7 @@
  **Steps:** Number of time steps (int)  
  **psi0:** Initial States (list of integers specifying the indices of those states)  
  
- -#Optional Arguments:  
+# Optional Arguments:  
  **U0:** Initial Unitary (n by n), default is identity  
  **convergence:** A dictionary (can be empty) that might include the following parameters with default values as shown:
                 convergence = {'rate':0.01, 'update_step':100, 'max_iterations':5000,
