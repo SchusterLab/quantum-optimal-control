@@ -16,7 +16,7 @@ from helper_functions.datamanagement import H5File
 import os
 
 
-def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, penalty_coeffs = None,dressed_info = None, maxA = None ,use_gpu= True, draw= None, forbidden = None, initial_guess = None, evolve_only = False, evolve_error = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', limit_dc = None, limit_dc_segment_num= 1, gate = None, forbid_dressed = True, save = True, data_path = None):
+def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, reg_coeffs = None,dressed_info = None, maxA = None ,use_gpu= True, draw= None, forbidden = None, initial_guess = None, evolve_only = False, evolve_error = False,show_plots = True, H_time_scales = None, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', gate = None, forbid_dressed = True, save = True, data_path = None):
     
     
     if freq_unit == 'GHz':
@@ -62,16 +62,8 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
     if convergence == None:
         convergence = {'rate':0.01, 'update_step':100, 'max_iterations':5000,'conv_target':1e-8,'learning_rate_decay':2500}
     
-    if penalty_coeffs == None:
-        if evolve_only:
-            penalty_coeffs = {'envelope' : 0, 'dc':0, 'dwdt':0,'d2wdt2':0, 'forbidden':0}
-        else:
-            penalty_coeffs = {'envelope' : 0.01, 'dc':0.01, 'dwdt':0.001,'d2wdt2':0.001*0.0001, 'forbidden':100}
-        # envelope: to make it close to a Gaussian envelope
-        # dc: to limit DC offset of z pulses 
-        # dwdt: to limit pulse first derivative
-        # d2wdt2: to limit second derivatives
-        # forbidden: to penalize forbidden states
+    if evolve_only:
+        reg_coeffs = dict.fromkeys(reg_coeffs, 0)
        
         
     if maxA == None:
@@ -85,7 +77,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
             
     
     
-    sys_para = SystemParameters(H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,dressed_info,maxAmp, draw,initial_guess, evolve_only, evolve_error, show_plots, H_time_scales,unitary_error,state_transfer,no_scaling,limit_dc, limit_dc_segment_num, forbid_dressed, save, file_path)
+    sys_para = SystemParameters(H0,Hops,Hnames,U,U0,total_time,steps,forbidden,states_concerned_list,dressed_info,maxAmp, draw,initial_guess, evolve_only, evolve_error, show_plots, H_time_scales,unitary_error,state_transfer,no_scaling,reg_coeffs, forbid_dressed, save, file_path)
     if use_gpu:
         dev = '/gpu:0'
     else:
@@ -95,7 +87,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
         tfs = TensorflowState(sys_para,use_gpu) # create tensorflow graph
         graph = tfs.build_graph()
     
-    conv = Convergence(sys_para,time_unit,convergence,penalty_coeffs)
+    conv = Convergence(sys_para,time_unit,convergence)
     
     try:
         SS = run_session(tfs,graph,conv,sys_para,method,switch = switch, show_plots = sys_para.show_plots)

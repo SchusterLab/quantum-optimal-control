@@ -7,10 +7,10 @@ from scipy.special import factorial
 
 class SystemParameters:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,dressed_info,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,limit_dc, limit_dc_segment_num,forbid_dressed, save, file_path):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,dressed_info,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,reg_coeffs,forbid_dressed, save, file_path):
         # Input variable
+        self.reg_coeffs = reg_coeffs
         self.file_path = file_path
-        self.limit_dc_segment_num = limit_dc_segment_num
         self.state_transfer = state_transfer
         self.forbid_dressed = forbid_dressed
         self.no_scaling = no_scaling
@@ -29,11 +29,8 @@ class SystemParameters:
             self.states_forbidden_list = states_forbidden_list
         else:
             self.states_forbidden_list =[]
-        
-        if limit_dc == None:
-            self.limit_dc = []
-        else:
-            self.limit_dc = limit_dc
+      
+            
         if initial_guess!= None:
             self.u0 = initial_guess
             for ii in range (len(self.u0)):

@@ -8,7 +8,7 @@ from helper_functions.grape_functions import sort_ev
 
 class Convergence:
     
-    def __init__(self,sys_para,time_unit,convergence,penalty_coeffs):
+    def __init__(self,sys_para,time_unit,convergence):
         # paramters
         self.sys_para = sys_para
         self.Modulation = self.sys_para.Modulation
@@ -45,14 +45,6 @@ class Convergence:
         else:
             self.min_grad = 1e-25
 
-        self.reg_alpha_coeff = penalty_coeffs['envelope']
-
-        self.z_reg_alpha_coeff = penalty_coeffs['dc']
-
-        self.dwdt_reg_alpha_coeff = penalty_coeffs['dwdt']
-        self.d2wdt2_reg_alpha_coeff = penalty_coeffs['d2wdt2']
-
-        self.inter_reg_alpha_coeff = penalty_coeffs['forbidden']
 
         self.reset_convergence()
         plt.figure()

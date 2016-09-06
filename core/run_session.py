@@ -33,11 +33,7 @@ class run_session:
  
             if self.method != 'Adam': #Any BFGS scheme
                 learning_rate=0
-                self.feed_dict = {tfs.learning_rate : learning_rate, tfs.z_reg_alpha_coeff: conv.z_reg_alpha_coeff,
-                            tfs.reg_alpha_coeff: conv.reg_alpha_coeff, 
-                             tfs.dwdt_reg_alpha_coeff: conv.dwdt_reg_alpha_coeff,
-                             tfs.d2wdt2_reg_alpha_coeff: conv.d2wdt2_reg_alpha_coeff,
-                             tfs.inter_reg_alpha_coeff:conv.inter_reg_alpha_coeff}
+                self.feed_dict = {tfs.learning_rate : learning_rate}
                 
                 if self.sys_para.Dts==[]:
                     g,l,rl,uks = self.session.run([tfs.grad_pack, tfs.loss, tfs.reg_loss,tfs.ops_weight_base], feed_dict=self.feed_dict)
@@ -55,11 +51,7 @@ class run_session:
                 start_time = time.time() - self.BFGS_time
                 while True:
                     learning_rate = float(self.conv.rate) * np.exp(-float(self.iterations)/conv.learning_rate_decay)
-                    self.feed_dict = {tfs.learning_rate : learning_rate, tfs.z_reg_alpha_coeff: conv.z_reg_alpha_coeff,
-                            tfs.reg_alpha_coeff: conv.reg_alpha_coeff, 
-                             tfs.dwdt_reg_alpha_coeff: conv.dwdt_reg_alpha_coeff,
-                             tfs.d2wdt2_reg_alpha_coeff: conv.d2wdt2_reg_alpha_coeff,
-                             tfs.inter_reg_alpha_coeff:conv.inter_reg_alpha_coeff}
+                    self.feed_dict = {tfs.learning_rate : learning_rate}
                     
                     g,_, l,rl= self.session.run([tfs.grad_squared, tfs.optimizer, tfs.loss, tfs.reg_loss], feed_dict=self.feed_dict)
                     
