@@ -6,6 +6,7 @@ import math
 from helper_functions.grape_functions import c_to_r_mat, sort_ev
 from custom_kernels.gradients.matexp_grad_vecs_v3 import *
 from custom_kernels.gradients.matexp_grad_v3 import *
+from RegularizationFunctions import get_reg_loss
 
 class TensorflowState:
     
@@ -305,53 +306,8 @@ class TensorflowState:
             self.unitary_scale = self.get_inner_product(self.final_state,self.final_state)
             self.loss = tf.abs(1 - self.inner_product, name ="Fidelity_error")
     
-        # Regulizer
-        with tf.name_scope('reg_errors'):
-            self.reg_loss = self.loss
-            self.reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
-            reg_alpha = self.reg_alpha_coeff/float(self.sys_para.steps)
-            self.reg_loss = self.reg_loss + reg_alpha * tf.nn.l2_loss(tf.mul(self.tf_one_minus_gaussian_envelope,self.ops_weight))
-
-            # Constrain Z to have no dc value
-            self.z_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
-            z_reg_alpha = self.z_reg_alpha_coeff/float(self.sys_para.steps)
-            for state in self.sys_para.limit_dc:
-                segment_num = self.sys_para.limit_dc_segment_num
-                segment = int(math.ceil(self.sys_para.steps/segment_num))
-                for kk in range(segment_num-1):
-                    self.reg_loss = self.reg_loss + z_reg_alpha*tf.square(tf.reduce_sum(self.ops_weight[state,kk*segment:(kk+1)*segment]))
-                self.reg_loss = self.reg_loss + z_reg_alpha*tf.square(tf.reduce_sum(self.ops_weight[state,(segment_num-1)*segment:]))
-            
-            
-
-            # Limiting the dwdt of control pulse
-            zeros_for_training = tf.zeros([self.sys_para.ops_len, 2])
-            new_weights = tf.concat(1, [self.ops_weight, zeros_for_training])
-            new_weights = tf.concat(1, [zeros_for_training,new_weights])
-            self.dwdt_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
-            dwdt_reg_alpha = self.dwdt_reg_alpha_coeff/float(self.sys_para.steps)
-            self.reg_loss = self.reg_loss + dwdt_reg_alpha*tf.nn.l2_loss((new_weights[:,1:]-new_weights[:,:self.sys_para.steps+3])/self.sys_para.dt) 
-
-            # Limiting the d2wdt2 of control pulse
-            self.d2wdt2_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
-            d2wdt2_reg_alpha = self.d2wdt2_reg_alpha_coeff/float(self.sys_para.steps)
-            self.reg_loss = self.reg_loss + d2wdt2_reg_alpha*tf.nn.l2_loss((new_weights[:,2:] -\
-                            2*new_weights[:,1:self.sys_para.steps+3] +new_weights[:,:self.sys_para.steps+2])/(self.sys_para.dt**2))
-
-            # Limiting the access to forbidden states
-            self.inter_reg_alpha_coeff = tf.placeholder(tf.float32,shape=[])
-            inter_reg_alpha = self.inter_reg_alpha_coeff/float(self.sys_para.steps)
-            if self.sys_para.D:
-                v_sorted=tf.constant(c_to_r_mat(np.reshape(sort_ev(self.sys_para.v_c,self.sys_para.dressed),[len(self.sys_para.dressed),len(self.sys_para.dressed)])), dtype = tf.float32)
-
-            for inter_vec in self.inter_vecs:
-                if self.sys_para.D and self.sys_para.forbid_dressed:
-                    inter_vec = tf.matmul(tf.transpose(v_sorted),inter_vec)
-                for state in self.sys_para.states_forbidden_list:
-                    forbidden_state_pop = tf.square(inter_vec[state,:]) +\
-                                        tf.square(inter_vec[self.sys_para.state_num+state,:])
-                    self.reg_loss = self.reg_loss + inter_reg_alpha * tf.nn.l2_loss(forbidden_state_pop)
-                    
+        self.reg_loss = get_reg_loss(self)
+        
         print "Training loss initialized."
             
     def init_optimizer(self):
