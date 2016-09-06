@@ -67,6 +67,7 @@ class run_session:
                                 hf.append('error',np.array(l))
                                 hf.append('reg_error',np.array(rl))
                                 hf.append('uks',np.array(self.Get_uks()))
+                                hf.append('iteration',np.array(self.iterations))
                             
                         if self.show_plots and (not self.sys_para.save):
                             self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
@@ -181,6 +182,7 @@ class run_session:
                     hf.append('error',np.array(l))
                     hf.append('reg_error',np.array(rl))
                     hf.append('uks',np.array(self.Get_uks()))
+                    hf.append('iteration',np.array(self.iterations))
                 
             if self.iterations ==0:
                 self.start_time = time.time()
@@ -193,6 +195,7 @@ class run_session:
                 elapsed = time.time() - self.start_time
                 print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,self.iterations,g,metric)
         
+        self.iterations+=1
         
         if self.method == 'L-BFGS-B':
             return np.float64(rl),np.float64(np.transpose(grads))
