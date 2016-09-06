@@ -102,9 +102,9 @@ class Convergence:
             
         
         forbidden =np.zeros(self.sys_para.steps+1)
-        if self.sys_para.states_forbidden_list!= []:
-            for forbid in self.sys_para.states_forbidden_list:
-                if self.sys_para.forbid_dressed:
+        if 'states_forbidden_list' in self.sys_para.reg_coeffs:
+            for forbid in self.sys_para.reg_coeffs['states_forbidden_list']:
+                if self.sys_para.dressed_info is None or ('forbid_dressed' in self.sys_para.reg_coeffs and self.sys_para.reg_coeffs['forbid_dressed']) :
                     forbidden = forbidden +np.array(pop_inter_vecs[forbid,:])
                 else:
                     v_sorted=sort_ev(self.sys_para.v_c,self.sys_para.dressed)

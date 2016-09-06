@@ -59,9 +59,9 @@ def get_reg_loss(tfs):
                                    dtype=tf.float32)
 
         for inter_vec in tfs.inter_vecs:
-            if tfs.sys_para.D and tfs.sys_para.forbid_dressed:
+            if tfs.sys_para.D and tfs.sys_para.reg_coeffs['forbid_dressed']:
                 inter_vec = tf.matmul(tf.transpose(v_sorted), inter_vec)
-            for state in tfs.sys_para.states_forbidden_list:
+            for state in tfs.sys_para.reg_coeffs['states_forbidden_list']:
                 forbidden_state_pop = tf.square(inter_vec[state, :]) + \
                                       tf.square(inter_vec[tfs.sys_para.state_num + state, :])
                 tfs.reg_loss = tfs.reg_loss + inter_reg_alpha * tf.nn.l2_loss(forbidden_state_pop)

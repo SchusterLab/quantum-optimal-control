@@ -7,12 +7,12 @@ from scipy.special import factorial
 
 class SystemParameters:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_forbidden_list,states_concerned_list,dressed_info,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,reg_coeffs,forbid_dressed, save, file_path):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxA, draw,initial_guess,evolve, evolve_error, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path):
         # Input variable
+        self.dressed_info = dressed_info
         self.reg_coeffs = reg_coeffs
         self.file_path = file_path
         self.state_transfer = state_transfer
-        self.forbid_dressed = forbid_dressed
         self.no_scaling = no_scaling
         self.save = save
         self.H0_c = H0
@@ -24,12 +24,7 @@ class SystemParameters:
         self.total_time = total_time
         self.steps = steps
         self.show_plots = show_plots
-        self.Unitary_error= Unitary_error
-        if states_forbidden_list!= None:
-            self.states_forbidden_list = states_forbidden_list
-        else:
-            self.states_forbidden_list =[]
-      
+        self.Unitary_error= Unitary_error      
             
         if initial_guess!= None:
             self.u0 = initial_guess
@@ -60,12 +55,15 @@ class SystemParameters:
         else:
             self.draw_list = []
             self.draw_names = []
+        
+        
         if dressed_info !=None:
             self.v_c = dressed_info['vectors']
             self.dressed = dressed_info['dressed']
             self.w_c = dressed_info['es']
             self.D = dressed_info['D']
             self.H0_diag=np.diag(self.w_c)
+            
         self.evolve = evolve
         self.evolve_error = evolve_error
         self.init_system()
