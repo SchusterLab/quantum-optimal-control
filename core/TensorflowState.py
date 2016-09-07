@@ -46,19 +46,21 @@ class TensorflowState:
         
         
     def init_tf_vectors(self):
-        if self.sys_para.state_transfer:
-            self.tf_initial_vectors = tf.constant(self.sys_para.initial_vectors[0],dtype=tf.float32, name = 'initial_vector')
-        else:
-            self.tf_initial_vectors=[]
-            for initial_vector in self.sys_para.initial_vectors:
-                tf_initial_vector = tf.constant(initial_vector,dtype=tf.float32)
-                self.tf_initial_vectors.append(tf_initial_vector)
-                self.packed_initial_vectors = tf.transpose(tf.pack(self.tf_initial_vectors))
+
+        self.tf_initial_vectors=[]
+        for initial_vector in self.sys_para.initial_vectors:
+            tf_initial_vector = tf.constant(initial_vector,dtype=tf.float32)
+            self.tf_initial_vectors.append(tf_initial_vector)
+        self.packed_initial_vectors = tf.transpose(tf.pack(self.tf_initial_vectors))
     
     def init_tf_propagators(self):
         #tf initial and target propagator
         if self.sys_para.state_transfer:
-            self.tf_target_state = tf.constant(self.sys_para.target_vector,dtype=tf.float32, name = 'psi_t')
+            self.tf_target_vectors = []
+            for target_vector in self.sys_para.target_vectors:
+                tf_target_vector = tf.constant(target_vector,dtype=tf.float32)
+                self.tf_target_vectors.append(tf_target_vector)
+            self.tf_target_state = tf.transpose(tf.pack(self.tf_target_vectors))
         else:
             self.tf_initial_unitary = tf.constant(self.sys_para.initial_unitary,dtype=tf.float32, name = 'U0')
             self.tf_target_state = tf.constant(self.sys_para.target_unitary,dtype=tf.float32)
@@ -236,22 +238,22 @@ class TensorflowState:
         print "Vectors initialized."
         
     def init_tf_inter_vector_state(self): # for state transfer
-        self.inter_vecs=[]
-        self.inter_vec = []
-        inter_vec = tf.reshape(self.tf_initial_vectors,[2*self.sys_para.state_num,1],name="initial_vector")
-        self.inter_vec.append(inter_vec)
 
         tf_matrix_list = tf.constant(self.sys_para.matrix_list)
-
-        for ii in np.arange(0,self.sys_para.steps):
-            psi = inter_vec
-            inter_vec = self.matrix_exp_module.matrix_exp_vecs(self.H_weights[:,ii],psi,tf_matrix_list,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
-                                      exp_num = self.sys_para.exp_terms, vecs_num = 1)
         
-            self.inter_vec.append(inter_vec)
-        self.unitary_scale = 0
-        self.inter_vec = tf.transpose(tf.reshape(tf.pack(self.inter_vec),[self.sys_para.steps+1,2*self.sys_para.state_num]),name = "vectors_for_one_psi0")
-        self.inter_vecs.append(self.inter_vec)
+        self.psi0 = self.packed_initial_vectors
+        self.inter_vecs = []
+        for layer in np.arange(0,self.sys_para.steps+1):
+            self.inter_vecs.append(tf.zeros(tf.shape(self.psi0),dtype=tf.float32))
+            
+        self.inter_vecs[0] = self.psi0
+
+        for ii in np.arange(1,self.sys_para.steps+1):
+            self.inter_vecs[ii] = self.matrix_exp_module.matrix_exp_vecs(self.H_weights[:,ii-1],self.inter_vecs[ii-1],tf_matrix_list,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
+                                      exp_num = self.sys_para.exp_terms, vecs_num = len(self.sys_para.initial_vectors))
+        
+        #self.unitary_scale = tf.constant(0)
+        self.final_state = self.inter_vecs[self.sys_para.steps]
         print "Vectors initialized."
         
     def get_inner_product(self,psi1,psi2):
@@ -300,10 +302,9 @@ class TensorflowState:
             self.loss = tf.abs(1-self.get_inner_product_gen(self.final_states,self.target_states))
         
         else:
-            for inter_vec in self.inter_vecs:
-                self.final_state= inter_vec[:,self.sys_para.steps]
-            self.inner_product = self.get_inner_product(self.tf_target_state,self.final_state)
-            self.unitary_scale = self.get_inner_product(self.final_state,self.final_state)
+
+            self.inner_product = self.get_inner_product_gen(self.tf_target_state,self.final_state)
+            self.unitary_scale = self.get_inner_product_gen(self.final_state,self.final_state)
             self.loss = tf.abs(1 - self.inner_product, name ="Fidelity_error")
     
         self.reg_loss = get_reg_loss(self)

@@ -47,7 +47,11 @@ class SystemParameters:
         if self.state_transfer == False:
             self.target_unitary = c_to_r_mat(U)
         else:
-            self.target_vector = c_to_r_vec(U)
+            self.target_vectors=[]
+
+            for target_vector_c in U:
+                self.target_vector = c_to_r_vec(target_vector_c)
+                self.target_vectors.append(self.target_vector)
         
         if draw != None:
             self.draw_list = draw[0]

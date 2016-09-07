@@ -84,7 +84,6 @@ class Convergence:
         
         if self.sys_para.draw_list !=[]:
             for kk in range(len(self.sys_para.draw_list)):
-                
                 plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps+1)]),np.array(pop_inter_vecs[self.sys_para.draw_list[kk],:]),label=self.sys_para.draw_names[kk])
                 
         
@@ -214,12 +213,19 @@ class Convergence:
         ## state evolution
         inter_vecs = self.anly.get_inter_vecs()
         
+        inter_vecs_array = np.array(inter_vecs)
+        
         for ii in range(len(self.concerned)):
             plt.subplot(gs[index+ii, :],title="Evolution")
 
-            pop_inter_vecs = inter_vecs[ii]
             
-            self.plot_inter_vecs_general(pop_inter_vecs,self.concerned[ii])        
+            if not self.sys_para.state_transfer:
+                pop_inter_vecs = inter_vecs[ii]
+                self.plot_inter_vecs_general(pop_inter_vecs,self.concerned[ii])        
+            else:
+                pop_inter_vecs = np.transpose(inter_vecs_array[:,:,ii])
+                self.plot_inter_vecs_general(pop_inter_vecs,self.concerned[ii])    
+                
         
         fig = plt.gcf()
         if self.sys_para.state_transfer:
