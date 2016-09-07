@@ -86,6 +86,10 @@ class Analysis:
     def get_inter_vecs(self):
         state_num = self.sys_para.state_num
         inter_vecs_mag_squared = []
+        
+        inter_vecs_real = []
+        inter_vecs_imag = []
+        
         if self.sys_para.is_dressed:
             v_sorted=sort_ev(self.sys_para.v_c,self.sys_para.dressed_id)
             
@@ -99,21 +103,32 @@ class Analysis:
             inter_vec_c = inter_vec_real+1j*inter_vec_imag
 
             if self.sys_para.is_dressed:
-                inter_vec_mag_squared = []
-                cplx_vec = []
 
                 dressed_vec_c= np.dot(np.transpose(v_sorted),inter_vec_c)
                 
                 inter_vec_mag_squared = np.square(np.abs(dressed_vec_c))
-                cplx_vec.append(dressed_vec_c)
-
+                
+                inter_vec_real = np.real(dressed_vec_c)
+                inter_vec_imag = np.imag(dressed_vec_c)
+                
             else:
                 inter_vec_mag_squared = np.square(np.abs(inter_vec_c))
+                
+                inter_vec_real = np.real(inter_vec_c)
+                inter_vec_imag = np.imag(inter_vec_c)
+                
+                
             inter_vecs_mag_squared.append(inter_vec_mag_squared)
+            
+            inter_vecs_real.append(inter_vec_real)
+            inter_vecs_imag.append(inter_vec_imag)
+            
             ii+=1
  
         if self.sys_para.save:
             with H5File(self.sys_para.file_path) as hf:
                 hf.append('inter_vecs_mag_squared',np.array(inter_vecs_mag_squared))
+                hf.append('inter_vecs_real',np.array(inter_vecs_real))
+                hf.append('inter_vecs_imag',np.array(inter_vecs_imag))
         
         return inter_vecs_mag_squared
