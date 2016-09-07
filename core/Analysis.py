@@ -1,6 +1,7 @@
 import numpy as np
 from helper_functions.grape_functions import sort_ev,get_state_index
 import os
+import tensorflow as tf
 
 from helper_functions.datamanagement import H5File
 
@@ -89,8 +90,10 @@ class Analysis:
             v_sorted=sort_ev(self.sys_para.v_c,self.sys_para.dressed_id)
             
         ii=0
-        for tf_inter_vec in self.tf_inter_vecs:
-            inter_vec = tf_inter_vec.eval()
+        
+        inter_vecs = tf.pack(self.tf_inter_vecs).eval()
+        
+        for inter_vec in inter_vecs:
             inter_vec_real = (inter_vec[0:state_num,:])
             inter_vec_imag = (inter_vec[state_num:2*state_num,:])
             inter_vec_c = inter_vec_real+1j*inter_vec_imag
