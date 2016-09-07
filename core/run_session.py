@@ -58,7 +58,7 @@ class run_session:
             
                     
                     if (self.iterations % self.conv.update_step == 0) or (l < self.conv.conv_target) or (g < self.conv.min_grad):    
-                        
+                        elapsed = time.time() - start_time
                         if self.sys_para.save:
                             iter_num = self.iterations
                 
@@ -68,6 +68,7 @@ class run_session:
                                 hf.append('reg_error',np.array(rl))
                                 hf.append('uks',np.array(self.Get_uks()))
                                 hf.append('iteration',np.array(self.iterations))
+                                hf.append('run_time',np.array(elapsed))
                             
                         if self.show_plots and (not self.sys_para.save):
                             self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
@@ -88,7 +89,7 @@ class run_session:
                             
                                 break
                         else:
-                            elapsed = time.time() - start_time
+                            
                             print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e'%(l,elapsed,self.iterations,g)
                             if (self.iterations >= max_iterations) or (l < self.conv.conv_target) or (g < self.conv.min_grad): 
                                 
@@ -172,6 +173,7 @@ class run_session:
             grads= 0*grads
         if self.iterations % self.update_step == 0 or self.target :
             g, l,rl,metric = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale], feed_dict=self.feed_dict)
+            elapsed = time.time() - self.start_time
             if self.sys_para.save:
                 iter_num = self.iterations
                 
@@ -183,6 +185,7 @@ class run_session:
                     hf.append('reg_error',np.array(rl))
                     hf.append('uks',np.array(self.Get_uks()))
                     hf.append('iteration',np.array(self.iterations))
+                    hf.append('run_time',np.array(elapsed))
                 
             if self.iterations ==0:
                 self.start_time = time.time()
@@ -192,7 +195,7 @@ class run_session:
                 
                 self.conv.update_convergence(l,rl,self.anly,True)
             else:
-                elapsed = time.time() - self.start_time
+                
                 print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,self.iterations,g,metric)
         
         self.iterations+=1
