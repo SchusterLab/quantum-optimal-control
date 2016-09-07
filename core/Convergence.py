@@ -58,10 +58,7 @@ class Convergence:
         self.accumulate_rate = 1.00
 
     def update_convergence(self,last_cost, last_reg_cost, anly,show_plots=True):
-        if len(self.sys_para.states_concerned_list) > 8:
-            self.concerned = [0,1,2,3,4,5,6,7]
-        else:
-            self.concerned = self.sys_para.states_concerned_list
+        self.concerned = self.sys_para.states_concerned_list
         self.last_cost = last_cost
         self.last_reg_cost = last_reg_cost
           
