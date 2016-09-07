@@ -241,20 +241,43 @@ class TensorflowState:
 
         tf_matrix_list = tf.constant(self.sys_para.matrix_list)
         
-        self.psi0 = self.packed_initial_vectors
-        self.inter_vecs = []
-        for layer in np.arange(0,self.sys_para.steps+1):
-            self.inter_vecs.append(tf.zeros(tf.shape(self.psi0),dtype=tf.float32))
-            
-        self.inter_vecs[0] = self.psi0
-
-        for ii in np.arange(1,self.sys_para.steps+1):
-            self.inter_vecs[ii] = self.matrix_exp_module.matrix_exp_vecs(self.H_weights[:,ii-1],self.inter_vecs[ii-1],tf_matrix_list,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
-                                      exp_num = self.sys_para.exp_terms, vecs_num = len(self.sys_para.initial_vectors))
+        self.inter_vecs=[]
         
-        #self.unitary_scale = tf.constant(0)
-        self.final_state = self.inter_vecs[self.sys_para.steps]
+        for tf_initial_vector in self.tf_initial_vectors:
+            self.inter_vec = []
+            inter_vec = tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1],name="initial_vector")
+            self.inter_vec.append(inter_vec)
+
+
+
+            for ii in np.arange(0,self.sys_para.steps):
+                psi = inter_vec
+                inter_vec = self.matrix_exp_module.matrix_exp_vecs(self.H_weights[:,ii],psi,tf_matrix_list,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
+                                          exp_num = self.sys_para.exp_terms, vecs_num = 1)
+
+                self.inter_vec.append(inter_vec)
+            self.inter_vec = tf.transpose(tf.reshape(tf.pack(self.inter_vec),[self.sys_para.steps+1,2*self.sys_para.state_num]),name = "vectors_for_one_psi0")
+            self.inter_vecs.append(self.inter_vec)
         print "Vectors initialized."
+        
+    def get_inner_product(self,psi1,psi2):
+        #Take 2 states psi1,psi2, calculate their overlap.
+        state_num=self.sys_para.state_num
+        
+        psi_1_real = (psi1[0:state_num])
+        psi_1_imag = (psi1[state_num:2*state_num])
+        psi_2_real = (psi2[0:state_num])
+        psi_2_imag = (psi2[state_num:2*state_num])
+        # psi1 has a+ib, psi2 has c+id, we wanna get Sum ((ac+bd) + i (bc-ad)) magnitude
+        with tf.name_scope('inner_product'):
+            ac = tf.mul(psi_1_real,psi_2_real)
+            bd = tf.mul(psi_1_imag,psi_2_imag)
+            bc = tf.mul(psi_1_imag,psi_2_real)
+            ad = tf.mul(psi_1_real,psi_2_imag)
+            reals = tf.square(tf.add(tf.reduce_sum(ac),tf.reduce_sum(bd)))
+            imags = tf.square(tf.sub(tf.reduce_sum(bc),tf.reduce_sum(ad)))
+            norm = tf.add(reals,imags)
+        return norm
         
     def get_inner_product_gen(self,psi1,psi2):
         #Take 2 states psi1,psi2, calculate their overlap.
@@ -284,10 +307,14 @@ class TensorflowState:
             self.loss = tf.abs(1-self.get_inner_product_gen(self.final_states,self.target_states))
         
         else:
-
-            self.inner_product = self.get_inner_product_gen(self.tf_target_state,self.final_state)
-            self.unitary_scale = self.get_inner_product_gen(self.final_state,self.final_state)
-            self.loss = tf.abs(1 - self.inner_product, name ="Fidelity_error")
+            self.loss = tf.constant(0.0, dtype = tf.float32)
+            self.tf_target_vectors
+            for ii in range(len(self.inter_vecs)):
+                self.final_state= self.inter_vecs[ii][:,self.sys_para.steps]
+                self.inner_product = self.get_inner_product(self.tf_target_vectors[ii],self.final_state)
+                self.unitary_scale = self.get_inner_product(self.final_state,self.final_state)
+                self.loss = self.loss +  tf.abs(1 - self.inner_product, name ="Fidelity_error")
+            
     
         self.reg_loss = get_reg_loss(self)
         

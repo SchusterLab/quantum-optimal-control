@@ -218,13 +218,9 @@ class Convergence:
         for ii in range(len(self.concerned)):
             plt.subplot(gs[index+ii, :],title="Evolution")
 
-            
-            if not self.sys_para.state_transfer:
-                pop_inter_vecs = inter_vecs[ii]
-                self.plot_inter_vecs_general(pop_inter_vecs,self.concerned[ii])        
-            else:
-                pop_inter_vecs = np.transpose(inter_vecs_array[:,:,ii])
-                self.plot_inter_vecs_general(pop_inter_vecs,self.concerned[ii])    
+            pop_inter_vecs = inter_vecs[ii]
+            self.plot_inter_vecs_general(pop_inter_vecs,self.concerned[ii])
+                
                 
         
         fig = plt.gcf()
