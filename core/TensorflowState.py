@@ -256,24 +256,6 @@ class TensorflowState:
         self.final_state = self.inter_vecs[self.sys_para.steps]
         print "Vectors initialized."
         
-    def get_inner_product(self,psi1,psi2):
-        #Take 2 states psi1,psi2, calculate their overlap.
-        state_num=self.sys_para.state_num
-        
-        psi_1_real = (psi1[0:state_num])
-        psi_1_imag = (psi1[state_num:2*state_num])
-        psi_2_real = (psi2[0:state_num])
-        psi_2_imag = (psi2[state_num:2*state_num])
-        # psi1 has a+ib, psi2 has c+id, we wanna get Sum ((ac+bd) + i (bc-ad)) magnitude
-        with tf.name_scope('inner_product'):
-            ac = tf.mul(psi_1_real,psi_2_real)
-            bd = tf.mul(psi_1_imag,psi_2_imag)
-            bc = tf.mul(psi_1_imag,psi_2_real)
-            ad = tf.mul(psi_1_real,psi_2_imag)
-            reals = tf.square(tf.add(tf.reduce_sum(ac),tf.reduce_sum(bd)))
-            imags = tf.square(tf.sub(tf.reduce_sum(bc),tf.reduce_sum(ad)))
-            norm = tf.add(reals,imags)
-        return norm
     def get_inner_product_gen(self,psi1,psi2):
         #Take 2 states psi1,psi2, calculate their overlap.
         state_num=self.sys_para.state_num
