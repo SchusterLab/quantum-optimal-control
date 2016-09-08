@@ -54,7 +54,27 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
             hf.add('total_time', data=total_time)
             hf.add('steps', data=steps)
             hf.add('states_concerned_list', data=states_concerned_list)
-            hf.save_dict(convergence,'convergence')
+            
+            if not maxA is None:
+                hf.add('maxA', data=maxA)
+            
+            if not initial_guess is None:
+                hf.add('initial_guess', data =initial_guess)
+            hf.add('method', method)
+            
+            g1 = hf.create_group('convergence')
+            for k, v in convergence.items():
+                g1.create_dataset(k, data = v)
+            
+            if not reg_coeffs is None:
+                g2 = hf.create_group('reg_coeffs')
+                for k, v in reg_coeffs.items():
+                    g2.create_dataset(k, data = v)
+                    
+            if not dressed_info is None:
+                g3 = hf.create_group('dressed_info')
+                for k, v in dressed_info.items():
+                    g3.create_dataset(k, data = v)        
     
     if U0 == None:
         U0 = np.identity(len(H0))
