@@ -295,7 +295,7 @@ class TensorflowState:
             ad = tf.reduce_sum(tf.mul(psi_1_real,psi_2_imag),0)
             reals = tf.reduce_sum(tf.square(tf.add(ac,bd)))
             imags = tf.reduce_sum(tf.square(tf.sub(bc,ad)))
-            norm = (tf.add(reals,imags))/len(self.sys_para.states_concerned_list)
+            norm = (tf.add(reals,imags))
         return norm
     
     def init_training_loss(self):
