@@ -53,7 +53,7 @@ class run_session:
                     learning_rate = float(self.conv.rate) * np.exp(-float(self.iterations)/conv.learning_rate_decay)
                     self.feed_dict = {tfs.learning_rate : learning_rate}
                     
-                    g,_, l,rl= self.session.run([tfs.grad_squared, tfs.optimizer, tfs.loss, tfs.reg_loss], feed_dict=self.feed_dict)
+                    g,_, l,rl, metric= self.session.run([tfs.grad_squared, tfs.optimizer, tfs.loss, tfs.reg_loss, tfs.unitary_scale], feed_dict=self.feed_dict)
                     
             
                     
@@ -90,13 +90,13 @@ class run_session:
                                 break
                         else:
                             
-                            print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e'%(l,elapsed,self.iterations,g)
+                            print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,self.iterations,g, metric)
                             if (self.iterations >= max_iterations) or (l < self.conv.conv_target) or (g < self.conv.min_grad): 
                                 
                                 self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
                                 
                                 self.conv.update_convergence(l,rl,self.anly,True)
-                                print 'Error = :%1.2e; Runtime: %.1fs; grads =  %10.3e'%(l,elapsed,g)
+                                print 'Error = :%1.2e; Runtime: %.1fs; grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,g,metric)
                                 self.uks= self.Get_uks()
                                 if not self.sys_para.state_transfer:
                                     self.Uf = self.anly.get_final_state(save=False)
