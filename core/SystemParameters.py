@@ -134,7 +134,7 @@ class SystemParameters:
             else:
                 max_term = np.max(np.abs(-(0+1j) * self.dt*H))
                 
-                Metric = 1 + 100*np.abs((self.approx_exp(max_term, exp_t, self.scaling) - np.exp(max_term))/np.exp(max_term))
+                Metric = 1 + self.steps *np.abs((self.approx_exp(max_term, exp_t, self.scaling) - np.exp(max_term))/np.exp(max_term))
 
             if exp_t == 3:
                 break
@@ -240,7 +240,7 @@ class SystemParameters:
         self.complexities = np.add(self.exps,self.scalings)
         a = np.argmin(self.complexities)
         
-        self.exp_terms = self.exps[a]+1
+        self.exp_terms = self.exps[a]
         self.scaling = self.scalings[a]
         
         
