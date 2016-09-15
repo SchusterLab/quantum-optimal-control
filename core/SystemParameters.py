@@ -5,10 +5,13 @@ from helper_functions.grape_functions import get_state_index
 import scipy.linalg as la
 from scipy.special import factorial
 
+from helper_functions.datamanagement import H5File
+
 class SystemParameters:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxA, draw,initial_guess,evolve, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxA, draw,initial_guess,evolve, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path, Taylor_terms):
         # Input variable
+        self.Taylor_terms = Taylor_terms
         self.dressed_info = dressed_info
         self.reg_coeffs = reg_coeffs
         self.file_path = file_path
@@ -223,26 +226,34 @@ class SystemParameters:
         
         self.identity = c_to_r_mat(self.identity_c)
         
-        self.exps =[]
-        self.scalings = []
-        if self.state_transfer or self.no_scaling:
-            comparisons = 1
+        if self.Taylor_terms is None:
+            self.exps =[]
+            self.scalings = []
+            if self.state_transfer or self.no_scaling:
+                comparisons = 1
+            else:
+                comparisons = 6
+            d = 0
+            while comparisons >0:
+
+                self.exp_terms = self.Choose_exp_terms(d)
+                self.exps.append(self.exp_terms)
+                self.scalings.append(self.scaling)
+                comparisons = comparisons -1
+                d = d+1
+            self.complexities = np.add(self.exps,self.scalings)
+            a = np.argmin(self.complexities)
+
+            self.exp_terms = self.exps[a]
+            self.scaling = self.scalings[a]
         else:
-            comparisons = 6
-        d = 0
-        while comparisons >0:
+            self.exp_terms = self.Taylor_terms[0]
+            self.scaling = self.Taylor_terms[1]
             
-            self.exp_terms = self.Choose_exp_terms(d)
-            self.exps.append(self.exp_terms)
-            self.scalings.append(self.scaling)
-            comparisons = comparisons -1
-            d = d+1
-        self.complexities = np.add(self.exps,self.scalings)
-        a = np.argmin(self.complexities)
         
-        self.exp_terms = self.exps[a]
-        self.scaling = self.scalings[a]
-        
+        with H5File(self.file_path) as hf:
+            hf.add('taylor_terms',data=self.exp_terms)
+            hf.add('taylor_scaling',data=self.scaling)
         
         print "Using "+ str(self.exp_terms) + " Taylor terms and "+ str(self.scaling)+" Scaling & Squaring terms"
         
