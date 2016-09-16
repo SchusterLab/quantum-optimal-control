@@ -43,7 +43,7 @@ class run_session:
                
                 myfactr = 1e-20
                 ftol = myfactr * np.finfo(float).eps
-                res=self.optimize(uks, method=self.method,jac = True, options={'maxfun' : self.conv.max_iterations,'gtol': self.conv.min_grad, 'disp':False,'ftol':ftol, 'maxls': 40})
+                res=self.optimize(uks, method=self.method,jac = True, options={'maxfun' : self.conv.max_iterations,'gtol': self.conv.min_grad, 'disp':False,'ftol':ftol, 'maxls': 40, 'factr':-10.0})
                 
             if self.method =='Adam':
                 
