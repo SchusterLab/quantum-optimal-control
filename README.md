@@ -18,7 +18,7 @@ Refer to the [Regularization functions file] (https://github.com/SchusterLab/GRA
  **4) The first derivative cost function:** To make the control pulses smooth. The user supplies a coeffecient called **'dwdt'** in the reg_coeffs input. A value of 0.001 is found to be a good statring value empirically.  
  **5) The second derivative cost function:** To make the control pulses smooth. The user supplies a coeffecient called **'d2wdt2'** in the reg_coeffs input. A value of 0.000001 is found to be a good statring value empirically.  
  **6) The forbidden state cost function:** A cost function to forbid the quantum occupation of certain levels through out the time of the control. The user supplies a coeffecinet called **'forbidden'** (start around 100 empirically) and a list called **'states_forbidden_list'** to specify the indices of the levels to forbid.  
- **7) The time optimal cost function:** If the user wants to speed up the gate, he should provide a coeffecient called **'speed_up'** (start around 100) to award the occupation of the target state at all intermediate state, hence, making the gate as fast as possible.   
+ **7) The time optimal cost function:** If the user wants to speed up the gate, he should provide a coeffecient called **'speed_up'** (start around 100) to award the occupation of the target state at all intermediate states, hence, making the gate as fast as possible.   
  
  **To add a new cost function:**  
 Just follow the same logic we used and add new code [here](https://github.com/SchusterLab/GRAPE-Tensorflow/blob/master/core/RegularizationFunctions.py) penalizing properties of:  
