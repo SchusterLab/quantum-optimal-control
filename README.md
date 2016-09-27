@@ -1,6 +1,18 @@
 # GRAPE-Tensorflow
+This is a software package that performs quantum optimal control using the automatic differentiation capabilities of [Tensorflow] (https://www.tensorflow.org/) and has full GPU support. Its main goal is to produce a set of optimal pulses to apply in a given period of time that will drive a quantum system to achieve a certain unitary gate or to reach a certain final quantum state with a fidelity as close as possible to unity. In addition, the user can add any penalties (cost functions) on either the control pulses or the quantum intermediate states and the code will automatically include this constraint in the optimization process without having to write down an analytical form for the gradient of the new cost function.    
 
- This is the packaged function:  
+As an example of what the package produces, here is its output in the example of a qubit pi pulse:  
+
+
+![Qubit Pi Pulse Example](http://i.imgur.com/C0XyIV8.png)
+
+# Setup  
+You will need to setup two things:  
+1) Tensorflow: Please follow the instructions [here] (https://www.tensorflow.org/versions/r0.10/get_started/os_setup.html)  
+2) The custom matrix exponential kernel:  
+
+# Use   
+ You should call this function:  
  **uks, U_final = Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence, U0, reg_coeffs,dressed_info, maxA ,use_gpu, draw, initial_guess, evolve_only,show_plots, H_time_scales, unitary_error, method,state_transfer, switch,no_scaling, freq_unit, file_name, save, data_path)**
  
 # Returns:  
