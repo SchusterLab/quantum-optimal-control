@@ -1,7 +1,7 @@
 # GRAPE-Tensorflow
 This is a software package that performs quantum optimal control using the automatic differentiation capabilities of [Tensorflow] (https://www.tensorflow.org/) and has full GPU support. Its main goal is to produce a set of optimal pulses to apply in a given period of time that will drive a quantum system to achieve a certain unitary gate or to reach a certain final quantum state with a fidelity as close as possible to unity. In addition, the user can add any penalties (cost functions) on either the control pulses or the quantum intermediate states and the code will automatically include this constraint in the optimization process without having to write down an analytical form for the gradient of the new cost function.    
 
-As an example of what the package produces, here is its output in the example of a qubit pi pulse:  
+As an example of what the package produces, here is its output in the example of a Transmon qubit pi pulse:  
 
 
 ![Qubit Pi Pulse Example](http://i.imgur.com/C0XyIV8.png)
@@ -12,7 +12,7 @@ You will need to setup two things:
 2) The custom matrix exponential kernel:  
 # Currently Implemented Cost Functions  
 Refer to the [Regularization functions file] (https://github.com/SchusterLab/GRAPE-Tensorflow/blob/master/core/RegularizationFunctions.py) for details or to add a new cost function  
- **1) The fidelity cost function:** The overlap between the target unitary/final state and the achieved unitary/final state. In the code, referred to as tfs.loss.  
+ **1) The fidelity cost function:** The overlap between the target unitary/final state and the achieved unitary/final state. In the code, it's referred to as tfs.loss.  
  **2) The gaussian envelope cost function:** A penalty if the control pulses do not have a gaussian envelope. The user supplies a coeffecient called **'envelope'** in the reg_coeffs input. A value of 0.01 is found to be a good statring value empirically.  
  **3) The dc offset cost function:** To limit the dc value of the control pulses. The user supplies a coeffecient called **'dc'** in the reg_coeffs input and a list called **'dc_id'** for the indices of the control fileds to be penalized. A value of 0.01 is found to be a good statring value for the coeffecient.  
  **4) The first derivative cost function:** To make the control pulses smooth. The user supplies a coeffecient called **'dwdt'** in the reg_coeffs input. A value of 0.001 is found to be a good statring value empirically.  
