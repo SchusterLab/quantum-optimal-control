@@ -72,5 +72,5 @@ and/or
  **save**: A boolean (default is True) to save the control ops, intermediate vectors, final unitary every update step  
  **data_path**: path for saving the simulation  
 
-# Questions:
-If you have any questions, please reach either of the developers of the package: Nelson Leung (nelsonleung@uchicago.edu), Mohamed Abdelhafez (abdelhafez@uchicgao.edu) or David Schuster (david.schuster@uchicago.edu)
+# Questions
+If you have any questions, please reach either of the developers of the package: Nelson Leung (nelsonleung@uchicago.edu), Mohamed Abdelhafez (abdelhafez@uchicago.edu) or David Schuster (david.schuster@uchicago.edu)
