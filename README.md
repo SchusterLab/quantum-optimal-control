@@ -9,7 +9,10 @@ As an example of what the package produces, here is its output in the example of
 # Setup  
 You will need to setup two things:  
 1) Tensorflow: Please follow the instructions [here] (https://www.tensorflow.org/versions/r0.10/get_started/os_setup.html)  
-2) The custom matrix exponential kernel:  
+2) The custom matrix exponential kernel. Run the kernel building bash script:
+```
+custom_kernels/build.sh
+```
 # Currently Implemented Cost Functions  
 Refer to the [Regularization functions file] (https://github.com/SchusterLab/GRAPE-Tensorflow/blob/master/core/RegularizationFunctions.py) for details or to add a new cost function  
  **1) The fidelity cost function:** The overlap between the target unitary/final state and the achieved unitary/final state. In the code, it's referred to as tfs.loss.  
