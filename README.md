@@ -13,6 +13,8 @@ You will need to setup two things:
 ```
 custom_kernels/build.sh
 ```
+Currently only supports linux system and Python 2.7.
+
 # Currently Implemented Cost Functions  
 Refer to the [Regularization functions file] (https://github.com/SchusterLab/GRAPE-Tensorflow/blob/master/core/RegularizationFunctions.py) for details or to add a new cost function  
  **1) The fidelity cost function:** The overlap between the target unitary/final state and the achieved unitary/final state. In the code, it's referred to as tfs.loss.  
