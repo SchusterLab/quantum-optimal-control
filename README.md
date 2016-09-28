@@ -11,7 +11,8 @@ You will need to setup two things:
 1) Tensorflow: Please follow the instructions [here] (https://www.tensorflow.org/versions/r0.10/get_started/os_setup.html)  
 2) The custom matrix exponential kernel. Run the kernel building bash script:
 ```
-custom_kernels/build.sh
+cd custom_kernels/
+./build.sh
 ```
 Currently only supports linux system and Python 2.7.
 
