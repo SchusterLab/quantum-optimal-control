@@ -34,7 +34,9 @@ and/or
 
 # Use   
  You should call this function:  
- **uks, U_final = Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence, U0, reg_coeffs,dressed_info, maxA ,use_gpu, draw, initial_guess, evolve_only,show_plots, H_time_scales, unitary_error, method,state_transfer, switch,no_scaling, freq_unit, file_name, save, data_path)**  
+```python
+uks, U_final = Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence, U0, reg_coeffs,dressed_info, maxA ,use_gpu, draw, initial_guess, evolve_only,show_plots, H_time_scales, unitary_error, method,state_transfer, switch,no_scaling, freq_unit, file_name, save, data_path) 
+```
  
  You can follow the [examples] (https://github.com/SchusterLab/GRAPE-Tensorflow-Examples/tree/6b885b697c728155fc48f84d23d5a065a2519e3a) we are providing for details on defining the quantum system and then calling the function.   
  
