@@ -4,7 +4,7 @@ This is a software package that performs quantum optimal control using the autom
 As an example of what the package produces, here is its output in the example of a qubit pi pulse:  
 
 
-![Qubit Pi Pulse Example](http://imgur.com/a/oFTsc)
+![Qubit Pi Pulse Example](http://i.imgur.com/fIGFgno.png)
 
 # Setup  
 You will need to setup two things:  
