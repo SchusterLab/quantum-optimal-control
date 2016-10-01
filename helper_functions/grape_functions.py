@@ -1,6 +1,9 @@
 import numpy as np
 import scipy.linalg as la
 
+def dressed_unitary(U,v,dressed_id):
+    conversion_U = sort_ev(v,dressed_id)
+    return np.dot(np.dot(conversion_U,U),np.conjugate(np.transpose(conversion_U)))
 
 def get_dressed_info(H0):
     w_c, v_c = la.eig(H0)
