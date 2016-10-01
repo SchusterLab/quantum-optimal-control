@@ -259,17 +259,19 @@ class SystemParameters:
         
         i_array = np.eye(2*self.state_num)
         op_matrix_I=i_array.tolist()
-        self.I_flat = [item for sublist in op_matrix_I  for item in sublist]
-        self.H0_flat = [item for sublist in self.H0  for item in sublist]
+        #self.I_flat = [item for sublist in op_matrix_I  for item in sublist]
+        #self.H0_flat = [item for sublist in self.H0  for item in sublist]
         
-        self.flat_ops = []
+        self.H_ops = []
         for op in self.ops:
-            flat_op = [item for sublist in op for item in sublist]
-            self.flat_ops.append(flat_op)
-        self.matrix_list = self.H0_flat
+            self.H_ops.append(op)
+        self.matrix_list = [self.H0]
         for ii in range(self.ops_len):
-            self.matrix_list = self.matrix_list + self.flat_ops[ii]
-        self.matrix_list = self.matrix_list + self.I_flat
+            self.matrix_list = self.matrix_list + [self.H_ops[ii]]
+        self.matrix_list = self.matrix_list + [op_matrix_I]
+        
+        self.matrix_list = np.array(self.matrix_list)
+        
     def init_one_minus_gaussian_envelope(self):
         # Generating the Gaussian envelope that pulses should obey
         one_minus_gauss = []

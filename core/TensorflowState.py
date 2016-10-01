@@ -4,42 +4,91 @@ import numpy as np
 import tensorflow as tf
 import math
 from helper_functions.grape_functions import c_to_r_mat, sort_ev
-from custom_kernels.gradients.matexp_grad_vecs_v3 import *
-from custom_kernels.gradients.matexp_grad_v3 import *
+#from custom_kernels.gradients.matexp_grad_vecs_v3 import *
+#from custom_kernels.gradients.matexp_grad_v3 import *
 from RegularizationFunctions import get_reg_loss
+from tensorflow.python.framework import function
+from tensorflow.python.framework import ops
 
 class TensorflowState:
     
     def __init__(self,sys_para,use_gpu = True):
         
         self.sys_para = sys_para
+        
+        input_num = len(self.sys_para.Hnames) +1
+        taylor_terms = self.sys_para.exp_terms 
+        scaling = self.sys_para.scaling
+        
+        
+        @ops.RegisterGradient("matexp_op")
+        def matexp_op_grad(op, grad):  
+
+            coeff_grad = []
+
+            coeff_grad.append(tf.constant(0,dtype=tf.float32))
+            for ii in range(1,input_num):
+                coeff_grad.append(tf.reduce_sum(tf.mul(grad,
+                       tf.matmul(op.inputs[1][ii],op.outputs[0]))))
+
+            return [tf.pack(coeff_grad), tf.zeros(tf.shape(op.inputs[1]),dtype=tf.float32)]                                         
+
+        global matexp_op
+        
+        @function.Defun(tf.float32,tf.float32, python_grad_func=matexp_op_grad)                       
+        def matexp_op(uks,H_all):
+
+            I = H_all[input_num]
+            
+            matexp = I
+
+            H = I-I
+
+            for ii in range(input_num):
+                H = H + uks[ii]*H_all[ii]/(2.**scaling)
+
+            H_n = H
+
+            factorial = 1.
+
+            for ii in range(1,taylor_terms):      
+                factorial = factorial * ii
+                matexp = matexp + H_n/factorial
+                H_n = tf.matmul(H,H_n)
+
+            for ii in range(scaling):
+                matexp = tf.matmul(matexp,matexp)
+
+            return matexp                                                       
+
+        
         # Setting up our matrix exponential kernel
-        this_dir = os.path.dirname(__file__)
-        user_ops_path = os.path.join(this_dir,'../custom_kernels/build')
+        #this_dir = os.path.dirname(__file__)
+        #user_ops_path = os.path.join(this_dir,'../custom_kernels/build')
     
-        if self.sys_para.state_transfer:
-            if use_gpu: #choosing matrix_vector kernel
-                kernel_filename = 'cuda_matexp_vecs_v2.so'
-                matrix_vec_grad_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs_grads_v2.so'))
-                matmul_vec_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matmul_vec.so'))
-                import custom_kernels.gradients.matexp_grad_vecs_v3 as mgv
-                mgv.register_gradient(matrix_vec_grad_exp_module,matmul_vec_module)
-            else:
-                kernel_filename = 'matrix_exp_vecs.so'
-                matrix_vec_grad_exp_module = tf.load_op_library(os.path.join(user_ops_path,'matrix_exp_vecs_grads.so'))
-                matmul_vec_module = tf.load_op_library(os.path.join(user_ops_path,'matmul_vec.so'))
-                import custom_kernels.gradients.matexp_grad_vecs_v3 as mgv
-                mgv.register_gradient(matrix_vec_grad_exp_module,matmul_vec_module)
-        else: #choosing matrix matrix kernel
+        #if self.sys_para.state_transfer:
+        #    if use_gpu: #choosing matrix_vector kernel
+        #        kernel_filename = 'cuda_matexp_vecs_v2.so'
+        #        matrix_vec_grad_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs_grads_v2.so'))
+        #        matmul_vec_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matmul_vec.so'))
+        #        import custom_kernels.gradients.matexp_grad_vecs_v3 as mgv
+        #        mgv.register_gradient(matrix_vec_grad_exp_module,matmul_vec_module)
+        #    else:
+        #        kernel_filename = 'matrix_exp_vecs.so'
+        #        matrix_vec_grad_exp_module = tf.load_op_library(os.path.join(user_ops_path,'matrix_exp_vecs_grads.so'))
+        #        matmul_vec_module = tf.load_op_library(os.path.join(user_ops_path,'matmul_vec.so'))
+        #        import custom_kernels.gradients.matexp_grad_vecs_v3 as mgv
+        #        mgv.register_gradient(matrix_vec_grad_exp_module,matmul_vec_module)
+        #else: #choosing matrix matrix kernel
 
-            if use_gpu:
-                kernel_filename = 'cuda_matexp_v4.so'
-            else:
-                kernel_filename = 'matrix_exp_v2.so'
+        #    if use_gpu:
+        #        kernel_filename = 'cuda_matexp_v4.so'
+        #    else:
+        #        kernel_filename = 'matrix_exp_v2.so'
 
-        with tf.name_scope('kernel'):
-            self.matrix_exp_module = tf.load_op_library(os.path.join(user_ops_path,kernel_filename))      
-           
+        #with tf.name_scope('kernel'):
+        #    self.matrix_exp_module = tf.load_op_library(os.path.join(user_ops_path,kernel_filename))      
+        #   
 
     def init_variables(self):
         self.tf_one_minus_gaussian_envelope = tf.constant(self.sys_para.one_minus_gauss,dtype=tf.float32, name = 'Gaussian')
@@ -191,14 +240,15 @@ class TensorflowState:
         # build operator for intermediate state propagation
         # This function determines the nature of propagation
        
+        propagator = matexp_op(self.H_weights[:,layer],self.tf_matrix_list)
         
-        propagator = self.matrix_exp_module.matrix_exp(self.H_weights[:,layer],self.tf_matrix_list,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,exp_num = self.sys_para.exp_terms, div = self.sys_para.scaling)
+        #propagator = self.matrix_exp_module.matrix_exp(self.H_weights[:,layer],self.tf_matrix_list,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,exp_num = self.sys_para.exp_terms, div = self.sys_para.scaling)
         
         
         return propagator    
         
     def init_tf_propagator(self):
-        self.tf_matrix_list = tf.constant(self.sys_para.matrix_list)
+        self.tf_matrix_list = tf.constant(self.sys_para.matrix_list,dtype=tf.float32)
 
         # build propagator for all the intermediate states
        
@@ -245,19 +295,20 @@ class TensorflowState:
         
         for tf_initial_vector in self.tf_initial_vectors:
             self.inter_vec = []
-            inter_vec = tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1],name="initial_vector")
-            self.inter_vec.append(inter_vec)
+            print "testing"
+            #inter_vec = tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1],name="initial_vector")
+            #self.inter_vec.append(inter_vec)
 
 
 
-            for ii in np.arange(0,self.sys_para.steps):
-                psi = inter_vec
-                inter_vec = self.matrix_exp_module.matrix_exp_vecs(self.H_weights[:,ii],psi,tf_matrix_list,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
-                                          exp_num = self.sys_para.exp_terms, vecs_num = 1)
+            #for ii in np.arange(0,self.sys_para.steps):
+                #psi = inter_vec
+                #inter_vec = self.matrix_exp_module.matrix_exp_vecs(self.H_weights[:,ii],psi,tf_matrix_list,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
+                                          #exp_num = self.sys_para.exp_terms, vecs_num = 1)
 
-                self.inter_vec.append(inter_vec)
-            self.inter_vec = tf.transpose(tf.reshape(tf.pack(self.inter_vec),[self.sys_para.steps+1,2*self.sys_para.state_num]),name = "vectors_for_one_psi0")
-            self.inter_vecs.append(self.inter_vec)
+                #self.inter_vec.append(inter_vec)
+            #self.inter_vec = tf.transpose(tf.reshape(tf.pack(self.inter_vec),[self.sys_para.steps+1,2*self.sys_para.state_num]),name = "vectors_for_one_psi0")
+            #self.inter_vecs.append(self.inter_vec)
         print "Vectors initialized."
         
     def get_inner_product(self,psi1,psi2):
