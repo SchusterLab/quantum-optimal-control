@@ -39,16 +39,11 @@ class TensorflowState:
         def matexp_op(uks,H_all):
 
             I = H_all[input_num]
-            
             matexp = I
-
             H = I-I
-
             for ii in range(input_num):
                 H = H + uks[ii]*H_all[ii]/(2.**scaling)
-
             H_n = H
-
             factorial = 1.
 
             for ii in range(1,taylor_terms):      
@@ -59,7 +54,55 @@ class TensorflowState:
             for ii in range(scaling):
                 matexp = tf.matmul(matexp,matexp)
 
-            return matexp                                                       
+            return matexp 
+        
+        @ops.RegisterGradient("matvecexp_op")
+        def matvecexp_op_grad(op, grad):  
+
+            coeff_grad = []
+
+            coeff_grad.append(tf.constant(0,dtype=tf.float32))
+            for ii in range(1,input_num):
+                coeff_grad.append(tf.reduce_sum(tf.mul(grad,
+                       tf.matmul(op.inputs[1][ii],op.outputs[0]))))
+                
+             
+            uks = op.inputs[0]
+            H_all = op.inputs[1]
+            
+            I = H_all[input_num]
+            vec_grad = grad
+            H = I-I
+            for ii in range(input_num):
+                H = H - uks[ii]*H_all[ii]
+            vec_grad_n = grad
+            factorial = 1.
+
+            for ii in range(1,taylor_terms):      
+                factorial = factorial * ii
+                vec_grad_n = tf.matmul(H,vec_grad_n)
+                vec_grad = vec_grad + vec_grad_n/factorial
+
+            return [tf.pack(coeff_grad), tf.zeros(tf.shape(op.inputs[1]),dtype=tf.float32),vec_grad]                                         
+        global matvecexp_op
+        
+        @function.Defun(tf.float32,tf.float32,tf.float32, python_grad_func=matvecexp_op_grad)                       
+        def matvecexp_op(uks,H_all,psi):
+            
+            I = H_all[input_num]
+            matvecexp = psi
+            H = I-I
+            for ii in range(input_num):
+                H = H + uks[ii]*H_all[ii]
+            psi_n = psi
+            factorial = 1.
+
+            for ii in range(1,taylor_terms):      
+                factorial = factorial * ii
+                psi_n = tf.matmul(H,psi_n)
+                matvecexp = matvecexp + psi_n/factorial
+
+            return matvecexp
 
         
         # Setting up our matrix exponential kernel
@@ -289,26 +332,21 @@ class TensorflowState:
         
     def init_tf_inter_vector_state(self): # for state transfer
 
-        tf_matrix_list = tf.constant(self.sys_para.matrix_list)
+        tf_matrix_list = tf.constant(self.sys_para.matrix_list,dtype=tf.float32)
         
         self.inter_vecs=[]
         
         for tf_initial_vector in self.tf_initial_vectors:
             self.inter_vec = []
-            print "testing"
-            #inter_vec = tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1],name="initial_vector")
-            #self.inter_vec.append(inter_vec)
+            inter_vec = tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1],name="initial_vector")
+            self.inter_vec.append(inter_vec)
 
-
-
-            #for ii in np.arange(0,self.sys_para.steps):
-                #psi = inter_vec
-                #inter_vec = self.matrix_exp_module.matrix_exp_vecs(self.H_weights[:,ii],psi,tf_matrix_list,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,
-                                          #exp_num = self.sys_para.exp_terms, vecs_num = 1)
-
-                #self.inter_vec.append(inter_vec)
-            #self.inter_vec = tf.transpose(tf.reshape(tf.pack(self.inter_vec),[self.sys_para.steps+1,2*self.sys_para.state_num]),name = "vectors_for_one_psi0")
-            #self.inter_vecs.append(self.inter_vec)
+            for ii in np.arange(0,self.sys_para.steps):
+                psi = inter_vec               
+                inter_vec = matvecexp_op(self.H_weights[:,ii],tf_matrix_list,psi)
+                self.inter_vec.append(inter_vec)
+            self.inter_vec = tf.transpose(tf.reshape(tf.pack(self.inter_vec),[self.sys_para.steps+1,2*self.sys_para.state_num]),name = "vectors_for_one_psi0")
+            self.inter_vecs.append(self.inter_vec)
         print "Vectors initialized."
         
     def get_inner_product(self,psi1,psi2):
