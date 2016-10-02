@@ -40,9 +40,13 @@ class TensorflowState:
 
             I = H_all[input_num]
             matexp = I
-            H = I-I
+            uks_Hk_list = []
+            #H = I-I
             for ii in range(input_num):
-                H = H + uks[ii]*H_all[ii]/(2.**scaling)
+                uks_Hk_list.append((uks[ii]/(2.**scaling))*H_all[ii])
+                #H = H + uks[ii]*H_all[ii]/(2.**scaling)
+                
+            H = tf.add_n(uks_Hk_list)
             H_n = H
             factorial = 1.
 
@@ -72,9 +76,13 @@ class TensorflowState:
             
             I = H_all[input_num]
             vec_grad = grad
-            H = I-I
+            #H = I-I
+            uks_Hk_list = []
             for ii in range(input_num):
-                H = H - uks[ii]*H_all[ii]
+                uks_Hk_list.append((-uks[ii])*H_all[ii])
+                #H = H - uks[ii]*H_all[ii]
+                
+            H = tf.add_n(uks_Hk_list)
             vec_grad_n = grad
             factorial = 1.
 
@@ -91,9 +99,15 @@ class TensorflowState:
             
             I = H_all[input_num]
             matvecexp = psi
-            H = I-I
+            
+            uks_Hk_list = []
+            #H = I-I
+            
             for ii in range(input_num):
-                H = H + uks[ii]*H_all[ii]
+                uks_Hk_list.append(uks[ii]*H_all[ii])
+                #H = H + uks[ii]*H_all[ii]
+            H = tf.add_n(uks_Hk_list)    
+            
             psi_n = psi
             factorial = 1.
 
@@ -264,7 +278,7 @@ class TensorflowState:
         for ii in range (self.sys_para.ops_len):
             self.weights_unpacked.append(self.sys_para.ops_max_amp[ii]*self.ops_weight[ii,:])
 
-        
+        #print len(self.sys_para.ops_max_amp)
         self.H_weights = tf.pack(self.weights_unpacked,name="packed_weights")
            
 
