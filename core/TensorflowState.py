@@ -50,10 +50,11 @@ class TensorflowState:
             H_n = H
             factorial = 1.
 
-            for ii in range(1,taylor_terms):      
+            for ii in range(1,taylor_terms+1):      
                 factorial = factorial * ii
                 matexp = matexp + H_n/factorial
-                H_n = tf.matmul(H,H_n)
+                if not ii == (taylor_terms):
+                    H_n = tf.matmul(H,H_n)
 
             for ii in range(scaling):
                 matexp = tf.matmul(matexp,matexp)
