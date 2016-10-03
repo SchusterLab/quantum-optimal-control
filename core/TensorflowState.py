@@ -119,34 +119,7 @@ class TensorflowState:
 
             return matvecexp
 
-        
-        # Setting up our matrix exponential kernel
-        #this_dir = os.path.dirname(__file__)
-        #user_ops_path = os.path.join(this_dir,'../custom_kernels/build')
-    
-        #if self.sys_para.state_transfer:
-        #    if use_gpu: #choosing matrix_vector kernel
-        #        kernel_filename = 'cuda_matexp_vecs_v2.so'
-        #        matrix_vec_grad_exp_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matexp_vecs_grads_v2.so'))
-        #        matmul_vec_module = tf.load_op_library(os.path.join(user_ops_path,'cuda_matmul_vec.so'))
-        #        import custom_kernels.gradients.matexp_grad_vecs_v3 as mgv
-        #        mgv.register_gradient(matrix_vec_grad_exp_module,matmul_vec_module)
-        #    else:
-        #        kernel_filename = 'matrix_exp_vecs.so'
-        #        matrix_vec_grad_exp_module = tf.load_op_library(os.path.join(user_ops_path,'matrix_exp_vecs_grads.so'))
-        #        matmul_vec_module = tf.load_op_library(os.path.join(user_ops_path,'matmul_vec.so'))
-        #        import custom_kernels.gradients.matexp_grad_vecs_v3 as mgv
-        #        mgv.register_gradient(matrix_vec_grad_exp_module,matmul_vec_module)
-        #else: #choosing matrix matrix kernel
-
-        #    if use_gpu:
-        #        kernel_filename = 'cuda_matexp_v4.so'
-        #    else:
-        #        kernel_filename = 'matrix_exp_v2.so'
-
-        #with tf.name_scope('kernel'):
-        #    self.matrix_exp_module = tf.load_op_library(os.path.join(user_ops_path,kernel_filename))      
-        #   
+ 
 
     def init_variables(self):
         self.tf_one_minus_gaussian_envelope = tf.constant(self.sys_para.one_minus_gauss,dtype=tf.float32, name = 'Gaussian')
