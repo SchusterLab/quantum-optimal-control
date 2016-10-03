@@ -16,6 +16,8 @@ class TensorflowState:
         
         self.sys_para = sys_para
         
+    
+    def init_defined_functions(self):
         input_num = len(self.sys_para.Hnames) +1
         taylor_terms = self.sys_para.exp_terms 
         scaling = self.sys_para.scaling
@@ -433,6 +435,7 @@ class TensorflowState:
             
             print "Building graph:"
             
+            self.init_defined_functions()
             self.init_variables()
             self.init_tf_vectors()
             self.init_tf_propagators()
