@@ -9,7 +9,7 @@ from helper_functions.datamanagement import H5File
 
 
 class run_session:
-    def __init__(self, tfs,graph,conv,sys_para,method,show_plots=True,single_simulation = False,switch = True):
+    def __init__(self, tfs,graph,conv,sys_para,method,show_plots=True,single_simulation = False,switch = True,use_gpu =True):
         self.tfs=tfs
         self.graph = graph
         self.conv = conv
@@ -21,8 +21,12 @@ class run_session:
         self.show_plots = show_plots
         self.BFGS_time =0
         self.target = False
+        if not use_gpu:
+            config = tf.ConfigProto(device_count = {'GPU': 0})
+        else:
+            config = None
         
-        with tf.Session(graph=graph) as self.session:
+        with tf.Session(graph=graph, config = config) as self.session:
             
             tf.initialize_all_variables().run()
 

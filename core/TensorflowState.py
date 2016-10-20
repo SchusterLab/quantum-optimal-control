@@ -12,7 +12,7 @@ from tensorflow.python.framework import ops
 
 class TensorflowState:
     
-    def __init__(self,sys_para,use_gpu = True):
+    def __init__(self,sys_para):
         
         self.sys_para = sys_para
         

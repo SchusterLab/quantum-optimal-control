@@ -101,15 +101,16 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
         dev = '/gpu:0'
     else:
         dev = '/cpu:0'
-            
+        
+        
     with tf.device(dev):
-        tfs = TensorflowState(sys_para,use_gpu) # create tensorflow graph
+        tfs = TensorflowState(sys_para) # create tensorflow graph
         graph = tfs.build_graph()
     
     conv = Convergence(sys_para,time_unit,convergence)
     
     try:
-        SS = run_session(tfs,graph,conv,sys_para,method,switch = switch, show_plots = sys_para.show_plots)
+        SS = run_session(tfs,graph,conv,sys_para,method,switch = switch, show_plots = sys_para.show_plots, use_gpu = use_gpu)
         return SS.uks,SS.Uf
     except KeyboardInterrupt:
         display.clear_output()
