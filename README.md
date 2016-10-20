@@ -7,13 +7,8 @@ As an example of what the package produces, here is its output in the example of
 ![Qubit Pi Pulse Example](http://i.imgur.com/fIGFgno.png)
 
 # Setup  
-You will need to setup two things:  
-1) Tensorflow: Please follow the instructions [here] (https://www.tensorflow.org/versions/r0.10/get_started/os_setup.html)  
-2) The custom matrix exponential kernel. Run the kernel building bash script:
-```
-cd custom_kernels/
-./build.sh
-```
+You will just need to setup Tensorflow, Please follow the instructions [here] (https://www.tensorflow.org/versions/r0.10/get_started/os_setup.html)  
+
 Currently only supports linux system and Python 2.7.
 
 # Currently Implemented Cost Functions  
