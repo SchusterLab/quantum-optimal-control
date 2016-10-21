@@ -25,21 +25,25 @@ class TensorflowState:
         
         @ops.RegisterGradient("matexp_op")
         def matexp_op_grad(op, grad):  
+            
+            H_all = tf.constant(self.sys_para.matrix_list,dtype=tf.float32)
 
             coeff_grad = []
 
             coeff_grad.append(tf.constant(0,dtype=tf.float32))
             for ii in range(1,input_num):
                 coeff_grad.append(tf.reduce_sum(tf.mul(grad,
-                       tf.matmul(op.inputs[1][ii],op.outputs[0]))))
+                       tf.matmul(H_all[ii],op.outputs[0]))))
 
-            return [tf.pack(coeff_grad), tf.zeros(tf.shape(op.inputs[1]),dtype=tf.float32)]                                         
+            return [tf.pack(coeff_grad)]                                         
 
         global matexp_op
         
-        @function.Defun(tf.float32,tf.float32, python_grad_func=matexp_op_grad)                       
-        def matexp_op(uks,H_all):
+        @function.Defun(tf.float32, python_grad_func=matexp_op_grad)                       
+        def matexp_op(uks):
 
+            H_all = tf.constant(self.sys_para.matrix_list,dtype=tf.float32)
+            
             I = H_all[input_num]
             matexp = I
             uks_Hk_list = []
@@ -65,17 +69,18 @@ class TensorflowState:
         
         @ops.RegisterGradient("matvecexp_op")
         def matvecexp_op_grad(op, grad):  
+            
+            H_all = tf.constant(self.sys_para.matrix_list,dtype=tf.float32)
 
             coeff_grad = []
 
             coeff_grad.append(tf.constant(0,dtype=tf.float32))
             for ii in range(1,input_num):
                 coeff_grad.append(tf.reduce_sum(tf.mul(grad,
-                       tf.matmul(op.inputs[1][ii],op.outputs[0]))))
+                       tf.matmul(H_all[ii],op.outputs[0]))))
                 
              
             uks = op.inputs[0]
-            H_all = op.inputs[1]
             
             I = H_all[input_num]
             vec_grad = grad
@@ -94,11 +99,13 @@ class TensorflowState:
                 vec_grad_n = tf.matmul(H,vec_grad_n)
                 vec_grad = vec_grad + vec_grad_n/factorial
 
-            return [tf.pack(coeff_grad), tf.zeros(tf.shape(op.inputs[1]),dtype=tf.float32),vec_grad]                                         
+            return [tf.pack(coeff_grad),vec_grad]                                         
         global matvecexp_op
         
-        @function.Defun(tf.float32,tf.float32,tf.float32, python_grad_func=matvecexp_op_grad)                       
-        def matvecexp_op(uks,H_all,psi):
+        @function.Defun(tf.float32,tf.float32, python_grad_func=matvecexp_op_grad)                       
+        def matvecexp_op(uks,psi):
+            
+            H_all = tf.constant(self.sys_para.matrix_list,dtype=tf.float32)
             
             I = H_all[input_num]
             matvecexp = psi
@@ -273,7 +280,7 @@ class TensorflowState:
         # build operator for intermediate state propagation
         # This function determines the nature of propagation
        
-        propagator = matexp_op(self.H_weights[:,layer],self.tf_matrix_list)
+        propagator = matexp_op(self.H_weights[:,layer])
         
         #propagator = self.matrix_exp_module.matrix_exp(self.H_weights[:,layer],self.tf_matrix_list,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,exp_num = self.sys_para.exp_terms, div = self.sys_para.scaling)
         
@@ -333,7 +340,7 @@ class TensorflowState:
 
             for ii in np.arange(0,self.sys_para.steps):
                 psi = inter_vec               
-                inter_vec = matvecexp_op(self.H_weights[:,ii],tf_matrix_list,psi)
+                inter_vec = matvecexp_op(self.H_weights[:,ii],psi)
                 self.inter_vec.append(inter_vec)
             self.inter_vec = tf.transpose(tf.reshape(tf.pack(self.inter_vec),[self.sys_para.steps+1,2*self.sys_para.state_num]),name = "vectors_for_one_psi0")
             self.inter_vecs.append(self.inter_vec)
