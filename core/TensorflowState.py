@@ -23,21 +23,48 @@ class TensorflowState:
         scaling = self.sys_para.scaling
         
         
-        @ops.RegisterGradient("matexp_op")
-        def matexp_op_grad(op, grad):  
+        @function.Defun(tf.float32,tf.float32,tf.float32)
+        def matexp_op_grad(uks,H_all, grad):  
 
             coeff_grad = []
 
             coeff_grad.append(tf.constant(0,dtype=tf.float32))
+            
+            
+            ### get output of the function
+            
+            I = H_all[input_num]
+            matexp = I
+            uks_Hk_list = []
+            #H = I-I
+            for ii in range(input_num):
+                uks_Hk_list.append((uks[ii]/(2.**scaling))*H_all[ii])
+                #H = H + uks[ii]*H_all[ii]/(2.**scaling)
+                
+            H = tf.add_n(uks_Hk_list)
+            H_n = H
+            factorial = 1.
+
+            for ii in range(1,taylor_terms+1):      
+                factorial = factorial * ii
+                matexp = matexp + H_n/factorial
+                if not ii == (taylor_terms):
+                    H_n = tf.matmul(H,H_n)
+
+            for ii in range(scaling):
+                matexp = tf.matmul(matexp,matexp)
+                
+            ###
+            
             for ii in range(1,input_num):
                 coeff_grad.append(tf.reduce_sum(tf.mul(grad,
-                       tf.matmul(op.inputs[1][ii],op.outputs[0]))))
+                       tf.matmul(H_all[ii],matexp))))
 
-            return [tf.pack(coeff_grad), tf.zeros(tf.shape(op.inputs[1]),dtype=tf.float32)]                                         
+            return [tf.pack(coeff_grad), tf.zeros(tf.shape(H_all),dtype=tf.float32)]                                         
 
         global matexp_op
         
-        @function.Defun(tf.float32,tf.float32, python_grad_func=matexp_op_grad)                       
+        @function.Defun(tf.float32,tf.float32, grad_func=matexp_op_grad)                       
         def matexp_op(uks,H_all):
 
             I = H_all[input_num]
