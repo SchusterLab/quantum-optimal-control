@@ -73,6 +73,7 @@ class run_session:
                                 hf.append('uks',np.array(self.Get_uks()))
                                 hf.append('iteration',np.array(self.iterations))
                                 hf.append('run_time',np.array(elapsed))
+                                hf.append('unitary_scale',np.array(metric))
                             
                         if self.show_plots and (not self.sys_para.save):
                             self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
@@ -190,6 +191,7 @@ class run_session:
                     hf.append('uks',np.array(self.Get_uks()))
                     hf.append('iteration',np.array(self.iterations))
                     hf.append('run_time',np.array(elapsed))
+                    hf.append('unitary_scale',np.array(metric))
                 
             if self.iterations ==0:
                 self.start_time = time.time()
