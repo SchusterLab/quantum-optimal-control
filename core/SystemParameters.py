@@ -190,6 +190,7 @@ class SystemParameters:
         
     def init_vectors(self):
         self.initial_vectors=[]
+        self.initial_vectors_c=[]
 
         for state in self.states_concerned_list:
             if self.is_dressed:
@@ -197,9 +198,15 @@ class SystemParameters:
             else:
                 self.initial_vector_c=np.zeros(self.state_num)
                 self.initial_vector_c[state]=1
+            
+            self.initial_vectors_c.append(self.initial_vector_c)
             self.initial_vector = c_to_r_vec(self.initial_vector_c)
 
             self.initial_vectors.append(self.initial_vector)
+        
+        if self.save:
+            with H5File(self.file_path) as hf:
+                hf.add('initial_vectors_c',data=np.array(self.initial_vectors_c))
 
 
     def init_operators(self):
@@ -251,9 +258,10 @@ class SystemParameters:
             self.scaling = self.Taylor_terms[1]
             
         
-        with H5File(self.file_path) as hf:
-            hf.add('taylor_terms',data=self.exp_terms)
-            hf.add('taylor_scaling',data=self.scaling)
+        if self.save:
+            with H5File(self.file_path) as hf:
+                hf.add('taylor_terms',data=self.exp_terms)
+                hf.add('taylor_scaling',data=self.scaling)
         
         print "Using "+ str(self.exp_terms) + " Taylor terms and "+ str(self.scaling)+" Scaling & Squaring terms"
         
