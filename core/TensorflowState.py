@@ -36,10 +36,8 @@ class TensorflowState:
             I = H_all[input_num]
             matexp = I
             uks_Hk_list = []
-            #H = I-I
             for ii in range(input_num):
                 uks_Hk_list.append((uks[ii]/(2.**scaling))*H_all[ii])
-                #H = H + uks[ii]*H_all[ii]/(2.**scaling)
                 
             H = tf.add_n(uks_Hk_list)
             H_n = H
@@ -70,10 +68,8 @@ class TensorflowState:
             I = H_all[input_num]
             matexp = I
             uks_Hk_list = []
-            #H = I-I
             for ii in range(input_num):
                 uks_Hk_list.append((uks[ii]/(2.**scaling))*H_all[ii])
-                #H = H + uks[ii]*H_all[ii]/(2.**scaling)
                 
             H = tf.add_n(uks_Hk_list)
             H_n = H
@@ -100,13 +96,11 @@ class TensorflowState:
             ### get output of the function
             I = H_all[input_num]
             matvecexp = psi
-        #     H = I-I
 
             uks_Hk_list = []
 
             for ii in range(input_num):
                 uks_Hk_list.append(uks[ii]*H_all[ii])
-        #         H = H + uks[ii]*H_all[ii]
             H = tf.add_n(uks_Hk_list)
 
             psi_n = psi
@@ -152,11 +146,10 @@ class TensorflowState:
             matvecexp = psi
             
             uks_Hk_list = []
-            #H = I-I
             
             for ii in range(input_num):
                 uks_Hk_list.append(uks[ii]*H_all[ii])
-                #H = H + uks[ii]*H_all[ii]
+
             H = tf.add_n(uks_Hk_list)    
             
             psi_n = psi
@@ -322,8 +315,6 @@ class TensorflowState:
         # This function determines the nature of propagation
        
         propagator = matexp_op(self.H_weights[:,layer],self.tf_matrix_list)
-        
-        #propagator = self.matrix_exp_module.matrix_exp(self.H_weights[:,layer],self.tf_matrix_list,size=2*self.sys_para.state_num, input_num = self.sys_para.ops_len+1,exp_num = self.sys_para.exp_terms, div = self.sys_para.scaling)
         
         
         return propagator    
