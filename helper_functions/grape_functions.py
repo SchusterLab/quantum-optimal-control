@@ -157,15 +157,13 @@ def append_separate_krons(op,name,num,state_num,Hops,Hnames,ops_max_amp,amp=4.0)
         Hnames.append(string)
     return Hops,Hnames,ops_max_amp
 
-def nn_chain_kron(op, op_I, qubit_num, qubit_state_num):
+def nn_chain_kron(op, op_I, qubit_num, qubit_state_num): # nearest neighbour kron: e.g. xxii + ixxi + iixx
     op_list = ['I']*(qubit_num-2)
     op_list = ['OP','OP'] + op_list
     
     
     a_all = np.zeros([qubit_state_num**qubit_num,qubit_state_num**qubit_num])
     for ii in range(qubit_num-1):
-        
-#         print op_list
         
         if op_list[0] == 'I':
             a = op_I
