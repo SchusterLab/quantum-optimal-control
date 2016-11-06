@@ -25,6 +25,8 @@ def qutip_verification(datafile,atol):
     
     for init_vector_id in range(len(initial_vectors_c)):
         
+        print "Verifying init vector id: %d" %(init_vector_id)
+        
         psi0 = qt.Qobj(initial_vectors_c[init_vector_id])
         H0_qobj = qt.Qobj(H0)
         Hops_qobj = []
