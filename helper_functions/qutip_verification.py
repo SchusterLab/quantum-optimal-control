@@ -24,6 +24,21 @@ def qutip_verification(datafile,atol):
     max_abs_diff_list = []
     all_close_list = []
     
+    # H0 and Hops
+    H0_qobj = qt.Qobj(H0)
+    Hops_qobj = []
+
+    for Hop in Hops:
+        Hops_qobj.append(qt.Qobj(Hop))
+            
+    # define time    
+    tlist = np.linspace(0,gate_time,gate_steps+1)
+    dt = gate_time/gate_steps
+        
+    # append zero control pulse at the end of uks (final timestep)
+    uks_t0 = np.zeros((uks.shape[0],1))
+    uks = np.hstack([uks,uks_t0])
+    
     # looping over each initial vector
     for init_vector_id in range(len(initial_vectors_c)):
         
@@ -31,22 +46,6 @@ def qutip_verification(datafile,atol):
         
         # initial vector
         psi0 = qt.Qobj(initial_vectors_c[init_vector_id])
-        
-        # H0 and Hops
-        H0_qobj = qt.Qobj(H0)
-        Hops_qobj = []
-
-        for Hop in Hops:
-            Hops_qobj.append(qt.Qobj(Hop))
-            
-        # define time    
-        tlist = np.linspace(0,gate_time,gate_steps+1)
-        dt = gate_time/gate_steps
-        
-        # append zero control pulse at the end of uks (final timestep)
-        uks_t0 = np.zeros((uks.shape[0],1))
-        uks = np.hstack([uks,uks_t0])
-        
         
         # make functions to return uks field
         def make_get_uks_func(id):
