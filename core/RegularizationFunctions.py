@@ -56,6 +56,25 @@ def get_reg_loss(tfs):
                                                                                   1:tfs.sys_para.steps + 3] + new_weights[:,
                                                                                                                :tfs.sys_para.steps + 2]) / (
                                                                              tfs.sys_para.dt ** 2))
+        # bandpass filter on the control    
+        if 'bandpass' in tfs.sys_para.reg_coeffs:
+            tfs.bandpass_reg_alpha_coeff = tfs.sys_para.reg_coeffs['bandpass']
+            bandpass_reg_alpha = tfs.bandpass_reg_alpha_coeff/ float(tfs.sys_para.steps)
+            
+            tf_u = tf.cast(tfs.ops_weight,dtype=tf.complex64)
+           
+            tf_fft = tf.complex_abs(tf.fft(tf_u))
+            
+            band = np.array(tfs.sys_para.reg_coeffs['band'])
+
+            band_id = (band*tfs.sys_para.total_time).astype(int)
+            half_id = int(tfs.sys_para.steps/2)
+            
+            
+            fft_loss = bandpass_reg_alpha*(tf.reduce_sum(tf_fft[:,0:band_id[0]]) + tf.reduce_sum(tf_fft[:,band_id[1]:half_id]))
+            
+            tfs.reg_loss = tfs.reg_loss + fft_loss
+        
 
         # Limiting the access to forbidden states
         if 'forbidden' in tfs.sys_para.reg_coeffs:
