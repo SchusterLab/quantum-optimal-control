@@ -96,7 +96,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
             
     
     
-    sys_para = SystemParameters(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxAmp, draw,initial_guess, evolve_only, show_plots, H_time_scales,unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path, Taylor_terms)
+    sys_para = SystemParameters(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxAmp, draw,initial_guess, evolve_only, show_plots, H_time_scales,unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path, Taylor_terms, use_gpu)
     if use_gpu:
         dev = '/gpu:0'
     else:

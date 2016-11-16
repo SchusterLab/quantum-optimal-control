@@ -58,6 +58,10 @@ def get_reg_loss(tfs):
                                                                              tfs.sys_para.dt ** 2))
         # bandpass filter on the control    
         if 'bandpass' in tfs.sys_para.reg_coeffs:
+            ## currently does not support bandpass reg for CPU (no CPU kernel for FFT)
+            if not tfs.sys_para.use_gpu:
+                raise ValueError('currently does not support bandpass reg for CPU (no CPU kernel for FFT)')
+            
             tfs.bandpass_reg_alpha_coeff = tfs.sys_para.reg_coeffs['bandpass']
             bandpass_reg_alpha = tfs.bandpass_reg_alpha_coeff/ float(tfs.sys_para.steps)
             
