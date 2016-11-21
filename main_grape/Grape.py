@@ -16,7 +16,7 @@ from helper_functions.datamanagement import H5File
 import os
 
 
-def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, reg_coeffs = None,dressed_info = None, maxA = None ,use_gpu= True, draw= None, initial_guess = None, evolve_only = False,show_plots = True, unitary_error=1e-4, method = 'Adam',state_transfer = False, switch = True,no_scaling = False, freq_unit = 'GHz', file_name = None, save = True, data_path = None, Taylor_terms = None):
+def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, reg_coeffs = None,dressed_info = None, maxA = None ,use_gpu= True, draw= None, initial_guess = None, evolve_only = False,show_plots = True, unitary_error=1e-4, method = 'Adam',state_transfer = False,no_scaling = False, freq_unit = 'GHz', file_name = None, save = True, data_path = None, Taylor_terms = None):
     
     
     if freq_unit == 'GHz':
@@ -110,7 +110,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
     conv = Convergence(sys_para,time_unit,convergence)
     
     try:
-        SS = run_session(tfs,graph,conv,sys_para,method,switch = switch, show_plots = sys_para.show_plots, use_gpu = use_gpu)
+        SS = run_session(tfs,graph,conv,sys_para,method, show_plots = sys_para.show_plots, use_gpu = use_gpu)
         return SS.uks,SS.Uf
     except KeyboardInterrupt:
         display.clear_output()
