@@ -32,9 +32,10 @@ class SystemParameters:
             
         if initial_guess!= None:
             self.u0 = initial_guess
-            for ii in range (len(self.u0)):
-                self.u0[ii]= self.u0[ii]/self.ops_max_amp[ii]
-            self.u0 = np.arctanh(self.u0) #because we take the tanh of weights later
+            self.u0_base = np.zeros_like(self.u0)
+            for ii in range (len(self.u0_base)):
+                self.u0_base[ii]= self.u0[ii]/self.ops_max_amp[ii]
+            self.u0_base = np.arctanh(self.u0_base) #because we take the tanh of weights later
             
         else:
             self.u0 =[]
@@ -287,7 +288,7 @@ class SystemParameters:
     def init_guess(self):
         if self.u0 != []:
             
-            self.ops_weight_base = np.reshape(self.u0, [self.ops_len,self.steps])
+            self.ops_weight_base = np.reshape(self.u0_base, [self.ops_len,self.steps])
         else:
             initial_mean = 0
             index = 0

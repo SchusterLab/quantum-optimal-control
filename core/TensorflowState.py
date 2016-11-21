@@ -187,77 +187,14 @@ class TensorflowState:
             self.tf_target_state = tf.constant(self.sys_para.target_unitary,dtype=tf.float32)
             self.target_states = tf.matmul(self.tf_target_state,self.packed_initial_vectors)
         print "Propagators initialized."
-        
-  
-        
-    def get_j(self,l, Dt): # function for the interpolation
-        dt=self.sys_para.dt
-        jj=np.floor((l*dt-0.5*Dt)/Dt)
-        return jj
-    
-    
-            
-    
-    def transfer_fn_general(self,w,steps): # Interpolating function, interpolates weights vector w to steps size
-        
-        indices=[]
-        values=[]
-        shape=[self.sys_para.steps,steps]
-        dt=self.sys_para.dt
-        Dt=self.sys_para.total_time/steps
-    
-    # Cubic Splines
-        for ll in range (self.sys_para.steps):
-            jj=self.get_j(ll,Dt)
-            tao= ll*dt - jj*Dt - 0.5*Dt
-            if jj >= 1:
-                indices.append([int(ll),int(jj-1)])
-                temp= -(tao/(2*Dt))*((tao/Dt)-1)**2
-                values.append(temp)
-                
-            if jj >= 0:
-                indices.append([int(ll),int(jj)])
-                temp= 1+((3*tao**3)/(2*Dt**3))-((5*tao**2)/(2*Dt**2))
-                values.append(temp)
-                
-            if jj+1 <= steps-1:
-                indices.append([int(ll),int(jj+1)])
-                temp= ((tao)/(2*Dt))+((4*tao**2)/(2*Dt**2))-((3*tao**3)/(2*Dt**3))
-                values.append(temp)
-               
-            if jj+2 <= steps-1:
-                indices.append([int(ll),int(jj+2)])
-                temp= ((tao**3)/(2*Dt**3))-((tao**2)/(2*Dt**2))
-                values.append(temp)
-                
-            
-        T1=tf.SparseTensor(indices, values, shape)  
-        T2=tf.sparse_reorder(T1)
-        T=tf.sparse_tensor_to_dense(T2)
-        temp1 = tf.matmul(T,tf.reshape(w[0,:],[steps,1]))
-        
-        return tf.transpose(temp1)
     
     def init_tf_ops_weight(self):
-        
-        
-        self.raw_weight =[]
-        self.ops_weight_base = []
-        
+       
         #tf weights of operators
-        
             
         self.H0_weight = tf.Variable(tf.ones([self.sys_para.steps]), trainable=False) #Just a vector of ones needed for the kernel
         self.weights_unpacked=[self.H0_weight] #will collect all weights here
-        self.raw_guesses = tf.constant(self.sys_para.ops_weight_base, dtype = tf.float32)
-        self.raws = tf.Variable(self.raw_guesses, dtype=tf.float32,name ="raw_weights")
-
-
-        if self.sys_para.u0 == []: #No initial guess supplied
-            self.ops_weight_base = self.raws
-
-        else: #initial guess supplied
-            self.ops_weight_base = self.raws
+        self.ops_weight_base = tf.Variable(tf.constant(self.sys_para.ops_weight_base, dtype = tf.float32), dtype=tf.float32,name ="weights_base")
 
         self.ops_weight = tf.tanh(self.ops_weight_base,name="weights")
         for ii in range (self.sys_para.ops_len):
