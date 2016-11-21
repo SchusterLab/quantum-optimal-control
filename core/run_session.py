@@ -39,12 +39,8 @@ class run_session:
                 learning_rate=0
                 self.feed_dict = {tfs.learning_rate : learning_rate}
                 
-                if self.sys_para.Dts==[]:
-                    g,l,rl,uks = self.session.run([tfs.grad_pack, tfs.loss, tfs.reg_loss,tfs.ops_weight_base], feed_dict=self.feed_dict)
-                else:
-                    g,l,rl,uks = self.session.run([tfs.grad_pack, tfs.loss, tfs.reg_loss,tfs.raws], feed_dict=self.feed_dict)
-                    
-               
+                g,l,rl,uks = self.session.run([tfs.grad_pack, tfs.loss, tfs.reg_loss,tfs.ops_weight_base], feed_dict=self.feed_dict)
+                
                 myfactr = 1e-20
                 ftol = myfactr * np.finfo(float).eps
                 res=self.optimize(uks, method=self.method,jac = True, options={'maxfun' : self.conv.max_iterations,'gtol': self.conv.min_grad, 'disp':False,'ftol':ftol, 'maxls': 40, 'factr':-10.0})
@@ -122,52 +118,27 @@ class run_session:
         return uks_original
         
     def Get_uks(self): # to get the pulse amplitudes in any scenario (including different time scales) 
-        if self.sys_para.Dts==[]:
-            uks = self.anly.get_ops_weight()
-            for ii in range (len(uks)):
-                uks[ii] = self.sys_para.ops_max_amp[ii]*uks[ii]
-        else:
-            uks = []
-            end = 0
-            raws = self.anly.get_raws()
-            for ii in range (self.sys_para.ops_len - len(self.sys_para.Dts)):
-                start = ii*self.sys_para.steps
-                end = (ii+1)*self.sys_para.steps
-                new_uk = self.sys_para.ops_max_amp[ii]*raws[:,start:end]
-                
-                uks.append(np.reshape(new_uk,[len(np.transpose(new_uk))]))
-            for jj in range (len(self.sys_para.Dts)):
-                start = end
-                end = start + self.sys_para.ctrl_steps[jj]
-                new_uk = self.sys_para.ops_max_amp[jj +self.sys_para.ops_len - len(self.sys_para.Dts)]*raws[:,start:end]
-                uks.append(np.reshape(new_uk,[len(np.transpose(new_uk))]))
-                
-            uks = self.Sort_back(uks)
+        uks = self.anly.get_ops_weight()
+        for ii in range (len(uks)):
+            uks[ii] = self.sys_para.ops_max_amp[ii]*uks[ii]
         return uks    
 
     
 #BFGS functions:
     def get_error(self,uks):
         
-        if self.sys_para.Dts==[]:
-            self.session.run(self.tfs.ops_weight_base.assign(uks))
-        else:
-            self.session.run(self.tfs.raws.assign(uks))
+        self.session.run(self.tfs.ops_weight_base.assign(uks))
+
         g,l,rl = self.session.run([self.tfs.grad_pack, self.tfs.loss, self.tfs.reg_loss], feed_dict=self.feed_dict)
         
-        if self.sys_para.Dts==[]:
-            final_g = np.transpose(np.reshape(g,(len(self.sys_para.ops_c)*self.sys_para.steps)))
-        else:
-            final_g = np.reshape(g,uks.shape)
+        final_g = np.transpose(np.reshape(g,(len(self.sys_para.ops_c)*self.sys_para.steps)))
+
         return l,rl,final_g
     
 
     
     def minimize_opt_fun(self,x):
-        if self.sys_para.Dts==[]:
-            l,rl,grads=self.get_error(np.reshape(x,(len(self.sys_para.ops_c),len(x)/len(self.sys_para.ops_c))))
-        else:
-            l,rl,grads=self.get_error(np.reshape(x,[1,len(x)]))
+        l,rl,grads=self.get_error(np.reshape(x,(len(self.sys_para.ops_c),len(x)/len(self.sys_para.ops_c))))
         
         #print l,self.iterations
         if l <self.conv.conv_target :
@@ -221,10 +192,9 @@ class run_session:
         print "Starting " + self.method + " Optimization"
         self.start_time = time.time()
         res = minimize(self.minimize_opt_fun,x0,method=method,jac=jac,options=options)
-        if self.sys_para.Dts==[]:
-            uks=np.reshape(res['x'],(len(self.sys_para.ops_c),len(res['x'])/len(self.sys_para.ops_c)))
-        else:
-            uks = res['x']
+
+        uks=np.reshape(res['x'],(len(self.sys_para.ops_c),len(res['x'])/len(self.sys_para.ops_c)))
+
         print self.method + ' optimization done'
         
         g, l,rl = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss], feed_dict=self.feed_dict)
