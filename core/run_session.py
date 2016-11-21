@@ -9,7 +9,7 @@ from helper_functions.datamanagement import H5File
 
 
 class run_session:
-    def __init__(self, tfs,graph,conv,sys_para,method,show_plots=True,single_simulation = False,use_gpu =True):
+    def __init__(self, tfs,graph,conv,sys_para,method,show_plots=True,single_simulation = False,switch = True,use_gpu =True):
         self.tfs=tfs
         self.graph = graph
         self.conv = conv
@@ -17,6 +17,7 @@ class run_session:
         self.update_step = conv.update_step
         self.iterations = 0
         self.method = method
+        self.switch = switch
         self.show_plots = show_plots
         self.BFGS_time =0
         self.target = False
@@ -197,6 +198,23 @@ class run_session:
         print self.method + ' optimization done'
         
         g, l,rl = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss], feed_dict=self.feed_dict)
+            
+        if self.sys_para.show_plots == False:
+            self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.unitary_scale,self.tfs.inter_vecs)
+            self.conv.update_convergence(l,rl,self.anly,True)
+        self.uks= self.Get_uks()
+            
+        if not self.sys_para.state_transfer:
+            self.Uf = self.anly.get_final_state(save=False)
+        else:
+            self.Uf=[]
+        if self.show_plots == False:
+            print res.message
+            print("Error = %1.2e" %l)
+            print ("Total time is " + str(time.time() - self.start_time))
+                
+
+        
             
         return res, uks
     
