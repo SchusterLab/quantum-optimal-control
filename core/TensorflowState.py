@@ -4,8 +4,6 @@ import numpy as np
 import tensorflow as tf
 import math
 from helper_functions.grape_functions import c_to_r_mat, sort_ev
-#from custom_kernels.gradients.matexp_grad_vecs_v3 import *
-#from custom_kernels.gradients.matexp_grad_v3 import *
 from RegularizationFunctions import get_reg_loss
 from tensorflow.python.framework import function
 from tensorflow.python.framework import ops
@@ -256,38 +254,8 @@ class TensorflowState:
 
 
         if self.sys_para.u0 == []: #No initial guess supplied
-            
-           
-            if self.sys_para.Dts != []: # We have different time scales
-                
-                
+            self.ops_weight_base = self.raws
 
-                
-                for ii in range (self.sys_para.ops_len -len(self.sys_para.Dts)):
-                    self.ops_weight_base.append(self.raws[:,ii*self.sys_para.steps:(ii+1)*self.sys_para.steps])
-#start interpolating them
-                
-                starting_index = (self.sys_para.ops_len -len(self.sys_para.Dts))*self.sys_para.steps 
-                
-
-                for ii in range (len(self.sys_para.Dts)):
-                    
-                    ws = self.raws[:,starting_index:starting_index + self.sys_para.ctrl_steps[ii]]
-                    self.ops_weight_base.append(self.transfer_fn_general(ws,self.sys_para.ctrl_steps[ii]))
-                    self.raw_weight.append(ws)
-                    starting_index = starting_index + self.sys_para.ctrl_steps[ii]
-                self.ops_weight_base = tf.reshape(tf.pack(self.ops_weight_base),[self.sys_para.ops_len,self.sys_para.steps])
-                    
-
-
-
-
-
-            else: #No interpolation needed
-
-                self.ops_weight_base = self.raws
-
-            
         else: #initial guess supplied
             self.ops_weight_base = self.raws
 
@@ -443,16 +411,10 @@ class TensorflowState:
         self.learning_rate = tf.placeholder(tf.float32,shape=[])
         self.opt = tf.train.AdamOptimizer(learning_rate = self.learning_rate)
         
-        #Here we extract the gradients of the xy and z pulses
+        #Here we extract the gradients of the pulses
         self.grad = self.opt.compute_gradients(self.reg_loss)
-        if self.sys_para.Dts == [] :
-            self.grad_pack = tf.pack([g for g, _ in self.grad])
-        
-        else:
-            self.grad_pack,_ = self.grad[0]
-            for ii in range (len(self.grad)-1):
-                a,_ = self.grad[ii+1]
-                self.grad_pack = tf.concat(1,[self.grad_pack,a])
+
+        self.grad_pack = tf.pack([g for g, _ in self.grad])
         
         self.grads =[tf.nn.l2_loss(g) for g, _ in self.grad]
         self.grad_squared = tf.reduce_sum(tf.pack(self.grads))

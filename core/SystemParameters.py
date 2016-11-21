@@ -9,7 +9,7 @@ from helper_functions.datamanagement import H5File
 
 class SystemParameters:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxA, draw,initial_guess,evolve, show_plots, H_time_scales,Unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path, Taylor_terms,use_gpu):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxA, draw,initial_guess,evolve, show_plots,Unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path, Taylor_terms,use_gpu):
         # Input variable
         self.use_gpu = use_gpu
         self.Taylor_terms = Taylor_terms
@@ -39,12 +39,7 @@ class SystemParameters:
         else:
             self.u0 =[]
         self.states_concerned_list = states_concerned_list
-        if H_time_scales!= None:
-            self.dts = H_time_scales
-        else:
-            self.dts =[]
-        self.Modulation = False
-        self.Interpolation = False
+
         self.is_dressed = False
         self.U0_c = U0
         self.initial_unitary = c_to_r_mat(U0) #CtoRMat is converting complex matrices to their equivalent real (double the size) matrices
@@ -153,39 +148,7 @@ class SystemParameters:
 
         
     def init_system(self):
-        self.dt = self.total_time/self.steps
-        
-        self.Dts = []
-        self.Dts_indices = []
-        self.ctrl_steps = []
-        idx = []
-        if self.dts != []: #generate Hops and Hnames rearranged such that the controls without a special dt come first
-            for key in self.dts:
-                Dt= self.dts[key]
-                if Dt > self.dt:
-                    self.Dts.append(Dt)
-                    self.Dts_indices.append(int(key))
-                    self.ctrl_steps.append(int(self.total_time/Dt)+1)
-
-            for ii in range (len(self.ops_c)):
-                if ii not in self.Dts_indices:
-                    idx.append(ii)
-            for jj in range (len(self.Dts_indices)):
-                idx.append(self.Dts_indices[jj])
-
-            
-            self.new_limit_dc = []
-            for ii in self.limit_dc:
-                self.new_limit_dc.append( idx.index(ii))
-            self.limit_dc = self.new_limit_dc
-            self.ops_c = np.asarray(self.ops_c)[idx]
-            self.ops_max_amp = np.asarray(self.ops_max_amp)[idx]
-            self.Hnames = np.asarray(self.Hnames)[idx]
-            self.Dt = self.dt
-            self.control_steps = self.steps
-        
-            print self.ctrl_steps
-        
+        self.dt = self.total_time/self.steps        
         self.state_num= len(self.H0_c)
         
         
@@ -330,29 +293,7 @@ class SystemParameters:
             index = 0
             
             initial_stddev = (1./np.sqrt(self.steps))
-            if self.Dts != []: # We have different time scales
-                self.current = []
-                if self.ops_len - len(self.Dts) > 0: # if there exists operators that don't need interpolation
-                    self.current = np.random.normal(initial_mean, initial_stddev, [self.ops_len - len(self.Dts) ,self.steps])
-                     #initialize all ops that don't need interpolation together first
-
-                    
-                    #self.current holds the concatenated weights
-                    
-                   
-                for ii in range (len(self.Dts)): # add all remaining non interpolated wieghts
-                    initial_stddev = (1/np.sqrt(self.ctrl_steps[ii]))
-                    weight = np.random.normal(initial_mean, initial_stddev, [1 ,self.ctrl_steps[ii]])
-                    self.current = np.append(self.current,weight)
-
-
-
-
-
-                self.ops_weight_base = np.reshape(self.current, [1,len(self.current)])
-            else: #No interpolation needed
-
-                self.ops_weight_base = np.random.normal(initial_mean, initial_stddev, [self.ops_len ,self.steps])
+            self.ops_weight_base = np.random.normal(initial_mean, initial_stddev, [self.ops_len ,self.steps])
         
         self.raw_shape = np.shape(self.ops_weight_base)
         

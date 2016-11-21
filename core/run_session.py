@@ -62,7 +62,7 @@ class run_session:
                         if self.sys_para.save:
                             iter_num = self.iterations
                 
-                            self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws, iter_num = iter_num)
+                            self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.unitary_scale,self.tfs.inter_vecs)
                             with H5File(self.sys_para.file_path) as hf:
                                 hf.append('error',np.array(l))
                                 hf.append('reg_error',np.array(rl))
@@ -72,7 +72,7 @@ class run_session:
                                 hf.append('unitary_scale',np.array(metric))
                             
                         if self.show_plots and (not self.sys_para.save):
-                            self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
+                            self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.unitary_scale,self.tfs.inter_vecs)
                             
                         if self.show_plots:
                         # Plot convergence
@@ -94,7 +94,7 @@ class run_session:
                             print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,self.iterations,g, metric)
                             if (self.iterations >= max_iterations) or (l < self.conv.conv_target) or (g < self.conv.min_grad): 
                                 
-                                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
+                                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.unitary_scale,self.tfs.inter_vecs)
                                 
                                 self.conv.update_convergence(l,rl,self.anly,True)
                                 print 'Error = :%1.2e; Runtime: %.1fs; grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,g,metric)
@@ -153,7 +153,7 @@ class run_session:
             if self.sys_para.save:
                 iter_num = self.iterations
                 
-                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws, iter_num = iter_num)
+                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.unitary_scale,self.tfs.inter_vecs)
 
                 
                 with H5File(self.sys_para.file_path) as hf:
@@ -167,7 +167,7 @@ class run_session:
             if self.iterations ==0:
                 self.start_time = time.time()
             if self.show_plots and (not self.sys_para.save):
-                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
+                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.unitary_scale,self.tfs.inter_vecs)
             if self.show_plots:
                 
                 self.conv.update_convergence(l,rl,self.anly,True)
@@ -207,7 +207,7 @@ class run_session:
         else:
             
             if self.sys_para.show_plots == False:
-                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.ops_weight, self.tfs.ops_weight, self.tfs.unitary_scale,self.tfs.inter_vecs, raw_weight =self.tfs.raw_weight, raws = self.tfs.raws)
+                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.unitary_scale,self.tfs.inter_vecs)
                 self.conv.update_convergence(l,rl,self.anly,True)
             self.uks= self.Get_uks()
             

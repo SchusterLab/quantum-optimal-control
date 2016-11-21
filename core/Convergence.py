@@ -11,8 +11,6 @@ class Convergence:
     def __init__(self,sys_para,time_unit,convergence):
         # paramters
         self.sys_para = sys_para
-        self.Modulation = self.sys_para.Modulation
-        self.Interpolation = self.sys_para.Interpolation
         self.time_unit = time_unit
 
         if 'rate' in convergence:
@@ -129,10 +127,7 @@ class Convergence:
         self.get_convergence()
         i1=0
         i2=0
-        if self.Modulation:
-            i1=1
-        if self.Interpolation or self.sys_para.dts!= []:
-            i2=1
+
         if self.sys_para.state_transfer:
             i2 = i2-1
         if self.sys_para.evolve:
@@ -181,7 +176,8 @@ class Convergence:
         for jj in range (self.sys_para.ops_len):
            
             plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[jj]*ops_weight[jj,:]),label='u'+self.sys_para.Hnames[jj])
-
+        
+        ## Control Fields
         if self.sys_para.evolve:
             plt.title('Pulse')
         else:
@@ -192,23 +188,6 @@ class Convergence:
         plt.legend()
         
         index+=1
-        ## Control Fields
-        if ( self.sys_para.Dts !=[]):
-            plt.subplot(gs[index, :],title="Non-Interpolated Control Fields")
-            index+=1
-            
-            
-            raw_weight = self.anly.get_raw_weight()
-
-
-            for kk in range (len(self.sys_para.Dts)):
-
-                plt.plot(np.array([self.sys_para.Dts[kk]* ii for ii in range(self.sys_para.ctrl_steps[kk])]),np.array(self.sys_para.ops_max_amp[self.sys_para.ops_len -len(self.sys_para.Dts) +kk]*np.transpose(raw_weight[kk])),label=self.sys_para.Hnames[self.sys_para.ops_len -len(self.sys_para.Dts)+kk])
-            
-            plt.title('Optimized Non interpolated pulses')
-            plt.ylabel('Amplitude')
-            plt.xlabel('Time ('+ self.time_unit+')')
-            plt.legend()
      
         ## state evolution
         inter_vecs = self.anly.get_inter_vecs()
@@ -228,8 +207,6 @@ class Convergence:
             plots = 2
         else:
             plots = 3
-        if self.sys_para.Dts !=[]:
-            plots= plots+1
         
         
         fig.set_size_inches(15, int (plots+len(self.concerned)*18))

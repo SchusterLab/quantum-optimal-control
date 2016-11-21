@@ -7,19 +7,11 @@ from helper_functions.datamanagement import H5File
 
 class Analysis:
     
-    def __init__(self, sys_para,tf_final_state, tf_ops_weight,tf_xy_weight, tf_xy_nocos, tf_unitary_scale, tf_inter_vecs, raw_weight = None, raws = None, iter_num = 0 ):
+    def __init__(self, sys_para,tf_final_state, tf_ops_weight, tf_unitary_scale, tf_inter_vecs):
         self.sys_para = sys_para
         self.tf_final_state = tf_final_state
         self.tf_ops_weight = tf_ops_weight
-        self.tf_xy_weight = tf_xy_weight
-        self.tf_xy_nocos = tf_xy_nocos
         self.tf_unitary_scale = tf_unitary_scale
-        if raw_weight != None:
-            self.raw_weight = raw_weight
-
-        self.iter_num = iter_num
-        if raws != None:
-            self.raws = raws
         self.tf_inter_vecs = tf_inter_vecs
 	self.this_dir = os.path.dirname(__file__)    
 
@@ -43,44 +35,7 @@ class Analysis:
     def get_ops_weight(self):        
         ops_weight = self.tf_ops_weight.eval()
         
-        
         return ops_weight
-    def get_raws(self):        
-        ops_weight = self.raws.eval()
-
-        if self.sys_para.save:
-            with H5File(self.sys_para.file_path) as hf:
-                hf.append('ops_weight',np.array(ops_weight))
-        
-        return ops_weight
-    def get_xy_weight(self):        
-        xy_weight = self.tf_xy_weight.eval()
-
-        if self.sys_para.save:
-            with H5File(self.sys_para.file_path) as hf:
-                hf.append('xy_weight',np.array(xy_weight))
-                
-        return xy_weight
-    def get_raw_weight(self): 
-
-        raw_weight =[]
-        ops_weight = self.raws.eval()
-        for ii in range (len(self.sys_para.Dts)):
-            raw_weight.append(np.tanh(self.raw_weight[ii].eval()).flatten())
-            if self.sys_para.save:
-                with H5File(self.sys_para.file_path) as hf:
-                    hf.append('raw_weight',np.array(raw_weight[ii]))
-
-        
-        return raw_weight
-    def get_nonmodulated_weight(self):        
-        xy_nocos = self.tf_xy_nocos.eval()
-
-        if self.sys_para.save:
-            with H5File(self.sys_para.file_path) as hf:
-                hf.append('xy_nocos',np.array(xy_nocos))
-                
-        return xy_nocos
     
     
     def get_inter_vecs(self):
