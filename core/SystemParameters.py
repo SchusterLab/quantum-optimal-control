@@ -24,13 +24,13 @@ class SystemParameters:
         self.ops_max_amp = maxA
         self.Hnames = Hnames
         self.Hnames_original = Hnames #because we might rearrange them later if we have different timescales 
-        self.multi = False #are we using a multimode system?
         self.total_time = total_time
         self.steps = steps
         self.show_plots = show_plots
         self.Unitary_error= Unitary_error      
             
         if initial_guess!= None:
+            # transform initial_guess to its corresponding base value
             self.u0 = initial_guess
             self.u0_base = np.zeros_like(self.u0)
             for ii in range (len(self.u0_base)):
@@ -73,10 +73,10 @@ class SystemParameters:
         self.init_vectors()
         self.init_operators()
         self.init_one_minus_gaussian_envelope()
-        self.init_pulse_operator()
         self.init_guess()
 
-    def approx_expm(self,M,exp_t, scaling_terms): #approximate the exp at the beginning to estimate the number of taylor terms and scaling and squaring needed
+    def approx_expm(self,M,exp_t, scaling_terms): 
+        #approximate the exp at the beginning to estimate the number of taylor terms and scaling and squaring needed
         U=np.identity(len(M),dtype=M.dtype)
         Mt=np.identity(len(M),dtype=M.dtype)
         factorial=1.0 #for factorials
@@ -93,6 +93,7 @@ class SystemParameters:
         return U
     
     def approx_exp(self,M,exp_t, scaling_terms): 
+        # the scaling and squaring of matrix exponential with taylor expansions
         U=1.0
         Mt=1.0
         factorial=1.0 #for factorials
@@ -108,7 +109,8 @@ class SystemParameters:
         
         return U
     
-    def Choose_exp_terms(self, d): #given our hamiltonians and a number of scaling/squaring, we determine the number of Taylor terms
+    def Choose_exp_terms(self, d): 
+        #given our hamiltonians and a number of scaling/squaring, we determine the number of Taylor terms
         
 
         exp_t = 20 #maximum
@@ -154,6 +156,7 @@ class SystemParameters:
         
         
     def init_vectors(self):
+        # initialized vectors used for propagation
         self.initial_vectors=[]
         self.initial_vectors_c=[]
 
@@ -177,25 +180,15 @@ class SystemParameters:
     def init_operators(self):
         # Create operator matrix in numpy array
 
-
-        
         self.ops=[]
         for op_c in self.ops_c:
             op = c_to_r_mat(-1j*self.dt*op_c)
             self.ops.append(op)
-        #y_op = CtoRMat(YI)
         
         self.ops_len = len(self.ops)
-        
-
 
         self.H0 = c_to_r_mat(-1j*self.dt*self.H0_c)
-        
-        
-            
         self.identity_c = np.identity(self.state_num)
-        
-        
         self.identity = c_to_r_mat(self.identity_c)
         
         if self.Taylor_terms is None:
@@ -232,8 +225,6 @@ class SystemParameters:
         
         i_array = np.eye(2*self.state_num)
         op_matrix_I=i_array.tolist()
-        #self.I_flat = [item for sublist in op_matrix_I  for item in sublist]
-        #self.H0_flat = [item for sublist in self.H0  for item in sublist]
         
         self.H_ops = []
         for op in self.ops:
@@ -264,28 +255,8 @@ class SystemParameters:
     def gaussian(self,x, mu = 0. , sig = 1. ):
         return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
 
-    def init_pulse_operator(self):
-
-        #functions
-        def sin(t, a, f):
-            return a*np.sin(2*np.pi*f*t)
-
-        def cos(t, a, f):
-            return a*np.cos(2*np.pi*f*t)
-
-        # gaussian envelope
-        gaussian_envelope = self.gaussian(np.linspace(-2,2,self.steps))
-
-        # This is to generate a manual pulse
-        manual_pulse = []
-
-        a=0.00
-
-        manual_pulse.append(np.zeros(self.steps))
-
-
-        self.manual_pulse = np.array(manual_pulse)
     def init_guess(self):
+        # initail guess for control field
         if self.u0 != []:
             
             self.ops_weight_base = np.reshape(self.u0_base, [self.ops_len,self.steps])
