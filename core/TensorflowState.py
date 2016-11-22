@@ -16,11 +16,14 @@ class TensorflowState:
         
     
     def init_defined_functions(self):
+        # define propagation functions used for evolution
         input_num = len(self.sys_para.Hnames) +1
         taylor_terms = self.sys_para.exp_terms 
         scaling = self.sys_para.scaling
         
+        
         def get_matexp(uks,H_all):
+            # matrix exponential
             I = H_all[input_num]
             matexp = I
             uks_Hk_list = []
@@ -45,7 +48,7 @@ class TensorflowState:
         
         @function.Defun(tf.float32,tf.float32,tf.float32)
         def matexp_op_grad(uks,H_all, grad):  
-
+            # gradient of matrix exponential
             coeff_grad = []
 
             coeff_grad.append(tf.constant(0,dtype=tf.float32))
@@ -63,14 +66,16 @@ class TensorflowState:
 
         global matexp_op
         
+        
         @function.Defun(tf.float32,tf.float32, grad_func=matexp_op_grad)                       
         def matexp_op(uks,H_all):
-
+            # matrix exponential defun operator
             matexp = get_matexp(uks,H_all)
 
             return matexp 
         
         def get_matvecexp(uks,H_all,psi):
+            # matrix vector exponential
             I = H_all[input_num]
             matvecexp = psi
             
@@ -94,7 +99,7 @@ class TensorflowState:
         
         @function.Defun(tf.float32,tf.float32,tf.float32,tf.float32)
         def matvecexp_op_grad(uks,H_all,psi, grad):  
-
+            # graident of matrix vector exponential
             coeff_grad = []
 
             coeff_grad.append(tf.constant(0,dtype=tf.float32))
@@ -126,11 +131,12 @@ class TensorflowState:
                 vec_grad = vec_grad + vec_grad_n/factorial
 
             return [tf.pack(coeff_grad), tf.zeros(tf.shape(H_all),dtype=tf.float32),vec_grad]                                         
+        
         global matvecexp_op
         
         @function.Defun(tf.float32,tf.float32,tf.float32, grad_func=matvecexp_op_grad)                       
         def matvecexp_op(uks,H_all,psi):
-            
+            # matrix vector exponential defun operator
             matvecexp = get_matvecexp(uks,H_all,psi)
 
             return matvecexp
@@ -223,6 +229,7 @@ class TensorflowState:
         print "Intermediate propagators initialized."
         
     def init_tf_inter_vectors(self):
+        # inter vectors for unitary evolution, obtained by multiplying the propagation operator K_j with initial vector
         self.inter_vecs=[]
         self.inter_vec =[]
         
@@ -239,7 +246,8 @@ class TensorflowState:
             
         print "Vectors initialized."
         
-    def init_tf_inter_vector_state(self): # for state transfer
+    def init_tf_inter_vector_state(self): 
+        # inter vectors for state transfer, obtained by evolving the initial vector
 
         tf_matrix_list = tf.constant(self.sys_para.matrix_list,dtype=tf.float32)
         
@@ -259,7 +267,7 @@ class TensorflowState:
         print "Vectors initialized."
         
     def get_inner_product(self,psi1,psi2):
-        #Take 2 states psi1,psi2, calculate their overlap.
+        #Take 2 states psi1,psi2, calculate their overlap, for single vector
         state_num=self.sys_para.state_num
         
         psi_1_real = (psi1[0:state_num])
@@ -278,7 +286,7 @@ class TensorflowState:
         return norm
         
     def get_inner_product_gen(self,psi1,psi2):
-        #Take 2 states psi1,psi2, calculate their overlap.
+        #Take 2 states psi1,psi2, calculate their overlap, for arbitrary number of vectors
         state_num=self.sys_para.state_num
         
         psi_1_real = (psi1[0:state_num,:])
@@ -343,6 +351,7 @@ class TensorflowState:
       
             
     def build_graph(self):
+        # graph building for the quantum optimal control
         graph = tf.Graph()
         with graph.as_default():
             
