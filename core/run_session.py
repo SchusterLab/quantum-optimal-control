@@ -65,6 +65,11 @@ class run_session:
     
     def get_end_results(self):
         # get optimized pulse and propagation
+        
+        # get and save inter vects
+        if self.sys_para.show_plots == False:
+            self.anly.get_inter_vecs()
+        
         self.uks = self.Get_uks()
         if not self.sys_para.state_transfer:
             self.Uf = self.anly.get_final_state()
