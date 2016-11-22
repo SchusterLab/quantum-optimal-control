@@ -37,14 +37,10 @@ class run_session:
             if self.method != 'Adam': #Any BFGS scheme
                 learning_rate=0
                 self.feed_dict = {tfs.learning_rate : learning_rate}
-                
-                #uks = self.session.run([tfs.ops_weight_base], feed_dict=self.feed_dict)
-                
+ 
                 uks = self.sys_para.ops_weight_base
-                
-                myfactr = 1e-20
-                ftol = myfactr * np.finfo(float).eps
-                res=self.optimize(uks, method=self.method,jac = True, options={'maxfun' : self.conv.max_iterations,'gtol': self.conv.min_grad, 'disp':False,'ftol':ftol, 'maxls': 40, 'factr':-10.0})
+
+                res=self.optimize(uks, method=self.method,jac = True, options={'maxfun' : self.conv.max_iterations,'gtol': self.conv.min_grad, 'disp':False,'maxls': 40})
                 
             if self.method =='Adam':
                 
@@ -136,52 +132,52 @@ class run_session:
 
         return l,rl,final_g,metric, g_squared
     
+    def save_and_display(self):
+        elapsed = time.time() - self.start_time
+        if self.sys_para.save:
+            
+            self.anly = Analysis(self.sys_para, self.tfs.final_state, self.tfs.ops_weight, self.tfs.unitary_scale,
+                                 self.tfs.inter_vecs)
 
+            with H5File(self.sys_para.file_path) as hf:
+                hf.append('error', np.array(self.l))
+                hf.append('reg_error', np.array(self.rl))
+                hf.append('uks', np.array(self.Get_uks()))
+                hf.append('iteration', np.array(self.iterations))
+                hf.append('run_time', np.array(elapsed))
+                hf.append('unitary_scale', np.array(self.metric))
+
+        if self.iterations == 0:
+            self.start_time = time.time()
+        if self.show_plots and (not self.sys_para.save):
+            self.anly = Analysis(self.sys_para, self.tfs.final_state, self.tfs.ops_weight, self.tfs.unitary_scale,
+                                 self.tfs.inter_vecs)
+        if self.show_plots:
+
+            self.conv.update_convergence(self.l, self.rl, self.anly, True)
+        else:
+
+            print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f' % (
+            self.l, elapsed, self.iterations, self.g_squared, self.metric)
     
     def minimize_opt_fun(self,x):
-        l,rl,grads,metric,g_squared=self.get_error(np.reshape(x,(len(self.sys_para.ops_c),len(x)/len(self.sys_para.ops_c))))
+        self.l,self.rl,self.grads,self.metric,self.g_squared=self.get_error(np.reshape(x,(len(self.sys_para.ops_c),len(x)/len(self.sys_para.ops_c))))
         
-        #print l,self.iterations
-        if l <self.conv.conv_target :
+        if self.l <self.conv.conv_target :
             self.conv_time = time.time()-self.start_time
             self.conv_iter = self.iterations
             self.target = True
             print 'Target fidelity reached'
-            grads= 0*grads
+            self.grads= 0*self.grads
         if self.iterations % self.update_step == 0 or self.target :
-            #g, l,rl,metric = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale], feed_dict=self.feed_dict)
-            elapsed = time.time() - self.start_time
-            if self.sys_para.save:
-                iter_num = self.iterations
-                
-                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.unitary_scale,self.tfs.inter_vecs)
-
-                
-                with H5File(self.sys_para.file_path) as hf:
-                    hf.append('error',np.array(l))
-                    hf.append('reg_error',np.array(rl))
-                    hf.append('uks',np.array(self.Get_uks()))
-                    hf.append('iteration',np.array(self.iterations))
-                    hf.append('run_time',np.array(elapsed))
-                    hf.append('unitary_scale',np.array(metric))
-                
-            if self.iterations ==0:
-                self.start_time = time.time()
-            if self.show_plots and (not self.sys_para.save):
-                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.unitary_scale,self.tfs.inter_vecs)
-            if self.show_plots:
-                
-                self.conv.update_convergence(l,rl,self.anly,True)
-            else:
-                
-                print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,self.iterations,g_squared,metric)
+            self.save_and_display()
         
         self.iterations+=1
         
         if self.method == 'L-BFGS-B':
-            return np.float64(rl),np.float64(np.transpose(grads))
+            return np.float64(self.rl),np.float64(np.transpose(self.grads))
         else:
-            return rl,np.reshape(np.transpose(grads),[len(np.transpose(grads))])
+            return self.rl,np.reshape(np.transpose(self.grads),[len(np.transpose(self.grads))])
 
     def optimize(self,x0, method='L-BFGS-B',jac = False, options=None):
         
