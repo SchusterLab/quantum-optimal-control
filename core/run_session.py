@@ -31,7 +31,7 @@ class run_session:
             print "Initialized"
  
             if self.method != 'Adam': #Any BFGS scheme
-                res=self.bfgs_optimize(method=self.method)
+                self.bfgs_optimize(method=self.method)
                 
             if self.method =='Adam':
                 self.start_adam_optimizer()             
@@ -156,17 +156,16 @@ class run_session:
         if self.sys_para.show_plots == False:
             self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.unitary_scale,self.tfs.inter_vecs)
             self.conv.update_convergence(l,rl,self.anly,True)
+            print res.message
+            print("Error = %1.2e" %l)
+            print ("Total time is " + str(time.time() - self.start_time))
+            
         self.uks= self.Get_uks()
             
         if not self.sys_para.state_transfer:
             self.Uf = self.anly.get_final_state(save=False)
         else:
-            self.Uf=[]
-        if self.show_plots == False:
-            print res.message
-            print("Error = %1.2e" %l)
-            print ("Total time is " + str(time.time() - self.start_time))
-          
-        return res, uks
+            self.Uf=[]            
+
     
         
