@@ -30,8 +30,6 @@ class run_session:
 
 
             print "Initialized"
-            iterations = 0
-            max_iterations = conv.max_iterations
  
             if self.method != 'Adam': #Any BFGS scheme
                 learning_rate=0
@@ -42,34 +40,38 @@ class run_session:
                 res=self.optimize(uks, method=self.method,jac = True, options={'maxfun' : self.conv.max_iterations,'gtol': self.conv.min_grad, 'disp':False,'maxls': 40})
                 
             if self.method =='Adam':
-                             
-                self.start_time = time.time()
-                while True:
-                    learning_rate = float(self.conv.rate) * np.exp(-float(self.iterations)/conv.learning_rate_decay)
-                    self.feed_dict = {tfs.learning_rate : learning_rate}
+                self.start_adam_optimizer()             
+                
                     
-                    self.g_squared,_, self.l,self.rl, self.metric= self.session.run([tfs.grad_squared, tfs.optimizer, tfs.loss, tfs.reg_loss, tfs.unitary_scale], feed_dict=self.feed_dict)
-                    
-                    self.end = False
-                    
-                    if (self.l < self.conv.conv_target) or (self.g_squared < self.conv.min_grad) \
-                    or (self.iterations >= max_iterations):
-                        self.end = True
-                    
-                    if (self.iterations % self.conv.update_step == 0) or self.end:
-                        self.save_and_display()
-                        
-                    if self.end:
-                        self.uks = self.Get_uks()
-                        if not self.sys_para.state_transfer:
-                            self.Uf = self.anly.get_final_state()
-                        else:
-                            self.Uf = []
+    def start_adam_optimizer(self):
+        self.start_time = time.time()
+        while True:
+            learning_rate = float(self.conv.rate) * np.exp(-float(self.iterations) / self.conv.learning_rate_decay)
+            self.feed_dict = {self.tfs.learning_rate: learning_rate}
 
-                        break
+            self.g_squared, _, self.l, self.rl, self.metric = self.session.run(
+                [self.tfs.grad_squared, self.tfs.optimizer, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale], feed_dict=self.feed_dict)
 
-                    self.iterations+=1
-                    
+            self.end = False
+
+            if (self.l < self.conv.conv_target) or (self.g_squared < self.conv.min_grad) \
+                    or (self.iterations >= self.conv.max_iterations):
+                self.end = True
+
+            if (self.iterations % self.conv.update_step == 0) or self.end:
+                self.save_and_display()
+
+            if self.end:
+                self.uks = self.Get_uks()
+                if not self.sys_para.state_transfer:
+                    self.Uf = self.anly.get_final_state()
+                else:
+                    self.Uf = []
+
+                break
+
+            self.iterations += 1
+    
         
     def Get_uks(self): # to get the pulse amplitudes in any scenario (including different time scales) 
         uks = self.anly.get_ops_weight()
