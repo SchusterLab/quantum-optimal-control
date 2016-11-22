@@ -18,6 +18,9 @@ import os
 
 def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, reg_coeffs = None,dressed_info = None, maxA = None ,use_gpu= True, draw= None, initial_guess = None,show_plots = True, unitary_error=1e-4, method = 'Adam',state_transfer = False,no_scaling = False, freq_unit = 'GHz', file_name = None, save = True, data_path = None, Taylor_terms = None):
     
+    # start time
+    grape_start_time = time.time()
+    
     # set timing unit used for plotting
     if freq_unit == 'GHz':
         time_unit = 'ns'
@@ -109,6 +112,13 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
     # run the optimization
     try:
         SS = run_session(tfs,graph,conv,sys_para,method, show_plots = sys_para.show_plots, use_gpu = use_gpu)
+        
+        # save wall clock time   
+        if save:
+            wall_clock_time = time.time() - grape_start_time
+            with H5File(file_path) as hf:
+                hf.add('wall_clock_time',data=np.array(wall_clock_time))
+        
         return SS.uks,SS.Uf
     except KeyboardInterrupt:
         display.clear_output()
