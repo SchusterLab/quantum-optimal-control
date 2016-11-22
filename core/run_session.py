@@ -36,8 +36,9 @@ class run_session:
             if self.method =='Adam':
                 self.start_adam_optimizer()             
                 
-    # adam optimizer                
+                  
     def start_adam_optimizer(self):
+        # adam optimizer  
         self.start_time = time.time()
         while True:
             learning_rate = float(self.conv.rate) * np.exp(-float(self.iterations) / self.conv.learning_rate_decay)
@@ -61,8 +62,9 @@ class run_session:
 
             self.iterations += 1
             
-    # get optimized pulse and propagation
+    
     def get_end_results(self):
+        # get optimized pulse and propagation
         self.uks = self.Get_uks()
         if not self.sys_para.state_transfer:
             self.Uf = self.anly.get_final_state()
@@ -70,17 +72,18 @@ class run_session:
             self.Uf = []
         
     
-    # to get the pulse amplitudes
+    
     def Get_uks(self): 
+        # to get the pulse amplitudes
         uks = self.anly.get_ops_weight()
         for ii in range (len(uks)):
             uks[ii] = self.sys_para.ops_max_amp[ii]*uks[ii]
         return uks    
 
     
-    #get error and gradient for scipy bfgs:
+    
     def get_error(self,uks):
-        
+        #get error and gradient for scipy bfgs:
         self.session.run(self.tfs.ops_weight_base.assign(uks))
 
         g,l,rl,metric,g_squared = self.session.run([self.tfs.grad_pack, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale, self.tfs.grad_squared])
@@ -89,8 +92,9 @@ class run_session:
 
         return l,rl,final_g,metric, g_squared
     
-    # save and display of simulation results
+    
     def save_and_display(self):
+        # save and display of simulation results
         elapsed = time.time() - self.start_time
         if self.sys_para.save:
             
@@ -118,8 +122,9 @@ class run_session:
             print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f' % (
             self.l, elapsed, self.iterations, self.g_squared, self.metric)
     
-    # minimization function called by scipy in each iteration
+    
     def minimize_opt_fun(self,x):
+        # minimization function called by scipy in each iteration
         self.l,self.rl,self.grads,self.metric,self.g_squared=self.get_error(np.reshape(x,(len(self.sys_para.ops_c),len(x)/len(self.sys_para.ops_c))))
         
         if self.l <self.conv.conv_target :
@@ -138,9 +143,9 @@ class run_session:
         else:
             return self.rl,np.reshape(np.transpose(self.grads),[len(np.transpose(self.grads))])
 
-    # scipy optimizer
+    
     def bfgs_optimize(self, method='L-BFGS-B',jac = True, options=None):
-        
+        # scipy optimizer
         self.conv.reset_convergence()
         self.first=True
         self.conv_time = 0.
