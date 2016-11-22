@@ -18,7 +18,7 @@ import os
 
 def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, reg_coeffs = None,dressed_info = None, maxA = None ,use_gpu= True, draw= None, initial_guess = None,show_plots = True, unitary_error=1e-4, method = 'Adam',state_transfer = False,no_scaling = False, freq_unit = 'GHz', file_name = None, save = True, data_path = None, Taylor_terms = None):
     
-    
+    # set timing unit used for plotting
     if freq_unit == 'GHz':
         time_unit = 'ns'
     elif freq_unit == 'MHz':
@@ -31,6 +31,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
     file_path = None
     
     if save:
+        # saves all the input values
         if file_name == None:
             raise ValueError('Grape function input: file_name, is not specified.')
 
@@ -90,10 +91,9 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
     else:
         maxAmp = maxA
     
-            
-    
-    
+    # pass in system parameters
     sys_para = SystemParameters(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxAmp, draw,initial_guess,  show_plots,unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path, Taylor_terms, use_gpu)
+    
     if use_gpu:
         dev = '/gpu:0'
     else:
@@ -106,6 +106,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
     
     conv = Convergence(sys_para,time_unit,convergence)
     
+    # run the optimization
     try:
         SS = run_session(tfs,graph,conv,sys_para,method, show_plots = sys_para.show_plots, use_gpu = use_gpu)
         return SS.uks,SS.Uf
