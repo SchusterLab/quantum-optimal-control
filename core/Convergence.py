@@ -79,7 +79,7 @@ class Convergence:
  
     
     def plot_inter_vecs_general(self,pop_inter_vecs,start):
-        
+        # plot state evolution
         if self.sys_para.draw_list !=[]:
             for kk in range(len(self.sys_para.draw_list)):
                 plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps+1)]),np.array(pop_inter_vecs[self.sys_para.draw_list[kk],:]),label=self.sys_para.draw_names[kk])
@@ -97,6 +97,7 @@ class Convergence:
         
         forbidden =np.zeros(self.sys_para.steps+1)
         if 'states_forbidden_list' in self.sys_para.reg_coeffs:
+            # summing all population of forbidden states
             for forbid in self.sys_para.reg_coeffs['states_forbidden_list']:
                 if self.sys_para.dressed_info is None or ('forbid_dressed' in self.sys_para.reg_coeffs and self.sys_para.reg_coeffs['forbid_dressed']) :
                     forbidden = forbidden +np.array(pop_inter_vecs[forbid,:])
@@ -113,7 +114,7 @@ class Convergence:
         plt.legend(ncol=7)
   
     def plot_summary(self):
-        
+        # plotting data
 
         if not self.last_iter == 0:
             self.runtime = time.time() - self.start_time
