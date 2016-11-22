@@ -1,3 +1,8 @@
+"""
+data management library used for the Schuster lab experiments
+originally written by: Phil Reinhold & David Schuster
+"""
+
 import numpy as np
 import h5py
 import json

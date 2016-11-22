@@ -16,6 +16,7 @@ class Analysis:
 	self.this_dir = os.path.dirname(__file__)    
 
     def RtoCMat(self,M):
+        # real to complex matrix isomorphism
         state_num = self.sys_para.state_num
         M_real = M[:state_num,:state_num]
         M_imag = M[state_num:2*state_num,:state_num]
@@ -23,6 +24,7 @@ class Analysis:
         return (M_real+1j*M_imag)
         
     def get_final_state(self,save=True):
+        # get final evolved unitary state
         M = self.tf_final_state.eval()
         CMat = self.RtoCMat(M)
 
@@ -32,13 +34,15 @@ class Analysis:
 
         return CMat
         
-    def get_ops_weight(self):        
+    def get_ops_weight(self):
+        # get control field
         ops_weight = self.tf_ops_weight.eval()
         
         return ops_weight
     
     
     def get_inter_vecs(self):
+        # get propagated states at each time step
         state_num = self.sys_para.state_num
         inter_vecs_mag_squared = []
         

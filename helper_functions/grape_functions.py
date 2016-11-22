@@ -2,10 +2,12 @@ import numpy as np
 import scipy.linalg as la
 
 def dressed_unitary(U,v,dressed_id):
+    # get unitary matrix in dressed basis
     conversion_U = sort_ev(v,dressed_id)
     return np.dot(np.dot(conversion_U,U),np.conjugate(np.transpose(conversion_U)))
 
 def get_dressed_info(H0):
+    # assign index of the dressed state according to the overall with bare state
     w_c, v_c = la.eig(H0)
     dressed_id=[]
     for ii in range(len(v_c)):
@@ -22,7 +24,7 @@ def get_dressed_info(H0):
     return w_c, v_c, dressed_id
 
 def qft(N):
-
+    # quantum fourier transform operator
     phase = 2.0j * np.pi / (2**N)
     L, M = np.meshgrid(np.arange(2**N), np.arange(2**N))
     L = np.exp(phase * (L * M))
@@ -37,7 +39,7 @@ def hamming_distance(x):
     return tot
 
 def Hadamard (N=1):
-    
+    # Hadamard gate
     Had = (2.0 ** (-N / 2.0)) * np.array([[((-1) ** hamming_distance(i & j))
                                       for i in range(2 ** N)]
                                      for j in range(2 ** N)])
@@ -93,7 +95,8 @@ def Basis(a,N,r):
     return a_new
     
     
-def kron_all(op,num,op_2): # returns an addition of sth like xii + ixi + iix for op =x and op_2 =i
+def kron_all(op,num,op_2): 
+    # returns an addition of sth like xii + ixi + iix for op =x and op_2 =i
     total = np.zeros([len(op)**num,len(op)**num])
     a=op
     for jj in range(num):
@@ -112,13 +115,15 @@ def kron_all(op,num,op_2): # returns an addition of sth like xii + ixi + iix for
         total = total + a
     return a    
 
-def multi_kron(op,num): #returns xx...x
+def multi_kron(op,num): 
+    #returns xx...x
     a=op
     for ii in range(num-1):
         a = np.kron(a,op)
     return a
 
-def append_separate_krons(op,name,num,state_num,Hops,Hnames,ops_max_amp,amp=4.0): #appends xii,ixi,iix separately
+def append_separate_krons(op,name,num,state_num,Hops,Hnames,ops_max_amp,amp=4.0): 
+    #appends xii,ixi,iix separately
     string = name
     I_q = np.identity(state_num)
     x = 1
@@ -157,7 +162,8 @@ def append_separate_krons(op,name,num,state_num,Hops,Hnames,ops_max_amp,amp=4.0)
         Hnames.append(string)
     return Hops,Hnames,ops_max_amp
 
-def nn_chain_kron(op, op_I, qubit_num, qubit_state_num): # nearest neighbour kron: e.g. xxii + ixxi + iixx
+def nn_chain_kron(op, op_I, qubit_num, qubit_state_num): 
+    # nearest neighbour kron: e.g. xxii + ixxi + iixx
     op_list = ['I']*(qubit_num-2)
     op_list = ['OP','OP'] + op_list
     
@@ -186,6 +192,7 @@ def nn_chain_kron(op, op_I, qubit_num, qubit_state_num): # nearest neighbour kro
 
 
 def sort_ev(v,dressed_id):
+    # sort the eigenstates according to bare states
     v_sorted=[]
     
     for ii in range (len(dressed_id)):
@@ -197,15 +204,18 @@ def sort_ev(v,dressed_id):
     return np.transpose(np.reshape(v_sorted, [len(dressed_id),len(dressed_id)]))
 
 def get_state_index(bareindex,dressed_id):
+    # get the index of dressed state, with maximum overlap with the corresponding bare state
     if len(dressed_id) > 0:
         return dressed_id.index(bareindex)
     else:
         return bareindex
     
 def c_to_r_mat(M):
+    # complex to real isomorphism for matrix
     return np.asarray(np.bmat([[M.real,-M.imag],[M.imag,M.real]]))
 
 def c_to_r_vec(V):
+    # complex to real isomorphism for vector
     new_v =[]
     new_v.append(V.real)
     new_v.append(V.imag)
