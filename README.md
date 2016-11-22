@@ -69,7 +69,6 @@ unitary_error, method,state_transfer, switch,no_scaling, freq_unit, file_name, s
  **Unitary_error:** a float indicating the desired maximum error of the Taylor expansion of the exponential to choose a proper number of expansion terms, default is 1e-4  
  **state_transfer:** a boolean (default is False) if True, targetting state transfer. If false, targetting unitary evolution. If True, the U is expected to be a vector, not a matrix.    
  **method:** 'Adam', 'BFGS'   or 'L-BFGS-B'. Default is Adam   
- **switch:** a boolean (default is True) to switch from BFGS/L-BFGS-B to Adam if a precision loss happens  
  **no_scaling**:  a boolean (default is False)) to stop scaling and squaring  
  **freq_unit**: a string with default 'GHz'. Can be 'MHz', 'kHz' or 'Hz'  
  **forbid_dressed**: A boolean (default is True) to forbid dressed (hamiltonian's eigen vectors) vs bare states in coupled systems 
