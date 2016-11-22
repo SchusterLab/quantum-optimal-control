@@ -28,16 +28,10 @@ class run_session:
             
             tf.initialize_all_variables().run()
 
-
             print "Initialized"
  
             if self.method != 'Adam': #Any BFGS scheme
-                learning_rate=0
-                self.feed_dict = {tfs.learning_rate : learning_rate}
- 
-                uks = self.sys_para.ops_weight_base
-
-                res=self.optimize(uks, method=self.method,jac = True, options={'maxfun' : self.conv.max_iterations,'gtol': self.conv.min_grad, 'disp':False,'maxls': 40})
+                res=self.bfgs_optimize(method=self.method)
                 
             if self.method =='Adam':
                 self.start_adam_optimizer()             
@@ -85,7 +79,7 @@ class run_session:
         
         self.session.run(self.tfs.ops_weight_base.assign(uks))
 
-        g,l,rl,metric,g_squared = self.session.run([self.tfs.grad_pack, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale, self.tfs.grad_squared], feed_dict=self.feed_dict)
+        g,l,rl,metric,g_squared = self.session.run([self.tfs.grad_pack, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale, self.tfs.grad_squared])
         
         final_g = np.transpose(np.reshape(g,(len(self.sys_para.ops_c)*self.sys_para.steps)))
 
@@ -138,22 +132,26 @@ class run_session:
         else:
             return self.rl,np.reshape(np.transpose(self.grads),[len(np.transpose(self.grads))])
 
-    def optimize(self,x0, method='L-BFGS-B',jac = False, options=None):
+    def bfgs_optimize(self, method='L-BFGS-B',jac = True, options=None):
         
         self.conv.reset_convergence()
         self.first=True
         self.conv_time = 0.
         self.conv_iter=0
-        #print np.shape(x0)
+        self.end=False
         print "Starting " + self.method + " Optimization"
         self.start_time = time.time()
+        
+        x0 = self.sys_para.ops_weight_base
+        options={'maxfun' : self.conv.max_iterations,'gtol': self.conv.min_grad, 'disp':False,'maxls': 40}
+        
         res = minimize(self.minimize_opt_fun,x0,method=method,jac=jac,options=options)
 
         uks=np.reshape(res['x'],(len(self.sys_para.ops_c),len(res['x'])/len(self.sys_para.ops_c)))
 
         print self.method + ' optimization done'
         
-        g, l,rl = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss], feed_dict=self.feed_dict)
+        g, l,rl = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss])
             
         if self.sys_para.show_plots == False:
             self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.unitary_scale,self.tfs.inter_vecs)
@@ -168,10 +166,7 @@ class run_session:
             print res.message
             print("Error = %1.2e" %l)
             print ("Total time is " + str(time.time() - self.start_time))
-                
-
-        
-            
+          
         return res, uks
     
         
