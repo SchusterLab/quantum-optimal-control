@@ -18,7 +18,6 @@ class run_session:
         self.iterations = 0
         self.method = method
         self.show_plots = show_plots
-        self.BFGS_time =0
         self.target = False
         if not use_gpu:
             config = tf.ConfigProto(device_count = {'GPU': 0})
@@ -43,76 +42,34 @@ class run_session:
                 res=self.optimize(uks, method=self.method,jac = True, options={'maxfun' : self.conv.max_iterations,'gtol': self.conv.min_grad, 'disp':False,'maxls': 40})
                 
             if self.method =='Adam':
-                
-                
-                start_time = time.time() - self.BFGS_time
+                             
+                self.start_time = time.time()
                 while True:
                     learning_rate = float(self.conv.rate) * np.exp(-float(self.iterations)/conv.learning_rate_decay)
                     self.feed_dict = {tfs.learning_rate : learning_rate}
                     
-                    g,_, l,rl, metric= self.session.run([tfs.grad_squared, tfs.optimizer, tfs.loss, tfs.reg_loss, tfs.unitary_scale], feed_dict=self.feed_dict)
+                    self.g_squared,_, self.l,self.rl, self.metric= self.session.run([tfs.grad_squared, tfs.optimizer, tfs.loss, tfs.reg_loss, tfs.unitary_scale], feed_dict=self.feed_dict)
                     
-            
+                    self.end = False
                     
-                    if (self.iterations % self.conv.update_step == 0) or (l < self.conv.conv_target) or (g < self.conv.min_grad):    
-                        elapsed = time.time() - start_time
-                        if self.sys_para.save:
-                            iter_num = self.iterations
-                
-                            self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.unitary_scale,self.tfs.inter_vecs)
-                            with H5File(self.sys_para.file_path) as hf:
-                                hf.append('error',np.array(l))
-                                hf.append('reg_error',np.array(rl))
-                                hf.append('uks',np.array(self.Get_uks()))
-                                hf.append('iteration',np.array(self.iterations))
-                                hf.append('run_time',np.array(elapsed))
-                                hf.append('unitary_scale',np.array(metric))
-                            
-                        if self.show_plots and (not self.sys_para.save):
-                            self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.unitary_scale,self.tfs.inter_vecs)
-                            
-                        if self.show_plots:
-                        # Plot convergence
-                            
-                            
-                            self.conv.update_convergence(l,rl,self.anly,self.show_plots)
-
-                            if (self.iterations >= max_iterations) or (l < self.conv.conv_target): 
-                                
-                                self.uks= self.Get_uks()
-                                if not self.sys_para.state_transfer:
-                                    self.Uf = self.anly.get_final_state()
-                                else:
-                                    self.Uf=[]
-                            
-                                break
+                    if (self.l < self.conv.conv_target) or (self.g_squared < self.conv.min_grad) \
+                    or (self.iterations >= max_iterations):
+                        self.end = True
+                    
+                    if (self.iterations % self.conv.update_step == 0) or self.end:
+                        self.save_and_display()
+                        
+                    if self.end:
+                        self.uks = self.Get_uks()
+                        if not self.sys_para.state_transfer:
+                            self.Uf = self.anly.get_final_state()
                         else:
-                            
-                            print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,self.iterations,g, metric)
-                            if (self.iterations >= max_iterations) or (l < self.conv.conv_target) or (g < self.conv.min_grad): 
-                                
-                                self.anly = Analysis(self.sys_para,self.tfs.final_state,self.tfs.ops_weight,self.tfs.unitary_scale,self.tfs.inter_vecs)
-                                
-                                self.conv.update_convergence(l,rl,self.anly,True)
-                                print 'Error = :%1.2e; Runtime: %.1fs; grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,g,metric)
-                                self.uks= self.Get_uks()
-                                if not self.sys_para.state_transfer:
-                                    self.Uf = self.anly.get_final_state(save=False)
-                                else:
-                                    self.Uf=[]
-                           
-                                break
+                            self.Uf = []
 
+                        break
 
                     self.iterations+=1
                     
-                      
-    def Sort_back(self,uks): # To restore the order of uks (pulse amplitudes) as in the input
-        uks_original = []
-        for op in self.sys_para.Hnames_original:
-            index = self.sys_para.Hnames.tolist().index(op)
-            uks_original.append(uks[index])
-        return uks_original
         
     def Get_uks(self): # to get the pulse amplitudes in any scenario (including different time scales) 
         uks = self.anly.get_ops_weight()
@@ -166,10 +123,10 @@ class run_session:
         if self.l <self.conv.conv_target :
             self.conv_time = time.time()-self.start_time
             self.conv_iter = self.iterations
-            self.target = True
+            self.end = True
             print 'Target fidelity reached'
             self.grads= 0*self.grads
-        if self.iterations % self.update_step == 0 or self.target :
+        if self.iterations % self.update_step == 0 or self.end :
             self.save_and_display()
         
         self.iterations+=1
