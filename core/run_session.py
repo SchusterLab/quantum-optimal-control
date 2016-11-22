@@ -36,7 +36,7 @@ class run_session:
             if self.method =='Adam':
                 self.start_adam_optimizer()             
                 
-                    
+    # adam optimizer                
     def start_adam_optimizer(self):
         self.start_time = time.time()
         while True:
@@ -56,25 +56,29 @@ class run_session:
                 self.save_and_display()
 
             if self.end:
-                self.uks = self.Get_uks()
-                if not self.sys_para.state_transfer:
-                    self.Uf = self.anly.get_final_state()
-                else:
-                    self.Uf = []
-
+                self.get_end_results()
                 break
 
             self.iterations += 1
-    
+            
+    # get optimized pulse and propagation
+    def get_end_results(self):
+        self.uks = self.Get_uks()
+        if not self.sys_para.state_transfer:
+            self.Uf = self.anly.get_final_state()
+        else:
+            self.Uf = []
         
-    def Get_uks(self): # to get the pulse amplitudes in any scenario (including different time scales) 
+    
+    # to get the pulse amplitudes
+    def Get_uks(self): 
         uks = self.anly.get_ops_weight()
         for ii in range (len(uks)):
             uks[ii] = self.sys_para.ops_max_amp[ii]*uks[ii]
         return uks    
 
     
-#BFGS functions:
+    #get error and gradient for scipy bfgs:
     def get_error(self,uks):
         
         self.session.run(self.tfs.ops_weight_base.assign(uks))
@@ -85,6 +89,7 @@ class run_session:
 
         return l,rl,final_g,metric, g_squared
     
+    # save and display of simulation results
     def save_and_display(self):
         elapsed = time.time() - self.start_time
         if self.sys_para.save:
@@ -113,6 +118,7 @@ class run_session:
             print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f' % (
             self.l, elapsed, self.iterations, self.g_squared, self.metric)
     
+    # minimization function called by scipy in each iteration
     def minimize_opt_fun(self,x):
         self.l,self.rl,self.grads,self.metric,self.g_squared=self.get_error(np.reshape(x,(len(self.sys_para.ops_c),len(x)/len(self.sys_para.ops_c))))
         
@@ -121,7 +127,7 @@ class run_session:
             self.conv_iter = self.iterations
             self.end = True
             print 'Target fidelity reached'
-            self.grads= 0*self.grads
+            self.grads= 0*self.grads # set zero grads to terminate the scipy optimization
         if self.iterations % self.update_step == 0 or self.end :
             self.save_and_display()
         
@@ -132,6 +138,7 @@ class run_session:
         else:
             return self.rl,np.reshape(np.transpose(self.grads),[len(np.transpose(self.grads))])
 
+    # scipy optimizer
     def bfgs_optimize(self, method='L-BFGS-B',jac = True, options=None):
         
         self.conv.reset_convergence()
@@ -160,12 +167,7 @@ class run_session:
             print("Error = %1.2e" %l)
             print ("Total time is " + str(time.time() - self.start_time))
             
-        self.uks= self.Get_uks()
-            
-        if not self.sys_para.state_transfer:
-            self.Uf = self.anly.get_final_state(save=False)
-        else:
-            self.Uf=[]            
+        self.get_end_results()          
 
     
         
