@@ -38,7 +38,9 @@ class run_session:
                 learning_rate=0
                 self.feed_dict = {tfs.learning_rate : learning_rate}
                 
-                g,l,rl,uks = self.session.run([tfs.grad_pack, tfs.loss, tfs.reg_loss,tfs.ops_weight_base], feed_dict=self.feed_dict)
+                #uks = self.session.run([tfs.ops_weight_base], feed_dict=self.feed_dict)
+                
+                uks = self.sys_para.ops_weight_base
                 
                 myfactr = 1e-20
                 ftol = myfactr * np.finfo(float).eps
@@ -128,16 +130,16 @@ class run_session:
         
         self.session.run(self.tfs.ops_weight_base.assign(uks))
 
-        g,l,rl = self.session.run([self.tfs.grad_pack, self.tfs.loss, self.tfs.reg_loss], feed_dict=self.feed_dict)
+        g,l,rl,metric,g_squared = self.session.run([self.tfs.grad_pack, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale, self.tfs.grad_squared], feed_dict=self.feed_dict)
         
         final_g = np.transpose(np.reshape(g,(len(self.sys_para.ops_c)*self.sys_para.steps)))
 
-        return l,rl,final_g
+        return l,rl,final_g,metric, g_squared
     
 
     
     def minimize_opt_fun(self,x):
-        l,rl,grads=self.get_error(np.reshape(x,(len(self.sys_para.ops_c),len(x)/len(self.sys_para.ops_c))))
+        l,rl,grads,metric,g_squared=self.get_error(np.reshape(x,(len(self.sys_para.ops_c),len(x)/len(self.sys_para.ops_c))))
         
         #print l,self.iterations
         if l <self.conv.conv_target :
@@ -147,7 +149,7 @@ class run_session:
             print 'Target fidelity reached'
             grads= 0*grads
         if self.iterations % self.update_step == 0 or self.target :
-            g, l,rl,metric = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale], feed_dict=self.feed_dict)
+            #g, l,rl,metric = self.session.run([self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale], feed_dict=self.feed_dict)
             elapsed = time.time() - self.start_time
             if self.sys_para.save:
                 iter_num = self.iterations
@@ -172,7 +174,7 @@ class run_session:
                 self.conv.update_convergence(l,rl,self.anly,True)
             else:
                 
-                print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,self.iterations,g,metric)
+                print 'Error = :%1.2e; Runtime: %.1fs; Iterations = %d, grads =  %10.3e, unitary_metric = %.5f'%(l,elapsed,self.iterations,g_squared,metric)
         
         self.iterations+=1
         
