@@ -365,7 +365,10 @@ class TensorflowState:
             if self.sys_para.state_transfer == False:
                 self.init_tf_inter_propagators()
                 self.init_tf_propagator()
-                self.init_tf_inter_vectors()
+                if self.sys_para.use_inter_vecs:
+                    self.init_tf_inter_vectors()
+                else:
+                    self.inter_vecs = None
             else:
                 self.init_tf_inter_vector_state()
             self.init_training_loss()

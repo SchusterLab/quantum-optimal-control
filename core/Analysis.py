@@ -43,6 +43,9 @@ class Analysis:
     
     def get_inter_vecs(self):
         # get propagated states at each time step
+        if not self.sys_para.use_inter_vecs:
+            return None
+        
         state_num = self.sys_para.state_num
         inter_vecs_mag_squared = []
         

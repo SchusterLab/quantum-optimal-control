@@ -186,15 +186,17 @@ class Convergence:
         index+=1
      
         ## state evolution
-        inter_vecs = self.anly.get_inter_vecs()
         
-        inter_vecs_array = np.array(inter_vecs)
-        
-        for ii in range(len(self.concerned)):
-            plt.subplot(gs[index+ii, :],title="Evolution")
+        if self.sys_para.use_inter_vecs:
+            inter_vecs = self.anly.get_inter_vecs()
 
-            pop_inter_vecs = inter_vecs[ii]
-            self.plot_inter_vecs_general(pop_inter_vecs,self.concerned[ii])
+            inter_vecs_array = np.array(inter_vecs)
+
+            for ii in range(len(self.concerned)):
+                plt.subplot(gs[index+ii, :],title="Evolution")
+
+                pop_inter_vecs = inter_vecs[ii]
+                self.plot_inter_vecs_general(pop_inter_vecs,self.concerned[ii])
                 
                 
         
