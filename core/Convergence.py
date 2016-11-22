@@ -131,14 +131,12 @@ class Convergence:
 
         if self.sys_para.state_transfer:
             i2 = i2-1
-        if self.sys_para.evolve:
-            gs = gridspec.GridSpec(2+i1+i2+len(self.concerned), 2)
-        else:
-            gs = gridspec.GridSpec(3+i1+i2+len(self.concerned), 2)
+
+        gs = gridspec.GridSpec(3+i1+i2+len(self.concerned), 2)
         
         index = 0
         ## cost
-        if self.sys_para.evolve == False and self.sys_para.show_plots == True:
+        if self.sys_para.show_plots == True:
             
             
           
@@ -179,10 +177,7 @@ class Convergence:
             plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps)]),np.array(self.sys_para.ops_max_amp[jj]*ops_weight[jj,:]),label='u'+self.sys_para.Hnames[jj])
         
         ## Control Fields
-        if self.sys_para.evolve:
-            plt.title('Pulse')
-        else:
-            plt.title('Optimized pulse')
+        plt.title('Optimized pulse')
             
         plt.ylabel('Amplitude')
         plt.xlabel('Time ('+ self.time_unit+')')

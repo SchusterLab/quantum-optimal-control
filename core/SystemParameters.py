@@ -9,7 +9,7 @@ from helper_functions.datamanagement import H5File
 
 class SystemParameters:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxA, draw,initial_guess,evolve, show_plots,Unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path, Taylor_terms,use_gpu):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxA, draw,initial_guess, show_plots,Unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path, Taylor_terms,use_gpu):
         # Input variable
         self.use_gpu = use_gpu
         self.Taylor_terms = Taylor_terms
@@ -68,7 +68,6 @@ class SystemParameters:
             self.is_dressed = dressed_info['is_dressed']
             self.H0_diag=np.diag(self.w_c)
             
-        self.evolve = evolve
         self.init_system()
         self.init_vectors()
         self.init_operators()

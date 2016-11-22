@@ -16,7 +16,7 @@ from helper_functions.datamanagement import H5File
 import os
 
 
-def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, reg_coeffs = None,dressed_info = None, maxA = None ,use_gpu= True, draw= None, initial_guess = None, evolve_only = False,show_plots = True, unitary_error=1e-4, method = 'Adam',state_transfer = False,no_scaling = False, freq_unit = 'GHz', file_name = None, save = True, data_path = None, Taylor_terms = None):
+def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = None, U0= None, reg_coeffs = None,dressed_info = None, maxA = None ,use_gpu= True, draw= None, initial_guess = None,show_plots = True, unitary_error=1e-4, method = 'Adam',state_transfer = False,no_scaling = False, freq_unit = 'GHz', file_name = None, save = True, data_path = None, Taylor_terms = None):
     
     
     if freq_unit == 'GHz':
@@ -80,9 +80,6 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
         U0 = np.identity(len(H0))
     if convergence == None:
         convergence = {'rate':0.01, 'update_step':100, 'max_iterations':5000,'conv_target':1e-8,'learning_rate_decay':2500}
-    
-    if evolve_only:
-        reg_coeffs = dict.fromkeys(reg_coeffs, 0)
        
         
     if maxA == None:
@@ -96,7 +93,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
             
     
     
-    sys_para = SystemParameters(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxAmp, draw,initial_guess, evolve_only, show_plots,unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path, Taylor_terms, use_gpu)
+    sys_para = SystemParameters(H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxAmp, draw,initial_guess,  show_plots,unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path, Taylor_terms, use_gpu)
     if use_gpu:
         dev = '/gpu:0'
     else:
