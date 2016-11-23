@@ -61,9 +61,6 @@ class run_session:
 
             
     def update_and_save(self):
-        
-        if self.iterations == 0:
-            self.start_time = time.time()
 
         if (self.iterations % self.conv.update_step == 0):
             self.anly = Analysis(self.sys_para, self.tfs.final_state, self.tfs.ops_weight, self.tfs.unitary_scale,
@@ -77,6 +74,9 @@ class run_session:
                 if not (self.iterations % self.conv.update_step == 0):
                     self.save_data()
                 self.conv.save_evol(self.anly)
+                
+        if self.iterations == 0:
+            self.start_time = time.time()
                 
         self.iterations += 1
     
