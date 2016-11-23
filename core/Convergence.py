@@ -45,7 +45,8 @@ class Convergence:
 
 
         self.reset_convergence()
-        plt.figure()
+        if self.sys_para.show_plots:
+            plt.figure()
     
     def reset_convergence(self):
         self.costs=[]
