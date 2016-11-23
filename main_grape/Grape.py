@@ -22,15 +22,9 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
     grape_start_time = time.time()
     
     # set timing unit used for plotting
-    if freq_unit == 'GHz':
-        time_unit = 'ns'
-    elif freq_unit == 'MHz':
-        time_unit = 'us'
-    elif freq_unit == 'KHz':
-        time_unit = 'ms'
-    elif freq_unit == 'Hz':
-        time_unit = 's'
-        
+    freq_time_unit_dict = {"GHz": "ns", "MHz": "us","KHz":"ms","Hz":"s"}
+    time_unit = freq_time_unit_dict[freq_unit]
+    
     file_path = None
     
     if save:
