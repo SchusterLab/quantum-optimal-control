@@ -251,19 +251,33 @@ class TensorflowState:
 
         tf_matrix_list = tf.constant(self.sys_para.matrix_list,dtype=tf.float32)
         
-        self.inter_vecs=[]
+        self.inter_vec = []
+        inter_vec = self.packed_initial_vectors
+        self.inter_vec.append(inter_vec)
         
-        for tf_initial_vector in self.tf_initial_vectors:
-            self.inter_vec = []
-            inter_vec = tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1],name="initial_vector")
+        for ii in np.arange(0,self.sys_para.steps):
+            psi = inter_vec               
+            inter_vec = matvecexp_op(self.H_weights[:,ii],tf_matrix_list,psi)
             self.inter_vec.append(inter_vec)
-
-            for ii in np.arange(0,self.sys_para.steps):
-                psi = inter_vec               
-                inter_vec = matvecexp_op(self.H_weights[:,ii],tf_matrix_list,psi)
-                self.inter_vec.append(inter_vec)
-            self.inter_vec = tf.transpose(tf.reshape(tf.pack(self.inter_vec),[self.sys_para.steps+1,2*self.sys_para.state_num]),name = "vectors_for_one_psi0")
-            self.inter_vecs.append(self.inter_vec)
+        self.inter_vec = tf.pack(self.inter_vec, axis=1)
+        self.inter_vecs = tf.unpack(self.inter_vec, axis = 2)
+        
+        ### old
+        #self.inter_vecs=[]
+        #
+        #for tf_initial_vector in self.tf_initial_vectors:
+        #    self.inter_vec = []
+        #    inter_vec = tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1],name="initial_vector")
+        #    self.inter_vec.append(inter_vec)
+        #
+        #    for ii in np.arange(0,self.sys_para.steps):
+        #        psi = inter_vec               
+        #        inter_vec = matvecexp_op(self.H_weights[:,ii],tf_matrix_list,psi)
+        #        self.inter_vec.append(inter_vec)
+        #    self.inter_vec = tf.transpose(tf.reshape(tf.pack(self.inter_vec),[self.sys_para.steps+1,2*self.sys_para.state_num]),name = "vectors_for_one_psi0")
+        #    self.inter_vecs.append(self.inter_vec)
+        ###    
+            
         print "Vectors initialized."
         
     def get_inner_product(self,psi1,psi2):
