@@ -22,6 +22,11 @@ class Convergence:
             self.update_step = convergence['update_step']
         else:
             self.update_step = 100
+            
+        if 'evol_save_step' in convergence:
+            self.evol_save_step = convergence['evol_save_step']
+        else:
+            self.evol_save_step = 100
 
         if 'conv_target' in convergence:
             self.conv_target = convergence['conv_target']
@@ -55,22 +60,21 @@ class Convergence:
         self.learning_rate=[]
         self.last_iter = 0
         self.accumulate_rate = 1.00
+        
+    def save_evol(self,anly):
+        if self.sys_para.state_transfer == False:
+            self.final_state = anly.get_final_state()
+            
+        self.inter_vecs = anly.get_inter_vecs()
 
-    def update_convergence(self,last_cost, last_reg_cost, anly,show_plots=True):
+    def update_plot_summary(self,last_cost, last_reg_cost, anly):
         self.concerned = self.sys_para.states_concerned_list
         self.last_cost = last_cost
         self.last_reg_cost = last_reg_cost
           
         self.anly = anly
-
-	if show_plots:
-        	self.plot_summary()
-	else:
-		print '###### last cost: ' + str(last_cost) + ' ######'
-        	if self.sys_para.state_transfer == False:
-            		self.anly.get_final_state()
-        	self.anly.get_ops_weight()
-        	self.anly.get_inter_vecs()			
+        self.save_evol(anly)
+        self.plot_summary()
     
     def get_convergence(self):
         self.costs.append(self.last_cost)
@@ -158,7 +162,7 @@ class Convergence:
             print "Error = %.9f"%self.last_cost
         ## unitary evolution
         if not self.sys_para.state_transfer:
-            M = self.anly.get_final_state()
+            M = self.final_state
             plt.subplot(gs[index, 0],title="operator: real")
             plt.imshow(M.real,interpolation='none')
             plt.clim(-1,1)
@@ -189,7 +193,7 @@ class Convergence:
         ## state evolution
         
         if self.sys_para.use_inter_vecs:
-            inter_vecs = self.anly.get_inter_vecs()
+            inter_vecs = self.inter_vecs
 
             inter_vecs_array = np.array(inter_vecs)
 
