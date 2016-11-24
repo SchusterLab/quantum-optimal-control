@@ -115,6 +115,13 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
         
         return SS.uks,SS.Uf
     except KeyboardInterrupt:
+        
+        # save wall clock time   
+        if save:
+            wall_clock_time = time.time() - grape_start_time
+            with H5File(file_path) as hf:
+                hf.add('wall_clock_time',data=np.array(wall_clock_time))
+        
         display.clear_output()
     
     
