@@ -75,9 +75,6 @@ class run_session:
                     self.save_data()
                 self.conv.save_evol(self.anly)
                 
-        if self.iterations == 0:
-            self.start_time = time.time()
-                
         self.iterations += 1
     
     def get_end_results(self):
