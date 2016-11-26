@@ -36,7 +36,7 @@ class SystemParameters:
             self.u0_base = np.zeros_like(self.u0)
             for ii in range (len(self.u0_base)):
                 self.u0_base[ii]= self.u0[ii]/self.ops_max_amp[ii]
-            self.u0_base = np.arctanh(self.u0_base) #because we take the tanh of weights later
+            self.u0_base = np.arcsin(self.u0_base) #because we take the sin of weights later
             
         else:
             self.u0 =[]

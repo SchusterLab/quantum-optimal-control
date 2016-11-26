@@ -177,7 +177,7 @@ class TensorflowState:
         self.weights_unpacked=[self.H0_weight] #will collect all weights here
         self.ops_weight_base = tf.Variable(tf.constant(self.sys_para.ops_weight_base, dtype = tf.float32), dtype=tf.float32,name ="weights_base")
 
-        self.ops_weight = tf.tanh(self.ops_weight_base,name="weights")
+        self.ops_weight = tf.sin(self.ops_weight_base,name="weights")
         for ii in range (self.sys_para.ops_len):
             self.weights_unpacked.append(self.sys_para.ops_max_amp[ii]*self.ops_weight[ii,:])
 
