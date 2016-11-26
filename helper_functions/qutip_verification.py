@@ -68,15 +68,14 @@ def qutip_verification(datafile,atol):
         for state in output.states:
             state_tlist.append(state.full())
         state_tlist = np.array(state_tlist)[:,:,0]
-        state_tlist = np.transpose(state_tlist)
         
         
         # absolute difference of simulation result from Tensorflow and QuTiP
-        abs_diff = np.abs(state_tlist) - np.abs(inter_vecs_raw[init_vector_id])        
+        abs_diff = np.abs(state_tlist[1:]) - np.abs(inter_vecs_raw[init_vector_id])        
         max_abs_diff_list.append(np.max(abs_diff))
         
         # if all close between simulation result from Tensorflow and QuTiP
-        all_close = np.allclose(state_tlist,inter_vecs_raw[init_vector_id],atol=atol)        
+        all_close = np.allclose(state_tlist[1:],inter_vecs_raw[init_vector_id],atol=atol)        
         all_close_list.append(all_close)
     
     print "QuTiP simulation verification result for each initial state"
