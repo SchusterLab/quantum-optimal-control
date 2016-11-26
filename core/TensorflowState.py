@@ -182,7 +182,7 @@ class TensorflowState:
             self.weights_unpacked.append(self.sys_para.ops_max_amp[ii]*self.ops_weight[ii,:])
 
         #print len(self.sys_para.ops_max_amp)
-        self.H_weights = tf.pack(self.weights_unpacked,name="packed_weights")
+        self.H_weights = tf.pack(self.weights_unpacked,axis=1,name="packed_weights")
            
 
 
@@ -246,21 +246,37 @@ class TensorflowState:
             
         print "Vectors initialized."
         
+        
+    def fn_matvecexp(self,previous_output, current_input):
+        current_output = matvecexp_op(current_input,self.tf_matrix_list,previous_output)
+        current_output.set_shape([4, 2])
+        return current_output
+        
+        
     def init_tf_inter_vector_state(self): 
         # inter vectors for state transfer, obtained by evolving the initial vector
 
-        tf_matrix_list = tf.constant(self.sys_para.matrix_list,dtype=tf.float32)
+        ##### old
+        #tf_matrix_list = tf.constant(self.sys_para.matrix_list,dtype=tf.float32)
         
-        self.inter_vec = []
-        inter_vec = self.packed_initial_vectors
-        self.inter_vec.append(inter_vec)
+        #self.inter_vec = []
+        #inter_vec = self.packed_initial_vectors
+        #self.inter_vec.append(inter_vec)
         
-        for ii in np.arange(0,self.sys_para.steps):
-            psi = inter_vec               
-            inter_vec = matvecexp_op(self.H_weights[:,ii],tf_matrix_list,psi)
-            self.inter_vec.append(inter_vec)
-        self.inter_vec = tf.pack(self.inter_vec, axis=1)
-        self.inter_vecs = tf.unpack(self.inter_vec, axis = 2)
+        #for ii in np.arange(0,self.sys_para.steps):
+        #    psi = inter_vec               
+        #    inter_vec = matvecexp_op(self.H_weights[:,ii],tf_matrix_list,psi)
+        #    self.inter_vec.append(inter_vec)
+        #self.inter_vec = tf.pack(self.inter_vec, axis=1)
+        #self.inter_vecs = tf.unpack(self.inter_vec, axis = 2)
+        #####
+        
+        self.tf_matrix_list = tf.constant(self.sys_para.matrix_list,dtype=tf.float32)
+        
+        self.inter_vecs_packed = tf.scan(self.fn_matvecexp, self.H_weights, initializer=self.packed_initial_vectors,
+                                        infer_shape=False)
+        self.inter_vecs_packed.set_shape([self.sys_para.steps,4,2])
+        self.inter_vecs = tf.unpack(self.inter_vecs_packed, axis = 2)
         
             
         print "Vectors initialized."
@@ -303,6 +319,25 @@ class TensorflowState:
             norm = (tf.add(reals,imags))/len(self.sys_para.states_concerned_list)
         return norm
     
+    def get_inner_product_gen_v2(self,psi1,psi2):
+        #Take 2 states psi1,psi2, calculate their overlap, for arbitrary number of vectors
+        state_num=self.sys_para.state_num
+        
+        psi_1_real = (psi1[:,0:state_num])
+        psi_1_imag = (psi1[:,state_num:2*state_num])
+        psi_2_real = (psi2[:,0:state_num])
+        psi_2_imag = (psi2[:,state_num:2*state_num])
+        # psi1 has a+ib, psi2 has c+id, we wanna get Sum ((ac+bd) + i (bc-ad)) magnitude
+        with tf.name_scope('inner_product'):
+            ac = tf.reduce_sum(tf.mul(psi_1_real,psi_2_real),0)
+            bd = tf.reduce_sum(tf.mul(psi_1_imag,psi_2_imag),0)
+            bc = tf.reduce_sum(tf.mul(psi_1_imag,psi_2_real),0)
+            ad = tf.reduce_sum(tf.mul(psi_1_real,psi_2_imag),0)
+            reals = tf.reduce_sum(tf.square(tf.add(ac,bd)))
+            imags = tf.reduce_sum(tf.square(tf.sub(bc,ad)))
+            norm = (tf.add(reals,imags))/len(self.sys_para.states_concerned_list)
+        return norm
+    
     def init_training_loss(self):
         # Adding all penalties
         if self.sys_para.state_transfer == False:
@@ -313,9 +348,8 @@ class TensorflowState:
         
         else:
             self.loss = tf.constant(0.0, dtype = tf.float32)
-            self.tf_target_vectors
             for ii in range(len(self.inter_vecs)):
-                self.final_state= self.inter_vecs[ii][:,self.sys_para.steps]
+                self.final_state= self.inter_vecs[ii][self.sys_para.steps-1,:]
                 self.inner_product = self.get_inner_product(self.tf_target_vectors[ii],self.final_state)
                 self.unitary_scale = self.get_inner_product(self.final_state,self.final_state)
                 self.loss = self.loss +  tf.abs(1 - self.inner_product, name ="Fidelity_error")
