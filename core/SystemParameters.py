@@ -264,7 +264,7 @@ class SystemParameters:
             initial_mean = 0
             index = 0
             
-            initial_stddev = (1./np.sqrt(self.steps))
+            initial_stddev = (1./np.sqrt(len(self.Hnames)))
             self.ops_weight_base = np.random.normal(initial_mean, initial_stddev, [self.ops_len ,self.steps])
         
         self.raw_shape = np.shape(self.ops_weight_base)
