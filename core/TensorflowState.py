@@ -249,7 +249,7 @@ class TensorflowState:
         
     def fn_matvecexp(self,previous_output, current_input):
         current_output = matvecexp_op(current_input,self.tf_matrix_list,previous_output)
-        current_output.set_shape([4, 2])
+        current_output.set_shape([2*self.sys_para.state_num,len(self.sys_para.initial_vectors)])
         return current_output
         
         
@@ -275,7 +275,7 @@ class TensorflowState:
         
         self.inter_vecs_packed = tf.scan(self.fn_matvecexp, self.H_weights, initializer=self.packed_initial_vectors,
                                         infer_shape=False,swap_memory=True,parallel_iterations=100)
-        self.inter_vecs_packed.set_shape([self.sys_para.steps,4,2])
+        self.inter_vecs_packed.set_shape([self.sys_para.steps,2*self.sys_para.state_num,len(self.sys_para.initial_vectors)])
         self.inter_vecs = tf.unpack(self.inter_vecs_packed, axis = 2)
         
             
