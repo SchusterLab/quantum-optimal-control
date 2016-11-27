@@ -87,31 +87,31 @@ class Convergence:
         # plot state evolution
         if self.sys_para.draw_list !=[]:
             for kk in range(len(self.sys_para.draw_list)):
-                plt.plot(np.array([self.sys_para.dt* ii for ii in range(1,self.sys_para.steps+1)]),np.array(pop_inter_vecs[:,self.sys_para.draw_list[kk]]),label=self.sys_para.draw_names[kk])
+                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps+1)]),np.array(pop_inter_vecs[self.sys_para.draw_list[kk],:]),label=self.sys_para.draw_names[kk])
                 
         
         else:
             
             if start  > 4:
-                plt.plot(np.array([self.sys_para.dt* ii for ii in range(1,self.sys_para.steps+1)]),np.array(pop_inter_vecs[:,start]),label='Starting level '+str(start))
+                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps+1)]),np.array(pop_inter_vecs[start,:]),label='Starting level '+str(start))
                 
             for jj in range(4):
                 
-                plt.plot(np.array([self.sys_para.dt* ii for ii in range(1,self.sys_para.steps+1)]),np.array(pop_inter_vecs[:,jj]),label='level '+str(jj))
+                plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps+1)]),np.array(pop_inter_vecs[jj,:]),label='level '+str(jj))
             
         
-        forbidden =np.zeros(self.sys_para.steps)
+        forbidden =np.zeros(self.sys_para.steps+1)
         if 'states_forbidden_list' in self.sys_para.reg_coeffs:
             # summing all population of forbidden states
             for forbid in self.sys_para.reg_coeffs['states_forbidden_list']:
                 if self.sys_para.dressed_info is None or ('forbid_dressed' in self.sys_para.reg_coeffs and self.sys_para.reg_coeffs['forbid_dressed']) :
-                    forbidden = forbidden +np.array(pop_inter_vecs[:,forbid])
+                    forbidden = forbidden +np.array(pop_inter_vecs[forbid,:])
                 else:
                     v_sorted=sort_ev(self.sys_para.v_c,self.sys_para.dressed_id)
                     dressed_vec= np.dot(v_sorted,np.sqrt(pop_inter_vecs))
-                    forbidden = forbidden +np.array(np.square(np.abs(dressed_vec[:,forbid])))
+                    forbidden = forbidden +np.array(np.square(np.abs(dressed_vec[forbid,:])))
                     
-            plt.plot(np.array([self.sys_para.dt* ii for ii in range(1,self.sys_para.steps+1)]), forbidden,'c',label='forbidden')
+            plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps+1)]), forbidden,'c',label='forbidden')
         
         plt.ylabel('Population')
         plt.ylim(-0.1,1.1)

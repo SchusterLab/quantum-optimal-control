@@ -61,12 +61,12 @@ class Analysis:
         
         if self.sys_para.save:
             with H5File(self.sys_para.file_path) as hf:
-                hf.append('inter_vecs_raw_real',np.array(inter_vecs[:,:,0:state_num]))
-                hf.append('inter_vecs_raw_imag',np.array(inter_vecs[:,:,state_num:2*state_num]))
+                hf.append('inter_vecs_raw_real',np.array(inter_vecs[:,0:state_num,:]))
+                hf.append('inter_vecs_raw_imag',np.array(inter_vecs[:,state_num:2*state_num,:]))
         
         for inter_vec in inter_vecs:
-            inter_vec_real = (inter_vec[:,0:state_num])
-            inter_vec_imag = (inter_vec[:,state_num:2*state_num])
+            inter_vec_real = (inter_vec[0:state_num,:])
+            inter_vec_imag = (inter_vec[state_num:2*state_num,:])
             inter_vec_c = inter_vec_real+1j*inter_vec_imag
 
             if self.sys_para.is_dressed:

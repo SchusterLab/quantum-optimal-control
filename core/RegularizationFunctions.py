@@ -93,8 +93,8 @@ def get_reg_loss(tfs):
                 if tfs.sys_para.is_dressed and ('forbid_dressed' in tfs.sys_para.reg_coeffs and tfs.sys_para.reg_coeffs['forbid_dressed']):
                     inter_vec = tf.matmul(tf.transpose(v_sorted), inter_vec)
                 for state in tfs.sys_para.reg_coeffs['states_forbidden_list']:
-                    forbidden_state_pop = tf.square(inter_vec[:,state]) + \
-                                          tf.square(inter_vec[:,tfs.sys_para.state_num + state])
+                    forbidden_state_pop = tf.square(inter_vec[state, :]) + \
+                                          tf.square(inter_vec[tfs.sys_para.state_num + state, :])
                     tfs.reg_loss = tfs.reg_loss + inter_reg_alpha * tf.nn.l2_loss(forbidden_state_pop)
                     
         # Speeding up the gate time
@@ -113,9 +113,9 @@ def get_reg_loss(tfs):
                 else:
                     target_state = tfs.tf_target_vectors[ii]
                 
-                target_state_all_timestep = tf.tile(tf.reshape(target_state,[1,2*tfs.sys_para.state_num]) , [tfs.sys_para.steps,1])
+                target_state_all_timestep = tf.tile(tf.reshape(target_state,[2*tfs.sys_para.state_num,1]) , [1, tfs.sys_para.steps+1])
                 
-                target_state_pop = tfs.get_inner_product_gen_v2(target_state_all_timestep, inter_vec)
+                target_state_pop = tfs.get_inner_product_gen(target_state_all_timestep, inter_vec)
                 
                 tfs.reg_loss = tfs.reg_loss + speed_up_reg_alpha * tf.nn.l2_loss(target_state_pop)
             
