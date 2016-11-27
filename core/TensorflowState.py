@@ -274,7 +274,7 @@ class TensorflowState:
         self.tf_matrix_list = tf.constant(self.sys_para.matrix_list,dtype=tf.float32)
         
         self.inter_vecs_packed = tf.scan(self.fn_matvecexp, self.H_weights, initializer=self.packed_initial_vectors,
-                                        infer_shape=False,swap_memory=True,parallel_iterations=100)
+                                        infer_shape=False)
         self.inter_vecs_packed.set_shape([self.sys_para.steps,4,2])
         self.inter_vecs = tf.unpack(self.inter_vecs_packed, axis = 2)
         
