@@ -16,7 +16,7 @@ class run_session:
         self.sys_para = sys_para
         self.update_step = conv.update_step
         self.iterations = 0
-        self.method = method
+        self.method = method.upper()
         self.show_plots = show_plots
         self.target = False
         if not use_gpu:
@@ -30,10 +30,10 @@ class run_session:
 
             print "Initialized"
  
-            if self.method != 'Adam': #Any BFGS scheme
+            if self.method != 'ADAM': #Any BFGS scheme
                 self.bfgs_optimize(method=self.method)
                 
-            if self.method =='Adam':
+            if self.method =='ADAM':
                 self.start_adam_optimizer()             
                 
                   
