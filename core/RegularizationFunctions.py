@@ -18,6 +18,12 @@ def get_reg_loss(tfs):
         # forbidden: to penalize forbidden states
         
         # amplitude
+        if 'amplitude' in tfs.sys_para.reg_coeffs:
+            tfs.reg_alpha_coeff = tfs.sys_para.reg_coeffs['amplitude']
+            reg_alpha = tfs.reg_alpha_coeff / float(tfs.sys_para.steps)
+            tfs.reg_loss = tfs.reg_loss + reg_alpha * tf.nn.l2_loss(tfs.ops_weight)
+        
+        # gaussian envelope
         if 'envelope' in tfs.sys_para.reg_coeffs:
             tfs.reg_alpha_coeff = tfs.sys_para.reg_coeffs['envelope']
             reg_alpha = tfs.reg_alpha_coeff / float(tfs.sys_para.steps)
