@@ -71,7 +71,7 @@ class Analysis:
 
             if self.sys_para.is_dressed:
 
-                dressed_vec_c= np.transpose(np.dot(np.transpose(v_sorted),np.transpose(inter_vec_c)))
+                dressed_vec_c= np.dot(np.transpose(v_sorted),inter_vec_c)
                 
                 inter_vec_mag_squared = np.square(np.abs(dressed_vec_c))
                 
