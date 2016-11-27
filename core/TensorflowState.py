@@ -196,43 +196,31 @@ class TensorflowState:
                                               dtype=tf.float32,name="inter_state_"+str(ii)))
         print "Intermediate propagation variables initialized."
             
-    #def get_inter_state_op(self,layer):
-    #    # build operator for intermediate state propagation
-    #    # This function determines the nature of propagation
-    #   
-    #    propagator = matexp_op(self.H_weights[:,layer],self.tf_matrix_list)
-    #    
-    #    
-    #    return propagator  
-    
-    def fn_matexp(self,previous_output, current_input):
-        propagator = matexp_op(current_input,self.tf_matrix_list)
-        current_output = tf.matmul(propagator,previous_output)
-        current_output.set_shape([2*self.sys_para.state_num,2*self.sys_para.state_num])
-        return current_output
+    def get_inter_state_op(self,layer):
+        # build operator for intermediate state propagation
+        # This function determines the nature of propagation
+       
+        propagator = matexp_op(self.H_weights[:,layer],self.tf_matrix_list)
+        
+        
+        return propagator    
         
     def init_tf_propagator(self):
         self.tf_matrix_list = tf.constant(self.sys_para.matrix_list,dtype=tf.float32)
 
-        self.inter_states_packed = tf.scan(self.fn_matexp, self.H_weights, initializer=self.tf_initial_unitary,
-                                        swap_memory=True,parallel_iterations=1)
-        self.inter_states_packed.set_shape([self.sys_para.steps,2*self.sys_para.state_num,2*self.sys_para.state_num])
-        self.inter_states = tf.unpack(self.inter_states_packed, axis = 0)
-        ##### old 
-        ## build propagator for all the intermediate states
+        # build propagator for all the intermediate states
        
-        #tf_inter_state_op = []
-        #for ii in np.arange(0,self.sys_para.steps):
-        #    tf_inter_state_op.append(self.get_inter_state_op(ii))
+        tf_inter_state_op = []
+        for ii in np.arange(0,self.sys_para.steps):
+            tf_inter_state_op.append(self.get_inter_state_op(ii))
 
-        ##first intermediate propagator
-        #self.inter_states[0] = tf.matmul(tf_inter_state_op[0],self.tf_initial_unitary)
-        ##subsequent operation layers and intermediate propagators
+        #first intermediate propagator
+        self.inter_states[0] = tf.matmul(tf_inter_state_op[0],self.tf_initial_unitary)
+        #subsequent operation layers and intermediate propagators
         
-        #for ii in np.arange(1,self.sys_para.steps):
-        #    self.inter_states[ii] = tf.matmul(tf_inter_state_op[ii],self.inter_states[ii-1])
+        for ii in np.arange(1,self.sys_para.steps):
+            self.inter_states[ii] = tf.matmul(tf_inter_state_op[ii],self.inter_states[ii-1])
             
-        #####
         
         self.final_state = self.inter_states[self.sys_para.steps-1]
         
@@ -247,12 +235,12 @@ class TensorflowState:
         
         for tf_initial_vector in self.tf_initial_vectors:
         
-            #inter_vec = tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1],name="initial_vector")
-            #self.inter_vec.append(inter_vec)
+            inter_vec = tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1],name="initial_vector")
+            self.inter_vec.append(inter_vec)
             for ii in np.arange(0,self.sys_para.steps):
                 inter_vec = tf.matmul(self.inter_states[ii],tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1]),name="inter_vec_"+str(ii))
                 self.inter_vec.append(inter_vec)
-            self.inter_vec = tf.transpose(tf.reshape(tf.pack(self.inter_vec),[self.sys_para.steps,2*self.sys_para.state_num]),name = "vectors_for_one_psi0")
+            self.inter_vec = tf.transpose(tf.reshape(tf.pack(self.inter_vec),[self.sys_para.steps+1,2*self.sys_para.state_num]),name = "vectors_for_one_psi0")
             self.inter_vecs.append(self.inter_vec)
             self.inter_vec=[]
             
@@ -286,7 +274,7 @@ class TensorflowState:
         self.tf_matrix_list = tf.constant(self.sys_para.matrix_list,dtype=tf.float32)
         
         self.inter_vecs_packed = tf.scan(self.fn_matvecexp, self.H_weights, initializer=self.packed_initial_vectors,
-                                        swap_memory=True,parallel_iterations=100)
+                                        infer_shape=False,swap_memory=True,parallel_iterations=100)
         self.inter_vecs_packed.set_shape([self.sys_para.steps,2*self.sys_para.state_num,len(self.sys_para.initial_vectors)])
         self.inter_vecs = tf.unpack(self.inter_vecs_packed, axis = 2)
         
