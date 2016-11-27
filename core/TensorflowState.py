@@ -233,16 +233,14 @@ class TensorflowState:
         self.inter_vecs=[]
         self.inter_vec =[]
         
-        for tf_initial_vector in self.tf_initial_vectors:
+        inter_vec = self.packed_initial_vectors
+        self.inter_vec.append(inter_vec)
         
-            inter_vec = tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1],name="initial_vector")
+        for ii in np.arange(0,self.sys_para.steps):               
+            inter_vec = tf.matmul(self.inter_states[ii],self.packed_initial_vectors,name="inter_vec_"+str(ii))
             self.inter_vec.append(inter_vec)
-            for ii in np.arange(0,self.sys_para.steps):
-                inter_vec = tf.matmul(self.inter_states[ii],tf.reshape(tf_initial_vector,[2*self.sys_para.state_num,1]),name="inter_vec_"+str(ii))
-                self.inter_vec.append(inter_vec)
-            self.inter_vec = tf.transpose(tf.reshape(tf.pack(self.inter_vec),[self.sys_para.steps+1,2*self.sys_para.state_num]),name = "vectors_for_one_psi0")
-            self.inter_vecs.append(self.inter_vec)
-            self.inter_vec=[]
+        self.inter_vec = tf.pack(self.inter_vec, axis=1)
+        self.inter_vecs = tf.unpack(self.inter_vec, axis = 2)
             
         print "Vectors initialized."
         
