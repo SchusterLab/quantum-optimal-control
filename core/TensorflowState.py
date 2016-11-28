@@ -307,7 +307,7 @@ class TensorflowState:
             
             self.final_states = tf.matmul(self.final_state, self.packed_initial_vectors)
             
-            self.loss = tf.abs(1-self.get_inner_product_gen(self.final_states,self.target_states))
+            self.loss = 1-self.get_inner_product_gen(self.final_states,self.target_states)
         
         else:
             self.loss = tf.constant(0.0, dtype = tf.float32)
@@ -316,7 +316,7 @@ class TensorflowState:
                 self.final_state= self.inter_vecs[ii][:,self.sys_para.steps]
                 self.inner_product = self.get_inner_product(self.tf_target_vectors[ii],self.final_state)
                 self.unitary_scale = self.get_inner_product(self.final_state,self.final_state)
-                self.loss = self.loss +  tf.abs(1 - self.inner_product, name ="Fidelity_error")
+                self.loss = self.loss +  1 - self.inner_product
             
     
         self.reg_loss = get_reg_loss(self)
