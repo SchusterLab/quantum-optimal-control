@@ -49,12 +49,9 @@ class run_session:
         self.start_time = time.time()
         self.end = False
         while True:
-            learning_rate = float(self.conv.rate) * np.exp(-float(self.iterations) / self.conv.learning_rate_decay)
-            self.feed_dict = {self.tfs.learning_rate: learning_rate}
 
-            self.g_squared, _, self.l, self.rl, self.metric = self.session.run(
-                [self.tfs.grad_squared, self.tfs.optimizer, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale], feed_dict=self.feed_dict)
-
+            self.g_squared, self.l, self.rl, self.metric = self.session.run(
+                [self.tfs.grad_squared, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale])
 
             if (self.l < self.conv.conv_target) or (self.g_squared < self.conv.min_grad) \
                     or (self.iterations >= self.conv.max_iterations):
@@ -65,6 +62,14 @@ class run_session:
             if self.end:
                 self.get_end_results()
                 break
+                
+            learning_rate = float(self.conv.rate) * np.exp(-float(self.iterations) / self.conv.learning_rate_decay)
+            self.feed_dict = {self.tfs.learning_rate: learning_rate}
+
+            _ = self.session.run([self.tfs.optimizer], feed_dict=self.feed_dict)
+
+                
+                
 
             
     def update_and_save(self):
