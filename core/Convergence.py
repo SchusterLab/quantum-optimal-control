@@ -111,7 +111,7 @@ class Convergence:
                     dressed_vec= np.dot(v_sorted,np.sqrt(pop_inter_vecs))
                     forbidden = forbidden +np.array(np.square(np.abs(dressed_vec[forbid,:])))
                     
-            plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps+1)]), forbidden,'c',label='forbidden')
+            plt.plot(np.array([self.sys_para.dt* ii for ii in range(self.sys_para.steps+1)]), forbidden,label='forbidden',linestyle='--',linewidth=4)
         
         plt.ylabel('Population')
         plt.ylim(-0.1,1.1)
