@@ -58,7 +58,7 @@ class SystemParameters:
                 self.target_vector = c_to_r_vec(target_vector_c)
                 self.target_vectors.append(self.target_vector)
         
-        if draw != None:
+        if draw is not None:
             self.draw_list = draw[0]
             self.draw_names = draw[1]
         else:

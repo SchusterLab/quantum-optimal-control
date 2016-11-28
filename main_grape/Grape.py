@@ -29,10 +29,10 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
     
     if save:
         # saves all the input values
-        if file_name == None:
+        if file_name is None:
             raise ValueError('Grape function input: file_name, is not specified.')
 
-        if data_path == None:
+        if data_path is None:
             raise ValueError('Grape function input: data_path, is not specified.')
 
 
@@ -74,14 +74,14 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
                 for k, v in dressed_info.items():
                     g3.create_dataset(k, data = v)        
     
-    if U0 == None:
+    if U0 is None:
         U0 = np.identity(len(H0))
-    if convergence == None:
+    if convergence is None:
         convergence = {'rate':0.01, 'update_step':100, 'max_iterations':5000,'conv_target':1e-8,'learning_rate_decay':2500}
        
         
-    if maxA == None:
-        if initial_guess == None:
+    if maxA is None:
+        if initial_guess is None:
             maxAmp = 4*np.ones(len(Hops))
         else:
             maxAmp = 1.5*np.max(np.abs(initial_guess))*np.ones(len(Hops))
