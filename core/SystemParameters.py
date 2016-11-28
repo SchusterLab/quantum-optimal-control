@@ -39,7 +39,9 @@ class SystemParameters:
                 self.u0_base[ii]= self.u0[ii]/self.ops_max_amp[ii]
                 if max(self.u0_base[ii])> 1.0:
                     raise ValueError('Initial guess has strength > max_amp for op %d' % (ii) )
-                self.u0_base = np.arcsin(self.u0_base) #because we take the sin of weights later
+            self.u0_base = np.arcsin(self.u0_base) #because we take the sin of weights later
+                
+                
 
             
         else:
