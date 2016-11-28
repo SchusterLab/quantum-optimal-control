@@ -30,13 +30,17 @@ class SystemParameters:
         self.show_plots = show_plots
         self.Unitary_error= Unitary_error      
             
-        if initial_guess!= None:
+        if initial_guess is not None:
             # transform initial_guess to its corresponding base value
             self.u0 = initial_guess
             self.u0_base = np.zeros_like(self.u0)
             for ii in range (len(self.u0_base)):
                 self.u0_base[ii]= self.u0[ii]/self.ops_max_amp[ii]
-            self.u0_base = np.arcsin(self.u0_base) #because we take the sin of weights later
+            try:
+                self.u0_base = np.arcsin(self.u0_base) #because we take the sin of weights later
+            except ValueError:
+                print "initial_guess contains value greater than op max amplitude"
+
             
         else:
             self.u0 =[]
