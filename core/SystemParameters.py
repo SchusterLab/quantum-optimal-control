@@ -28,18 +28,18 @@ class SystemParameters:
         self.total_time = total_time
         self.steps = steps
         self.show_plots = show_plots
-        self.Unitary_error= Unitary_error      
-            
+        self.Unitary_error= Unitary_error
+
+
         if initial_guess is not None:
             # transform initial_guess to its corresponding base value
             self.u0 = initial_guess
             self.u0_base = np.zeros_like(self.u0)
             for ii in range (len(self.u0_base)):
                 self.u0_base[ii]= self.u0[ii]/self.ops_max_amp[ii]
-            try:
+                if max(self.u0_base[ii])> 1.0:
+                    raise ValueError('Initial guess has strength > max_amp for op %d' % (ii) )
                 self.u0_base = np.arcsin(self.u0_base) #because we take the sin of weights later
-            except ValueError:
-                print "initial_guess contains value greater than op max amplitude"
 
             
         else:
