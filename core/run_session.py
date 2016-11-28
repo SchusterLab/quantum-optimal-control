@@ -29,17 +29,25 @@ class run_session:
             tf.initialize_all_variables().run()
 
             print "Initialized"
- 
-            if self.method != 'ADAM': #Any BFGS scheme
-                self.bfgs_optimize(method=self.method)
+            
+            if self.method == 'EVOLVE':
+                self.start_time = time.time()
+                x0 = self.sys_para.ops_weight_base
+                self.l,self.rl,self.grads,self.metric,self.g_squared=self.get_error(x0)
+                self.get_end_results()
                 
-            if self.method =='ADAM':
-                self.start_adam_optimizer()             
+            else:
+                if self.method != 'ADAM': #Any BFGS scheme
+                    self.bfgs_optimize(method=self.method)
+
+                if self.method =='ADAM':
+                    self.start_adam_optimizer()    
                 
                   
     def start_adam_optimizer(self):
         # adam optimizer  
         self.start_time = time.time()
+        self.end = False
         while True:
             learning_rate = float(self.conv.rate) * np.exp(-float(self.iterations) / self.conv.learning_rate_decay)
             self.feed_dict = {self.tfs.learning_rate: learning_rate}
@@ -47,7 +55,6 @@ class run_session:
             self.g_squared, _, self.l, self.rl, self.metric = self.session.run(
                 [self.tfs.grad_squared, self.tfs.optimizer, self.tfs.loss, self.tfs.reg_loss, self.tfs.unitary_scale], feed_dict=self.feed_dict)
 
-            self.end = False
 
             if (self.l < self.conv.conv_target) or (self.g_squared < self.conv.min_grad) \
                     or (self.iterations >= self.conv.max_iterations):
