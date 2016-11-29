@@ -95,19 +95,30 @@ def get_reg_loss(tfs):
             speed_up_reg_alpha_coeff = - tfs.sys_para.reg_coeffs['speed_up']
             speed_up_reg_alpha = speed_up_reg_alpha_coeff / float(tfs.sys_para.steps)
             
-            ####
+            target_vecs_all_timestep = tf.tile(tf.reshape(tfs.target_vecs,[2*tfs.sys_para.state_num,1,len(tfs.inter_vecs)]) , [1,tfs.sys_para.steps+1,1])
             
-            for ii in range(len(tfs.inter_vecs)):
-                
-                inter_vec =  tfs.inter_vecs[ii]
-                
-                target_state = tfs.target_vecs[:,ii]
+            target_vecs_inner_product = tfs.get_inner_product_gen_v2(tfs.inter_vecs_packed,target_vecs_all_timestep)
+            reg_loss = reg_loss + speed_up_reg_alpha * tf.nn.l2_loss(target_vecs_inner_product)
             
-                target_state_all_timestep = tf.tile(tf.reshape(target_state,[2*tfs.sys_para.state_num,1]) , [1, tfs.sys_para.steps+1])
+            # semi old
+            #for ii in np.arange(0,tfs.sys_para.steps):
+            #    target_state_inner_product = tfs.get_inner_product_gen(tfs.inter_vecs_list[ii],tfs.target_vecs)
+            #    reg_loss = reg_loss + speed_up_reg_alpha * tf.nn.l2_loss(target_state_inner_product)
+            #
                 
-                target_state_pop = tfs.get_inner_product_gen(target_state_all_timestep, inter_vec)
+            #### old
+            
+            #for ii in range(len(tfs.inter_vecs)):
                 
-                reg_loss = reg_loss + speed_up_reg_alpha * tf.nn.l2_loss(target_state_pop)
+            #    inter_vec =  tfs.inter_vecs[ii]
+                
+            #    target_state = tfs.target_vecs[:,ii]
+            
+            #    target_state_all_timestep = tf.tile(tf.reshape(target_state,[2*tfs.sys_para.state_num,1]) , [1, tfs.sys_para.steps+1])
+                
+            #    target_state_pop = tfs.get_inner_product_gen(target_state_all_timestep, inter_vec)
+                
+            #    reg_loss = reg_loss + speed_up_reg_alpha * tf.nn.l2_loss(target_state_pop)
             
             ####
             

@@ -300,6 +300,25 @@ class TensorflowState:
             norm = (tf.add(reals,imags))/(len(self.sys_para.states_concerned_list)**2)
         return norm
     
+    def get_inner_product_gen_v2(self,psi1,psi2):
+        #Take 2 states psi1,psi2, calculate their overlap, for arbitrary number of vectors
+        state_num=self.sys_para.state_num
+        
+        psi_1_real = (psi1[0:state_num,:])
+        psi_1_imag = (psi1[state_num:2*state_num,:])
+        psi_2_real = (psi2[0:state_num,:])
+        psi_2_imag = (psi2[state_num:2*state_num,:])
+        # psi1 has a+ib, psi2 has c+id, we wanna get Sum ((ac+bd) + i (bc-ad)) magnitude
+        with tf.name_scope('inner_product'):
+            ac = tf.reduce_sum(tf.mul(psi_1_real,psi_2_real),0)
+            bd = tf.reduce_sum(tf.mul(psi_1_imag,psi_2_imag),0)
+            bc = tf.reduce_sum(tf.mul(psi_1_imag,psi_2_real),0)
+            ad = tf.reduce_sum(tf.mul(psi_1_real,psi_2_imag),0)
+            reals = tf.reduce_sum(tf.square(tf.reduce_sum(tf.add(ac,bd),1)))
+            imags = tf.reduce_sum(tf.square(tf.reduce_sum(tf.sub(bc,ad),1)))
+            norm = (tf.add(reals,imags))/(len(self.sys_para.states_concerned_list)**2)
+        return norm
+    
     def init_training_loss(self):
         # Adding all penalties
         if self.sys_para.state_transfer == False:
