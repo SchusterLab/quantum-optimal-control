@@ -43,6 +43,8 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
         file_name = str(file_num).zfill(5) + "_"+ file_name+ ".h5"
 
         file_path = os.path.join(data_path,file_name)
+        
+        print "data saved at: " + str(file_path)
 
         with H5File(file_path) as hf:
             hf.add('H0',data=H0)
@@ -113,6 +115,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
             wall_clock_time = time.time() - grape_start_time
             with H5File(file_path) as hf:
                 hf.add('wall_clock_time',data=np.array(wall_clock_time))
+            print "data saved at: " + str(file_path)
         
         return SS.uks,SS.Uf
     except KeyboardInterrupt:
@@ -122,6 +125,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
             wall_clock_time = time.time() - grape_start_time
             with H5File(file_path) as hf:
                 hf.add('wall_clock_time',data=np.array(wall_clock_time))
+            print "data saved at: " + str(file_path)
         
         display.clear_output()
     
