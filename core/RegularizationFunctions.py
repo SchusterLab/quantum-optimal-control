@@ -9,7 +9,7 @@ def get_reg_loss(tfs):
     # Regulizer
     with tf.name_scope('reg_errors'):
         
-        tfs.reg_loss = tfs.loss
+        reg_loss = tfs.loss
         
         # envelope: to make it close to a Gaussian envelope
         # dc: to limit DC offset of z pulses 
@@ -19,45 +19,32 @@ def get_reg_loss(tfs):
         
         # amplitude
         if 'amplitude' in tfs.sys_para.reg_coeffs:
-            tfs.amp_reg_alpha_coeff = tfs.sys_para.reg_coeffs['amplitude']
-            amp_reg_alpha = tfs.amp_reg_alpha_coeff / float(tfs.sys_para.steps)
-            tfs.reg_loss = tfs.reg_loss + amp_reg_alpha * tf.nn.l2_loss(tfs.ops_weight)
+            amp_reg_alpha_coeff = tfs.sys_para.reg_coeffs['amplitude']
+            amp_reg_alpha = amp_reg_alpha_coeff / float(tfs.sys_para.steps)
+            reg_loss = reg_loss + amp_reg_alpha * tf.nn.l2_loss(tfs.ops_weight)
         
         # gaussian envelope
         if 'envelope' in tfs.sys_para.reg_coeffs:
-            tfs.reg_alpha_coeff = tfs.sys_para.reg_coeffs['envelope']
-            reg_alpha = tfs.reg_alpha_coeff / float(tfs.sys_para.steps)
-            tfs.reg_loss = tfs.reg_loss + reg_alpha * tf.nn.l2_loss(
+            reg_alpha_coeff = tfs.sys_para.reg_coeffs['envelope']
+            reg_alpha = reg_alpha_coeff / float(tfs.sys_para.steps)
+            reg_loss = reg_loss + reg_alpha * tf.nn.l2_loss(
                 tf.mul(tfs.tf_one_minus_gaussian_envelope, tfs.ops_weight))
-
-        # Constrain Z to have no dc value
-        if 'dc' in tfs.sys_para.reg_coeffs:
-            tfs.z_reg_alpha_coeff = tfs.sys_para.reg_coeffs['dc']
-            z_reg_alpha = tfs.z_reg_alpha_coeff / float(tfs.sys_para.steps)
-            for state in tfs.sys_para.reg_coeffs['dc_id']:
-                segment_num = tfs.sys_para.reg_coeffs['dc_seg_num']
-                segment = int(math.ceil(tfs.sys_para.steps / segment_num))
-                for kk in range(segment_num - 1):
-                    tfs.reg_loss = tfs.reg_loss + z_reg_alpha * tf.square(
-                        tf.reduce_sum(tfs.ops_weight[state, kk * segment:(kk + 1) * segment]))
-                tfs.reg_loss = tfs.reg_loss + z_reg_alpha * tf.square(
-                    tf.reduce_sum(tfs.ops_weight[state, (segment_num - 1) * segment:]))
 
         # Limiting the dwdt of control pulse
         if 'dwdt' in tfs.sys_para.reg_coeffs:
             zeros_for_training = tf.zeros([tfs.sys_para.ops_len, 2])
             new_weights = tf.concat(1, [tfs.ops_weight, zeros_for_training])
             new_weights = tf.concat(1, [zeros_for_training, new_weights])
-            tfs.dwdt_reg_alpha_coeff = tfs.sys_para.reg_coeffs['dwdt']
-            dwdt_reg_alpha = tfs.dwdt_reg_alpha_coeff / float(tfs.sys_para.steps)
-            tfs.reg_loss = tfs.reg_loss + dwdt_reg_alpha * tf.nn.l2_loss(
+            dwdt_reg_alpha_coeff = tfs.sys_para.reg_coeffs['dwdt']
+            dwdt_reg_alpha = dwdt_reg_alpha_coeff / float(tfs.sys_para.steps)
+            reg_loss = reg_loss + dwdt_reg_alpha * tf.nn.l2_loss(
                 (new_weights[:, 1:] - new_weights[:, :tfs.sys_para.steps + 3]) / tfs.sys_para.dt)
 
         # Limiting the d2wdt2 of control pulse
         if 'd2wdt2' in tfs.sys_para.reg_coeffs:
-            tfs.d2wdt2_reg_alpha_coeff = tfs.sys_para.reg_coeffs['d2wdt2']
-            d2wdt2_reg_alpha = tfs.d2wdt2_reg_alpha_coeff / float(tfs.sys_para.steps)
-            tfs.reg_loss = tfs.reg_loss + d2wdt2_reg_alpha * tf.nn.l2_loss((new_weights[:, 2:] - \
+            d2wdt2_reg_alpha_coeff = tfs.sys_para.reg_coeffs['d2wdt2']
+            d2wdt2_reg_alpha = d2wdt2_reg_alpha_coeff / float(tfs.sys_para.steps)
+            reg_loss = reg_loss + d2wdt2_reg_alpha * tf.nn.l2_loss((new_weights[:, 2:] - \
                                                                               2 * new_weights[:,
                                                                                   1:tfs.sys_para.steps + 3] + new_weights[:,
                                                                                                                :tfs.sys_para.steps + 2]) / (
@@ -68,8 +55,8 @@ def get_reg_loss(tfs):
             if not tfs.sys_para.use_gpu:
                 raise ValueError('currently does not support bandpass reg for CPU (no CPU kernel for FFT)')
             
-            tfs.bandpass_reg_alpha_coeff = tfs.sys_para.reg_coeffs['bandpass']
-            bandpass_reg_alpha = tfs.bandpass_reg_alpha_coeff/ float(tfs.sys_para.steps)
+            bandpass_reg_alpha_coeff = tfs.sys_para.reg_coeffs['bandpass']
+            bandpass_reg_alpha = bandpass_reg_alpha_coeff/ float(tfs.sys_para.steps)
             
             tf_u = tf.cast(tfs.ops_weight,dtype=tf.complex64)
            
@@ -83,13 +70,13 @@ def get_reg_loss(tfs):
             
             fft_loss = bandpass_reg_alpha*(tf.reduce_sum(tf_fft[:,0:band_id[0]]) + tf.reduce_sum(tf_fft[:,band_id[1]:half_id]))
             
-            tfs.reg_loss = tfs.reg_loss + fft_loss
+            reg_loss = reg_loss + fft_loss
         
 
         # Limiting the access to forbidden states
         if 'forbidden' in tfs.sys_para.reg_coeffs:
-            tfs.inter_reg_alpha_coeff = tfs.sys_para.reg_coeffs['forbidden']
-            inter_reg_alpha = tfs.inter_reg_alpha_coeff / float(tfs.sys_para.steps)
+            inter_reg_alpha_coeff = tfs.sys_para.reg_coeffs['forbidden']
+            inter_reg_alpha = inter_reg_alpha_coeff / float(tfs.sys_para.steps)
             if tfs.sys_para.is_dressed:
                 v_sorted = tf.constant(c_to_r_mat(np.reshape(sort_ev(tfs.sys_para.v_c, tfs.sys_para.dressed_id),
                                                              [len(tfs.sys_para.dressed_id), len(tfs.sys_para.dressed_id)])),
@@ -101,12 +88,12 @@ def get_reg_loss(tfs):
                 for state in tfs.sys_para.reg_coeffs['states_forbidden_list']:
                     forbidden_state_pop = tf.square(inter_vec[state, :]) + \
                                           tf.square(inter_vec[tfs.sys_para.state_num + state, :])
-                    tfs.reg_loss = tfs.reg_loss + inter_reg_alpha * tf.nn.l2_loss(forbidden_state_pop)
+                    reg_loss = reg_loss + inter_reg_alpha * tf.nn.l2_loss(forbidden_state_pop)
                     
         # Speeding up the gate time
         if 'speed_up' in tfs.sys_para.reg_coeffs:
-            tfs.speed_up_reg_alpha_coeff = - tfs.sys_para.reg_coeffs['speed_up']
-            speed_up_reg_alpha = tfs.speed_up_reg_alpha_coeff / float(tfs.sys_para.steps)
+            speed_up_reg_alpha_coeff = - tfs.sys_para.reg_coeffs['speed_up']
+            speed_up_reg_alpha = speed_up_reg_alpha_coeff / float(tfs.sys_para.steps)
             
             ####
             
@@ -123,10 +110,10 @@ def get_reg_loss(tfs):
                 
                 target_state_pop = tfs.get_inner_product_gen(target_state_all_timestep, inter_vec)
                 
-                tfs.reg_loss = tfs.reg_loss + speed_up_reg_alpha * tf.nn.l2_loss(target_state_pop)
+                reg_loss = reg_loss + speed_up_reg_alpha * tf.nn.l2_loss(target_state_pop)
             
             ####
             
 
-        return tfs.reg_loss
+        return reg_loss
                     
