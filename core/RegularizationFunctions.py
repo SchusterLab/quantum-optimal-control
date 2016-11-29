@@ -97,30 +97,8 @@ def get_reg_loss(tfs):
             
             target_vecs_all_timestep = tf.tile(tf.reshape(tfs.target_vecs,[2*tfs.sys_para.state_num,1,len(tfs.inter_vecs)]) , [1,tfs.sys_para.steps+1,1])
             
-            target_vecs_inner_product = tfs.get_inner_product_gen_v2(tfs.inter_vecs_packed,target_vecs_all_timestep)
+            target_vecs_inner_product = tfs.get_inner_product_3D(tfs.inter_vecs_packed,target_vecs_all_timestep)
             reg_loss = reg_loss + speed_up_reg_alpha * tf.nn.l2_loss(target_vecs_inner_product)
-            
-            # semi old
-            #for ii in np.arange(0,tfs.sys_para.steps):
-            #    target_state_inner_product = tfs.get_inner_product_gen(tfs.inter_vecs_list[ii],tfs.target_vecs)
-            #    reg_loss = reg_loss + speed_up_reg_alpha * tf.nn.l2_loss(target_state_inner_product)
-            #
-                
-            #### old
-            
-            #for ii in range(len(tfs.inter_vecs)):
-                
-            #    inter_vec =  tfs.inter_vecs[ii]
-                
-            #    target_state = tfs.target_vecs[:,ii]
-            
-            #    target_state_all_timestep = tf.tile(tf.reshape(target_state,[2*tfs.sys_para.state_num,1]) , [1, tfs.sys_para.steps+1])
-                
-            #    target_state_pop = tfs.get_inner_product_gen(target_state_all_timestep, inter_vec)
-                
-            #    reg_loss = reg_loss + speed_up_reg_alpha * tf.nn.l2_loss(target_state_pop)
-            
-            ####
             
 
         return reg_loss

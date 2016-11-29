@@ -281,7 +281,7 @@ class TensorflowState:
             norm = tf.add(reals,imags)
         return norm
         
-    def get_inner_product_gen(self,psi1,psi2):
+    def get_inner_product_2D(self,psi1,psi2):
         #Take 2 states psi1,psi2, calculate their overlap, for arbitrary number of vectors
         state_num=self.sys_para.state_num
         
@@ -300,8 +300,8 @@ class TensorflowState:
             norm = (tf.add(reals,imags))/(len(self.sys_para.states_concerned_list)**2)
         return norm
     
-    def get_inner_product_gen_v2(self,psi1,psi2):
-        #Take 2 states psi1,psi2, calculate their overlap, for arbitrary number of vectors
+    def get_inner_product_3D(self,psi1,psi2):
+        #Take 2 states psi1,psi2, calculate their overlap, for arbitrary number of vectors and timesteps
         state_num=self.sys_para.state_num
         
         psi_1_real = (psi1[0:state_num,:])
@@ -325,19 +325,13 @@ class TensorflowState:
             
             self.final_vecs = tf.matmul(self.final_state, self.packed_initial_vectors)
             
-            self.loss = 1-self.get_inner_product_gen(self.final_vecs,self.target_vecs)
+            self.loss = 1-self.get_inner_product_2D(self.final_vecs,self.target_vecs)
         
         else:
             self.loss = tf.constant(0.0, dtype = tf.float32)
             self.final_state = self.inter_vecs_packed[:,self.sys_para.steps,:]
-            self.loss = 1-self.get_inner_product_gen(self.final_state,self.target_vecs)
-            self.unitary_scale = self.get_inner_product_gen(self.final_state,self.final_state)
-            #self.tf_target_vectors
-            #for ii in range(len(self.inter_vecs)):
-            #    self.final_state= self.inter_vecs[ii][:,self.sys_para.steps]
-            #    self.inner_product = self.get_inner_product(self.tf_target_vectors[ii],self.final_state)
-            #    self.unitary_scale = self.get_inner_product(self.final_state,self.final_state)
-            #    self.loss = self.loss +  1 - self.inner_product
+            self.loss = 1-self.get_inner_product_2D(self.final_state,self.target_vecs)
+            self.unitary_scale = self.get_inner_product_2D(self.final_state,self.final_state)
             
     
         self.reg_loss = get_reg_loss(self)
