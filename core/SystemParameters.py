@@ -157,7 +157,7 @@ class SystemParameters:
 
         
     def init_system(self):
-        self.dt = self.total_time/self.steps        
+        self.dt = float(self.total_time)/self.steps        
         self.state_num= len(self.H0_c)
         
         
