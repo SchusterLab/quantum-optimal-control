@@ -230,17 +230,16 @@ class TensorflowState:
         
     def init_tf_inter_vectors(self):
         # inter vectors for unitary evolution, obtained by multiplying the propagation operator K_j with initial vector
-        self.inter_vecs=[]
-        self.inter_vec =[]
+        self.inter_vecs_list =[]
         
         inter_vec = self.packed_initial_vectors
-        self.inter_vec.append(inter_vec)
+        self.inter_vecs_list.append(inter_vec)
         
         for ii in np.arange(0,self.sys_para.steps):               
             inter_vec = tf.matmul(self.inter_states[ii],self.packed_initial_vectors,name="inter_vec_"+str(ii))
-            self.inter_vec.append(inter_vec)
-        self.inter_vec = tf.pack(self.inter_vec, axis=1)
-        self.inter_vecs = tf.unpack(self.inter_vec, axis = 2)
+            self.inter_vecs_list.append(inter_vec)
+        self.inter_vecs_packed = tf.pack(self.inter_vecs_list, axis=1)
+        self.inter_vecs = tf.unpack(self.inter_vecs_packed, axis = 2)
             
         print "Vectors initialized."
         
@@ -249,16 +248,16 @@ class TensorflowState:
 
         tf_matrix_list = tf.constant(self.sys_para.matrix_list,dtype=tf.float32)
         
-        self.inter_vec = []
+        self.inter_vecs_list = []
         inter_vec = self.packed_initial_vectors
-        self.inter_vec.append(inter_vec)
+        self.inter_vecs_list.append(inter_vec)
         
         for ii in np.arange(0,self.sys_para.steps):
             psi = inter_vec               
             inter_vec = matvecexp_op(self.H_weights[:,ii],tf_matrix_list,psi)
-            self.inter_vec.append(inter_vec)
-        self.inter_vec = tf.pack(self.inter_vec, axis=1)
-        self.inter_vecs = tf.unpack(self.inter_vec, axis = 2)
+            self.inter_vecs_list.append(inter_vec)
+        self.inter_vecs_packed = tf.pack(self.inter_vecs_list, axis=1)
+        self.inter_vecs = tf.unpack(self.inter_vecs_packed, axis = 2)
         
             
         print "Vectors initialized."
@@ -311,7 +310,8 @@ class TensorflowState:
         
         else:
             self.loss = tf.constant(0.0, dtype = tf.float32)
-            self.tf_target_vectors
+            #self.final_states = tf.pack(self.inter_vecs[:][:,self.sys_para.steps],axis=1)
+            #self.tf_target_vectors
             for ii in range(len(self.inter_vecs)):
                 self.final_state= self.inter_vecs[ii][:,self.sys_para.steps]
                 self.inner_product = self.get_inner_product(self.tf_target_vectors[ii],self.final_state)
