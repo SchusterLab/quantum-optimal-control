@@ -158,10 +158,6 @@ class TensorflowState:
     def init_tf_propagators(self):
         #tf initial and target propagator
         if self.sys_para.state_transfer:
-            #self.tf_target_vectors = []
-            #for target_vector in self.sys_para.target_vectors:
-            #    tf_target_vector = tf.constant(target_vector,dtype=tf.float32)
-            #    self.tf_target_vectors.append(tf_target_vector)
             self.target_vecs = tf.transpose(tf.constant(np.array(self.sys_para.target_vectors),dtype=tf.float32))
         else:
             self.tf_initial_unitary = tf.constant(self.sys_para.initial_unitary,dtype=tf.float32, name = 'U0')
@@ -283,6 +279,7 @@ class TensorflowState:
         
     def get_inner_product_2D(self,psi1,psi2):
         #Take 2 states psi1,psi2, calculate their overlap, for arbitrary number of vectors
+        # psi1 and psi2 are shaped as (2*state_num, number of vectors)
         state_num=self.sys_para.state_num
         
         psi_1_real = (psi1[0:state_num,:])
@@ -295,13 +292,14 @@ class TensorflowState:
             bd = tf.reduce_sum(tf.mul(psi_1_imag,psi_2_imag),0)
             bc = tf.reduce_sum(tf.mul(psi_1_imag,psi_2_real),0)
             ad = tf.reduce_sum(tf.mul(psi_1_real,psi_2_imag),0)
-            reals = tf.square(tf.reduce_sum(tf.add(ac,bd)))
+            reals = tf.square(tf.reduce_sum(tf.add(ac,bd))) # first trace inner product of all vectors, then squared
             imags = tf.square(tf.reduce_sum(tf.sub(bc,ad)))
             norm = (tf.add(reals,imags))/(len(self.sys_para.states_concerned_list)**2)
         return norm
     
     def get_inner_product_3D(self,psi1,psi2):
         #Take 2 states psi1,psi2, calculate their overlap, for arbitrary number of vectors and timesteps
+        # psi1 and psi2 are shaped as (2*state_num, time_steps, number of vectors)
         state_num=self.sys_para.state_num
         
         psi_1_real = (psi1[0:state_num,:])
@@ -315,6 +313,7 @@ class TensorflowState:
             bc = tf.reduce_sum(tf.mul(psi_1_imag,psi_2_real),0)
             ad = tf.reduce_sum(tf.mul(psi_1_real,psi_2_imag),0)
             reals = tf.reduce_sum(tf.square(tf.reduce_sum(tf.add(ac,bd),1)))
+            # first trace inner product of all vectors, then squared, then sum contribution of all time steps
             imags = tf.reduce_sum(tf.square(tf.reduce_sum(tf.sub(bc,ad),1)))
             norm = (tf.add(reals,imags))/(len(self.sys_para.states_concerned_list)**2)
         return norm
