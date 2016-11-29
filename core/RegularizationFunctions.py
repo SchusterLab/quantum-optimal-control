@@ -101,11 +101,8 @@ def get_reg_loss(tfs):
                 
                 inter_vec =  tfs.inter_vecs[ii]
                 
-                if tfs.sys_para.state_transfer == False:
-                    target_state = tfs.target_states[:,ii]
-                else:
-                    target_state = tfs.tf_target_vectors[ii]
-                
+                target_state = tfs.target_vecs[:,ii]
+            
                 target_state_all_timestep = tf.tile(tf.reshape(target_state,[2*tfs.sys_para.state_num,1]) , [1, tfs.sys_para.steps+1])
                 
                 target_state_pop = tfs.get_inner_product_gen(target_state_all_timestep, inter_vec)
