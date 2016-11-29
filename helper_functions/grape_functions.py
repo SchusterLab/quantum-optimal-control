@@ -191,7 +191,7 @@ def nn_chain_kron(op, op_I, qubit_num, qubit_state_num):
     return a_all
 
 
-def sort_ev(v,dressed_id):
+def sort_ev_old(v,dressed_id):
     # sort the eigenstates according to bare states
     v_sorted=[]
     
@@ -199,6 +199,17 @@ def sort_ev(v,dressed_id):
         v1=[]
         for jj in range (len(dressed_id)):
             v1.append(v[jj,get_state_index(ii,dressed_id)])
+        v_sorted.append(v1)
+    
+    return np.transpose(np.reshape(v_sorted, [len(dressed_id),len(dressed_id)]))
+
+
+def sort_ev(v,dressed_id):
+    # sort the eigenstates according to bare states
+    v_sorted=[]
+    
+    for ii in range (len(dressed_id)):
+        v1 = v[:,get_state_index(ii,dressed_id)]
         v_sorted.append(v1)
     
     return np.transpose(np.reshape(v_sorted, [len(dressed_id),len(dressed_id)]))
