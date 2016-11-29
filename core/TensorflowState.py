@@ -158,11 +158,11 @@ class TensorflowState:
     def init_tf_propagators(self):
         #tf initial and target propagator
         if self.sys_para.state_transfer:
-            self.tf_target_vectors = []
-            for target_vector in self.sys_para.target_vectors:
-                tf_target_vector = tf.constant(target_vector,dtype=tf.float32)
-                self.tf_target_vectors.append(tf_target_vector)
-            self.tf_target_state = tf.transpose(tf.pack(self.tf_target_vectors))
+            #self.tf_target_vectors = []
+            #for target_vector in self.sys_para.target_vectors:
+            #    tf_target_vector = tf.constant(target_vector,dtype=tf.float32)
+            #    self.tf_target_vectors.append(tf_target_vector)
+            self.target_states = tf.transpose(tf.constant(np.array(self.sys_para.target_vectors),dtype=tf.float32))
         else:
             self.tf_initial_unitary = tf.constant(self.sys_para.initial_unitary,dtype=tf.float32, name = 'U0')
             self.tf_target_state = tf.constant(self.sys_para.target_unitary,dtype=tf.float32)
@@ -304,19 +304,21 @@ class TensorflowState:
         # Adding all penalties
         if self.sys_para.state_transfer == False:
             
-            self.final_states = tf.matmul(self.final_state, self.packed_initial_vectors)
+            self.final_vecs = tf.matmul(self.final_state, self.packed_initial_vectors)
             
-            self.loss = 1-self.get_inner_product_gen(self.final_states,self.target_states)
+            self.loss = 1-self.get_inner_product_gen(self.final_vecs,self.target_states)
         
         else:
             self.loss = tf.constant(0.0, dtype = tf.float32)
-            #self.final_states = tf.pack(self.inter_vecs[:][:,self.sys_para.steps],axis=1)
+            self.final_state = self.inter_vecs_packed[:,self.sys_para.steps,:]
+            self.loss = 1-self.get_inner_product_gen(self.final_state,self.target_states)
+            self.unitary_scale = self.get_inner_product_gen(self.final_state,self.final_state)
             #self.tf_target_vectors
-            for ii in range(len(self.inter_vecs)):
-                self.final_state= self.inter_vecs[ii][:,self.sys_para.steps]
-                self.inner_product = self.get_inner_product(self.tf_target_vectors[ii],self.final_state)
-                self.unitary_scale = self.get_inner_product(self.final_state,self.final_state)
-                self.loss = self.loss +  1 - self.inner_product
+            #for ii in range(len(self.inter_vecs)):
+            #    self.final_state= self.inter_vecs[ii][:,self.sys_para.steps]
+            #    self.inner_product = self.get_inner_product(self.tf_target_vectors[ii],self.final_state)
+            #    self.unitary_scale = self.get_inner_product(self.final_state,self.final_state)
+            #    self.loss = self.loss +  1 - self.inner_product
             
     
         self.reg_loss = get_reg_loss(self)
