@@ -11,12 +11,6 @@ def get_reg_loss(tfs):
         
         reg_loss = tfs.loss
         
-        # envelope: to make it close to a Gaussian envelope
-        # dc: to limit DC offset of z pulses 
-        # dwdt: to limit pulse first derivative
-        # d2wdt2: to limit second derivatives
-        # forbidden: to penalize forbidden states
-        
         # amplitude
         if 'amplitude' in tfs.sys_para.reg_coeffs:
             amp_reg_alpha_coeff = tfs.sys_para.reg_coeffs['amplitude']
