@@ -52,6 +52,7 @@ def Grape(H0,Hops,Hnames,U,total_time,steps,states_concerned_list,convergence = 
             hf.add('total_time', data=total_time)
             hf.add('steps', data=steps)
             hf.add('states_concerned_list', data=states_concerned_list)
+            hf.add('use_gpu',data=use_gpu)
             
             if not maxA is None:
                 hf.add('maxA', data=maxA)
