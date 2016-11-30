@@ -38,7 +38,7 @@ class TensorflowState:
                 factorial = factorial * ii
                 matexp = matexp + H_n/factorial
                 if not ii == (taylor_terms):
-                    H_n = tf.matmul(H,H_n)
+                    H_n = tf.matmul(H,H_n,a_is_sparse=self.sys_para.sparse_H)
 
             for ii in range(scaling):
                 matexp = tf.matmul(matexp,matexp)
@@ -60,7 +60,7 @@ class TensorflowState:
             
             for ii in range(1,input_num):
                 coeff_grad.append(tf.reduce_sum(tf.mul(grad,
-                       tf.matmul(H_all[ii],matexp))))
+                       tf.matmul(H_all[ii],matexp,a_is_sparse=self.sys_para.sparse_H))))
 
             return [tf.pack(coeff_grad), tf.zeros(tf.shape(H_all),dtype=tf.float32)]                                         
 
@@ -91,7 +91,7 @@ class TensorflowState:
 
             for ii in range(1,taylor_terms):      
                 factorial = factorial * ii
-                psi_n = tf.matmul(H,psi_n)
+                psi_n = tf.matmul(H,psi_n,a_is_sparse=self.sys_para.sparse_H)
                 matvecexp = matvecexp + psi_n/factorial
 
             return matvecexp
@@ -111,7 +111,7 @@ class TensorflowState:
             
             for ii in range(1,input_num):
                 coeff_grad.append(tf.reduce_sum(tf.mul(grad,
-                       tf.matmul(H_all[ii],matvecexp))))
+                       tf.matmul(H_all[ii],matvecexp,a_is_sparse=self.sys_para.sparse_H))))
                 
              
             
@@ -127,7 +127,7 @@ class TensorflowState:
 
             for ii in range(1,taylor_terms):      
                 factorial = factorial * ii
-                vec_grad_n = tf.matmul(H,vec_grad_n)
+                vec_grad_n = tf.matmul(H,vec_grad_n,a_is_sparse=self.sys_para.sparse_H)
                 vec_grad = vec_grad + vec_grad_n/factorial
 
             return [tf.pack(coeff_grad), tf.zeros(tf.shape(H_all),dtype=tf.float32),vec_grad]                                         

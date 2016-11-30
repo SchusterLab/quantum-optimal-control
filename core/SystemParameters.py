@@ -9,8 +9,9 @@ from helper_functions.datamanagement import H5File
 
 class SystemParameters:
 
-    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxA, draw,initial_guess, show_plots,Unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path, Taylor_terms,use_gpu,use_inter_vecs):
+    def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxA, draw,initial_guess, show_plots,Unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path, Taylor_terms,use_gpu,use_inter_vecs,sparse_H):
         # Input variable
+        self.sparse_H = sparse_H
         self.use_inter_vecs = use_inter_vecs
         self.use_gpu = use_gpu
         self.Taylor_terms = Taylor_terms
