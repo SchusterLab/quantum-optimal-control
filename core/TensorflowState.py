@@ -38,10 +38,10 @@ class TensorflowState:
                 factorial = factorial * ii
                 matexp = matexp + H_n/factorial
                 if not ii == (taylor_terms):
-                    H_n = tf.matmul(H,H_n,a_is_sparse=self.sys_para.sparse_H)
+                    H_n = tf.matmul(H,H_n,a_is_sparse=self.sys_para.sparse_H,b_is_sparse=self.sys_para.sparse_U)
 
             for ii in range(scaling):
-                matexp = tf.matmul(matexp,matexp)
+                matexp = tf.matmul(matexp,matexp,a_is_sparse=self.sys_para.sparse_U,b_is_sparse=self.sys_para.sparse_U)
 
             return matexp
             
@@ -60,7 +60,7 @@ class TensorflowState:
             
             for ii in range(1,input_num):
                 coeff_grad.append(tf.reduce_sum(tf.mul(grad,
-                       tf.matmul(H_all[ii],matexp,a_is_sparse=self.sys_para.sparse_H))))
+                       tf.matmul(H_all[ii],matexp,a_is_sparse=self.sys_para.sparse_H,b_is_sparse=self.sys_para.sparse_U))))
 
             return [tf.pack(coeff_grad), tf.zeros(tf.shape(H_all),dtype=tf.float32)]                                         
 
@@ -211,11 +211,11 @@ class TensorflowState:
             tf_inter_state_op.append(self.get_inter_state_op(ii))
 
         #first intermediate propagator
-        self.inter_states[0] = tf.matmul(tf_inter_state_op[0],self.tf_initial_unitary)
+        self.inter_states[0] = tf.matmul(tf_inter_state_op[0],self.tf_initial_unitary,a_is_sparse=self.sys_para.sparse_U)
         #subsequent operation layers and intermediate propagators
         
         for ii in np.arange(1,self.sys_para.steps):
-            self.inter_states[ii] = tf.matmul(tf_inter_state_op[ii],self.inter_states[ii-1])
+            self.inter_states[ii] = tf.matmul(tf_inter_state_op[ii],self.inter_states[ii-1],a_is_sparse=self.sys_para.sparse_U)
             
         
         self.final_state = self.inter_states[self.sys_para.steps-1]
