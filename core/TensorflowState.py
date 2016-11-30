@@ -91,7 +91,7 @@ class TensorflowState:
 
             for ii in range(1,taylor_terms):      
                 factorial = factorial * ii
-                psi_n = tf.matmul(H,psi_n,a_is_sparse=self.sys_para.sparse_H)
+                psi_n = tf.matmul(H,psi_n,a_is_sparse=self.sys_para.sparse_H,b_is_sparse=self.sys_para.sparse_K)
                 matvecexp = matvecexp + psi_n/factorial
 
             return matvecexp
@@ -111,7 +111,7 @@ class TensorflowState:
             
             for ii in range(1,input_num):
                 coeff_grad.append(tf.reduce_sum(tf.mul(grad,
-                       tf.matmul(H_all[ii],matvecexp,a_is_sparse=self.sys_para.sparse_H))))
+                       tf.matmul(H_all[ii],matvecexp,a_is_sparse=self.sys_para.sparse_H,b_is_sparse=self.sys_para.sparse_K))))
                 
              
             
@@ -127,7 +127,7 @@ class TensorflowState:
 
             for ii in range(1,taylor_terms):      
                 factorial = factorial * ii
-                vec_grad_n = tf.matmul(H,vec_grad_n,a_is_sparse=self.sys_para.sparse_H)
+                vec_grad_n = tf.matmul(H,vec_grad_n,a_is_sparse=self.sys_para.sparse_H,b_is_sparse=self.sys_para.sparse_K)
                 vec_grad = vec_grad + vec_grad_n/factorial
 
             return [tf.pack(coeff_grad), tf.zeros(tf.shape(H_all),dtype=tf.float32),vec_grad]                                         
@@ -211,11 +211,13 @@ class TensorflowState:
             tf_inter_state_op.append(self.get_inter_state_op(ii))
 
         #first intermediate propagator
-        self.inter_states[0] = tf.matmul(tf_inter_state_op[0],self.tf_initial_unitary,a_is_sparse=self.sys_para.sparse_U)
+        self.inter_states[0] = tf.matmul(tf_inter_state_op[0],self.tf_initial_unitary,a_is_sparse=self.sys_para.sparse_U,
+                                         b_is_sparse=self.sys_para.sparse_K)
         #subsequent operation layers and intermediate propagators
         
         for ii in np.arange(1,self.sys_para.steps):
-            self.inter_states[ii] = tf.matmul(tf_inter_state_op[ii],self.inter_states[ii-1],a_is_sparse=self.sys_para.sparse_U)
+            self.inter_states[ii] = tf.matmul(tf_inter_state_op[ii],self.inter_states[ii-1],a_is_sparse=self.sys_para.sparse_U,
+                                              b_is_sparse=self.sys_para.sparse_K)
             
         
         self.final_state = self.inter_states[self.sys_para.steps-1]
