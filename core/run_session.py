@@ -73,21 +73,23 @@ class run_session:
 
             
     def update_and_save(self):
+        
+        if not self.end:
 
-        if (self.iterations % self.conv.update_step == 0):
-            self.anly = Analysis(self.sys_para, self.tfs.final_state, self.tfs.ops_weight, self.tfs.unitary_scale,
-                                 self.tfs.inter_vecs)
-            self.save_data()
-            self.display()
-        if (self.iterations % self.conv.evol_save_step == 0):
-            if not (self.sys_para.show_plots == True and (self.iterations % self.conv.update_step == 0)):
+            if (self.iterations % self.conv.update_step == 0):
                 self.anly = Analysis(self.sys_para, self.tfs.final_state, self.tfs.ops_weight, self.tfs.unitary_scale,
                                      self.tfs.inter_vecs)
-                if not (self.iterations % self.conv.update_step == 0):
-                    self.save_data()
-                self.conv.save_evol(self.anly)
-                
-        self.iterations += 1
+                self.save_data()
+                self.display()
+            if (self.iterations % self.conv.evol_save_step == 0):
+                if not (self.sys_para.show_plots == True and (self.iterations % self.conv.update_step == 0)):
+                    self.anly = Analysis(self.sys_para, self.tfs.final_state, self.tfs.ops_weight, self.tfs.unitary_scale,
+                                         self.tfs.inter_vecs)
+                    if not (self.iterations % self.conv.update_step == 0):
+                        self.save_data()
+                    self.conv.save_evol(self.anly)
+
+            self.iterations += 1
     
     def get_end_results(self):
         # get optimized pulse and propagation
