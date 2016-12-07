@@ -14,13 +14,14 @@ Currently only supports linux system and Python 2.7.
 # Currently Implemented Cost Functions  
 Refer to the [Regularization functions file] (https://github.com/SchusterLab/GRAPE-Tensorflow/blob/master/core/RegularizationFunctions.py) for details or to add a new cost function  
  **1) The fidelity cost function:** The overlap between the target unitary/final state and the achieved unitary/final state. In the code, it's referred to as tfs.loss.  
- **2) The gaussian envelope cost function:** A penalty if the control pulses do not have a gaussian envelope. The user supplies a coeffecient called **'envelope'** in the reg_coeffs input. A value of 0.01 is found to be a good statring value empirically.  
- **3) The dc offset cost function:** To limit the dc value of the control pulses. The user supplies a coeffecient called **'dc'** in the reg_coeffs input and a list called **'dc_id'** for the indices of the control fileds to be penalized. A value of 0.01 is found to be a good statring value for the coeffecient.  
- **4) The first derivative cost function:** To make the control pulses smooth. The user supplies a coeffecient called **'dwdt'** in the reg_coeffs input. A value of 0.001 is found to be a good statring value empirically.  
- **5) The second derivative cost function:** To make the control pulses smooth. The user supplies a coeffecient called **'d2wdt2'** in the reg_coeffs input. A value of 0.000001 is found to be a good statring value empirically.  
- **6) The forbidden state cost function:** A cost function to forbid the quantum occupation of certain levels through out the time of the control. The user supplies a coeffecinet called **'forbidden'** (start around 100 empirically) and a list called **'states_forbidden_list'** to specify the indices of the levels to forbid.  
+ **2) The gaussian envelope cost function:** A penalty if the control pulses do not have a gaussian envelope. The user supplies a coeffecient called **'envelope'** in the reg_coeffs input. A value of 0.01 is found to be a good statring value empirically.    
+ **3) The first derivative cost function:** To make the control pulses smooth. The user supplies a coeffecient called **'dwdt'** in the reg_coeffs input. A value of 0.001 is found to be a good statring value empirically.  
+ **4) The second derivative cost function:** To make the control pulses smooth. The user supplies a coeffecient called **'d2wdt2'** in the reg_coeffs input. A value of 0.000001 is found to be a good statring value empirically.  
+ **5) The bandpass cost function:** To filter the control pulses frequency **'bandpass'** (start around 0.1) to supress control pulses frequency outside the defined band **'band'**. This cost function requires GPU, since TensorFlow QFT is only implemented in GPU.
+ **6) The forbidden state cost function:** A cost function to forbid the quantum occupation of certain levels through out the time of the control. The user supplies a coeffecinet called **'forbidden'** (start around 100 empirically) and a list called **'states_forbidden_list'** to specify the indices of the levels to forbid.  **forbid_dressed**: A boolean (default is True) to forbid dressed (hamiltonian's eigen vectors) vs bare states in coupled systems 
  **7) The time optimal cost function:** If the user wants to speed up the gate, he should provide a coeffecient called **'speed_up'** (start around 100) to award the occupation of the target state at all intermediate states, hence, making the gate as fast as possible.   
- 
+
+
  **To add a new cost function:**  
 Just follow the same logic we used and add new code [here](https://github.com/SchusterLab/GRAPE-Tensorflow/blob/master/core/RegularizationFunctions.py) penalizing properties of:  
 1) The control fields: held in **tfs.ops_weight**  
@@ -49,7 +50,7 @@ unitary_error, method,state_transfer, no_scaling, freq_unit, file_name, save, da
  **U:** Target Unitary (n by n)  if state_transfer = False. a vector (n by 1) if state_transfer = True  
  **total_time:** Total Time (float)  
  **Steps:** Number of time steps (int)  
- **psi0:** Initial States (list of integers specifying the indices of those states)  
+ **states_concerned_list:** Initial States (list of integers specifying the indices of those states)  
  
 # Optional Arguments:  
  **U0:** Initial Unitary (n by n), default is identity  
@@ -61,17 +62,18 @@ unitary_error, method,state_transfer, no_scaling, freq_unit, file_name, save, da
  **dressed_info :** A dictionary including the eigenvalues and eigenstates of dressed states
  **maxA:** a list of the maximum amplitudes of the control pulses (default value is 4)   
  **use_gpu:** a boolean switching gpu and cpu, default is True   
+ **sparse_H, sparse_U, sparse_K: ** booleans specifying whether (Hamiltonian, Unitary Operator, Unitary Evolution) is sparse. Speedup is expected if the corresponding sparsity is satisfied. (only available in CPU)
+ **use_inter_vecs:** a boolean enable/disable the involvement of state evolution in graph building
  **draw:** a list including the indices and names for the states to include in drawing state occupation. Ex: states_draw_list = [0,1]
  states_draw_names = ['g00','g01','g10','g11','e00'] and  draw = [states_draw_list,states_draw_names]  
  default value is to draw states with indices 0-3  
- **show_plots:** a boolean (default is True) toggling between progress bar and graphs  
- **H_time_scales:** a dictionary whose keys are the indices of the control ops to be interpolated, and the values are the dt to use for each key.    
- **Unitary_error:** a float indicating the desired maximum error of the Taylor expansion of the exponential to choose a proper number of expansion terms, default is 1e-4  
+ **show_plots:** a boolean (default is True) toggling between progress bar and graphs    
  **state_transfer:** a boolean (default is False) if True, targetting state transfer. If false, targetting unitary evolution. If True, the U is expected to be a vector, not a matrix.    
- **method:** 'Adam', 'BFGS'   or 'L-BFGS-B'. Default is Adam   
- **no_scaling**:  a boolean (default is False)) to stop scaling and squaring  
+ **method:** 'ADAM', 'BFGS', 'L-BFGS-B' or 'EVOLVE'. Defining the optimizer. Default is ADAM. EVOLVE only simulate the propagation without optimizing. 
+ **Unitary_error:** a float indicating the desired maximum error of the Taylor expansion of the exponential to choose a proper number of expansion terms, default is 1e-4  
+ **no_scaling**:  a boolean (default is False)) to disable scaling and squaring  
+ **Taylor_terms**: a list [expansion terms, scaling and squaring terms], manually choose the Taylor terms for matrix exponentials.
  **freq_unit**: a string with default 'GHz'. Can be 'MHz', 'kHz' or 'Hz'  
- **forbid_dressed**: A boolean (default is True) to forbid dressed (hamiltonian's eigen vectors) vs bare states in coupled systems 
  **file_name**: file name for saving the simulation  
  **save**: A boolean (default is True) to save the control ops, intermediate vectors, final unitary every update step  
  **data_path**: path for saving the simulation  
