@@ -62,7 +62,7 @@ unitary_error, method,state_transfer, no_scaling, freq_unit, file_name, save, da
  **dressed_info :** A dictionary including the eigenvalues and eigenstates of dressed states
  **maxA:** a list of the maximum amplitudes of the control pulses (default value is 4)   
  **use_gpu:** a boolean switching gpu and cpu, default is True   
- **sparse_H, sparse_U, sparse_K: ** booleans specifying whether (Hamiltonian, Unitary Operator, Unitary Evolution) is sparse. Speedup is expected if the corresponding sparsity is satisfied. (only available in CPU)
+ **sparse_H, sparse_U, sparse_K:** booleans specifying whether (Hamiltonian, Unitary Operator, Unitary Evolution) is sparse. Speedup is expected if the corresponding sparsity is satisfied. (only available in CPU)
  **use_inter_vecs:** a boolean enable/disable the involvement of state evolution in graph building
  **draw:** a list including the indices and names for the states to include in drawing state occupation. Ex: states_draw_list = [0,1]
  states_draw_names = ['g00','g01','g10','g11','e00'] and  draw = [states_draw_list,states_draw_names]  
