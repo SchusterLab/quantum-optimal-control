@@ -18,7 +18,7 @@ Refer to the [Regularization functions file] (https://github.com/SchusterLab/GRA
  **3) The first derivative cost function:** To make the control pulses smooth. The user supplies a coeffecient called **'dwdt'** in the reg_coeffs input. A value of 0.001 is found to be a good statring value empirically.  
  **4) The second derivative cost function:** To make the control pulses smooth. The user supplies a coeffecient called **'d2wdt2'** in the reg_coeffs input. A value of 0.000001 is found to be a good statring value empirically.  
  **5) The bandpass cost function:** To filter the control pulses frequency **'bandpass'** (start around 0.1) to supress control pulses frequency outside the defined band **'band'**. This cost function requires GPU, since TensorFlow QFT is only implemented in GPU.  
- **6) The forbidden state cost function:** A cost function to forbid the quantum occupation of certain levels through out the time of the control. The user supplies a coeffecinet called **'forbidden'** (start around 100 empirically) and a list called **'states_forbidden_list'** to specify the indices of the levels to forbid.  **forbid_dressed**: A boolean (default is True) to forbid dressed (hamiltonian's eigen vectors) vs bare states in coupled systems 
+ **6) The forbidden state cost function:** A cost function to forbid the quantum occupation of certain levels through out the time of the control. The user supplies a coeffecinet called **'forbidden'** (start around 100 empirically) and a list called **'states_forbidden_list'** to specify the indices of the levels to forbid.  **forbid_dressed**: A boolean (default is True) to forbid dressed (hamiltonian's eigen vectors) vs bare states in coupled systems  
  **7) The time optimal cost function:** If the user wants to speed up the gate, he should provide a coeffecient called **'speed_up'** (start around 100) to award the occupation of the target state at all intermediate states, hence, making the gate as fast as possible.   
 
 
@@ -58,8 +58,8 @@ unitary_error, method,state_transfer, no_scaling, freq_unit, file_name, save, da
                 convergence = {'rate':0.01, 'update_step':100, 'max_iterations':5000,
                 'conv_target':1e-8,'learning_rate_decay':2500, 'min_grad': 1e-25}   
  **Initial_guess:** A list of k elements, each of them is a steps size array, defining the initial pulses for all operators. If not provided, a default value of a gaussian random distribution will be used.  
- **reg_coeffs:** A dictionary of regularization coeffecients
- **dressed_info :** A dictionary including the eigenvalues and eigenstates of dressed states
+ **reg_coeffs:** A dictionary of regularization coeffecients  
+ **dressed_info :** A dictionary including the eigenvalues and eigenstates of dressed states  
  **maxA:** a list of the maximum amplitudes of the control pulses (default value is 4)   
  **use_gpu:** a boolean switching gpu and cpu, default is True   
  **sparse_H, sparse_U, sparse_K:** booleans specifying whether (Hamiltonian, Unitary Operator, Unitary Evolution) is sparse. Speedup is expected if the corresponding sparsity is satisfied. (only available in CPU)  
@@ -69,10 +69,10 @@ unitary_error, method,state_transfer, no_scaling, freq_unit, file_name, save, da
  default value is to draw states with indices 0-3  
  **show_plots:** a boolean (default is True) toggling between progress bar and graphs    
  **state_transfer:** a boolean (default is False) if True, targetting state transfer. If false, targetting unitary evolution. If True, the U is expected to be a vector, not a matrix.    
- **method:** 'ADAM', 'BFGS', 'L-BFGS-B' or 'EVOLVE'. Defining the optimizer. Default is ADAM. EVOLVE only simulate the propagation without optimizing. 
+ **method:** 'ADAM', 'BFGS', 'L-BFGS-B' or 'EVOLVE'. Defining the optimizer. Default is ADAM. EVOLVE only simulate the propagation without optimizing.  
  **Unitary_error:** a float indicating the desired maximum error of the Taylor expansion of the exponential to choose a proper number of expansion terms, default is 1e-4  
  **no_scaling**:  a boolean (default is False)) to disable scaling and squaring  
- **Taylor_terms**: a list [expansion terms, scaling and squaring terms], manually choose the Taylor terms for matrix exponentials.
+ **Taylor_terms**: a list [expansion terms, scaling and squaring terms], manually choose the Taylor terms for matrix exponentials.  
  **freq_unit**: a string with default 'GHz'. Can be 'MHz', 'kHz' or 'Hz'  
  **file_name**: file name for saving the simulation  
  **save**: A boolean (default is True) to save the control ops, intermediate vectors, final unitary every update step  
