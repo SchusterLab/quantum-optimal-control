@@ -17,7 +17,7 @@ Refer to the [Regularization functions file] (https://github.com/SchusterLab/GRA
  **2) The gaussian envelope cost function:** A penalty if the control pulses do not have a gaussian envelope. The user supplies a coeffecient called **'envelope'** in the reg_coeffs input. A value of 0.01 is found to be a good statring value empirically.    
  **3) The first derivative cost function:** To make the control pulses smooth. The user supplies a coeffecient called **'dwdt'** in the reg_coeffs input. A value of 0.001 is found to be a good statring value empirically.  
  **4) The second derivative cost function:** To make the control pulses smooth. The user supplies a coeffecient called **'d2wdt2'** in the reg_coeffs input. A value of 0.000001 is found to be a good statring value empirically.  
- **5) The bandpass cost function:** To filter the control pulses frequency **'bandpass'** (start around 0.1) to supress control pulses frequency outside the defined band **'band'**. This cost function requires GPU, since TensorFlow QFT is only implemented in GPU.
+ **5) The bandpass cost function:** To filter the control pulses frequency **'bandpass'** (start around 0.1) to supress control pulses frequency outside the defined band **'band'**. This cost function requires GPU, since TensorFlow QFT is only implemented in GPU.  
  **6) The forbidden state cost function:** A cost function to forbid the quantum occupation of certain levels through out the time of the control. The user supplies a coeffecinet called **'forbidden'** (start around 100 empirically) and a list called **'states_forbidden_list'** to specify the indices of the levels to forbid.  **forbid_dressed**: A boolean (default is True) to forbid dressed (hamiltonian's eigen vectors) vs bare states in coupled systems 
  **7) The time optimal cost function:** If the user wants to speed up the gate, he should provide a coeffecient called **'speed_up'** (start around 100) to award the occupation of the target state at all intermediate states, hence, making the gate as fast as possible.   
 
@@ -62,8 +62,8 @@ unitary_error, method,state_transfer, no_scaling, freq_unit, file_name, save, da
  **dressed_info :** A dictionary including the eigenvalues and eigenstates of dressed states
  **maxA:** a list of the maximum amplitudes of the control pulses (default value is 4)   
  **use_gpu:** a boolean switching gpu and cpu, default is True   
- **sparse_H, sparse_U, sparse_K:** booleans specifying whether (Hamiltonian, Unitary Operator, Unitary Evolution) is sparse. Speedup is expected if the corresponding sparsity is satisfied. (only available in CPU)
- **use_inter_vecs:** a boolean enable/disable the involvement of state evolution in graph building
+ **sparse_H, sparse_U, sparse_K:** booleans specifying whether (Hamiltonian, Unitary Operator, Unitary Evolution) is sparse. Speedup is expected if the corresponding sparsity is satisfied. (only available in CPU)  
+ **use_inter_vecs:** a boolean enable/disable the involvement of state evolution in graph building  
  **draw:** a list including the indices and names for the states to include in drawing state occupation. Ex: states_draw_list = [0,1]
  states_draw_names = ['g00','g01','g10','g11','e00'] and  draw = [states_draw_list,states_draw_names]  
  default value is to draw states with indices 0-3  
