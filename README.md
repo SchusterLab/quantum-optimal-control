@@ -37,7 +37,7 @@ reg_coeffs,dressed_info, maxA ,use_gpu, draw, initial_guess, show_plots, H_time_
 unitary_error, method,state_transfer, no_scaling, freq_unit, file_name, save, data_path) 
 ```
  
- You can follow the [examples] (https://github.com/SchusterLab/GRAPE-Tensorflow-Examples/tree/master) we are providing for details on defining the quantum system and then calling the function.   
+ You can follow the [examples] (https://github.com/SchusterLab/GRAPE-Tensorflow-Examples/tree/master) we are providing for details on defining the quantum system and then calling the function. We suggest starting with a simple example (e.g. spin Pi).
  
 # Returns:  
  **uks:** The optimized control pulses  ( a list of list of floats, each of them has length  = ctrl_steps(ctrl_op) ) same order as the input  
