@@ -79,7 +79,7 @@ unitary_error, method,state_transfer, no_scaling, freq_unit, file_name, save, da
  **data_path**: path for saving the simulation  
  
 # More examples:
-We applied to optimizer to generate photonic Schrodinger cat states for a circuit quantum electrodynamics system:  
+We applied the optimizer to generate photonic Schrodinger cat states for a circuit quantum electrodynamics system:  
 ![photonic Schrodinger cat states](http://i.imgur.com/ponY2R9.png)
  
 
