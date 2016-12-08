@@ -4,7 +4,7 @@ This is a software package that performs quantum optimal control using the autom
 As an example of what the package produces, here is its output in the example of a qubit pi pulse:  
 
 
-![Qubit Pi Pulse Example](http://i.imgur.com/fIGFgno.png)
+![Qubit Pi Pulse Example](http://i.imgur.com/LpNZbX2.png)
 
 # Setup  
 You will just need to setup Tensorflow, Please follow the instructions [here] (https://www.tensorflow.org/versions/r0.10/get_started/os_setup.html)  
@@ -77,6 +77,11 @@ unitary_error, method,state_transfer, no_scaling, freq_unit, file_name, save, da
  **file_name**: file name for saving the simulation  
  **save**: A boolean (default is True) to save the control ops, intermediate vectors, final unitary every update step  
  **data_path**: path for saving the simulation  
+ 
+# More examples:
+We applied to optimizer to generate photonic Schrodinger cat states for a circuit quantum electrodynamics system:  
+![photonic Schrodinger cat states](http://i.imgur.com/ponY2R9.png)
+ 
 
 # Questions
 If you have any questions, please reach either of the developers of the package: Nelson Leung (nelsonleung@uchicago.edu), Mohamed Abdelhafez (abdelhafez@uchicago.edu) or David Schuster (david.schuster@uchicago.edu)
