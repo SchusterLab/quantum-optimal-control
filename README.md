@@ -4,7 +4,7 @@ This is a software package that performs quantum optimal control using the autom
 As an example of what the package produces, here is its output in the example of a qubit pi pulse:  
 
 
-![Qubit Pi Pulse Example](http://i.imgur.com/LpNZbX2.png)
+![Qubit Pi Pulse Example](http://i.imgur.com/OfqFqZ6.png)
 
 # Setup  
 You will just need to setup Tensorflow, Please follow the instructions [here] (https://www.tensorflow.org/versions/r0.10/get_started/os_setup.html)  
