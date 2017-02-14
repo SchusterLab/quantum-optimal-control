@@ -26,7 +26,7 @@ class run_session:
         
         with tf.Session(graph=graph, config = config) as self.session:
             
-            tf.initialize_all_variables().run()
+            tf.global_variables_initializer().run()
 
             print "Initialized"
             
