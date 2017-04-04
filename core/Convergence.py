@@ -67,11 +67,11 @@ class Convergence:
             
         self.inter_vecs = anly.get_inter_vecs()
 
-    def update_plot_summary(self,last_cost, last_reg_cost, anly):
+    def update_plot_summary(self,last_cost, last_reg_cost, anly, j = None):
         self.concerned = self.sys_para.states_concerned_list
         self.last_cost = last_cost
         self.last_reg_cost = last_reg_cost
-          
+        self.j = j
         self.anly = anly
         self.save_evol(anly)
         self.plot_summary()
@@ -137,7 +137,7 @@ class Convergence:
         if self.sys_para.state_transfer:
             i2 = i2-1
 
-        gs = gridspec.GridSpec(3+i1+i2+len(self.concerned), 2)
+        gs = gridspec.GridSpec(3+i1+i2+np.shape(self.inter_vecs)[0], 2)
         
         index = 0
         ## cost
@@ -146,10 +146,10 @@ class Convergence:
             
           
             plt.subplot(gs[index, :],title='Error = %1.2e; Other errors = %1.2e; Unitary Metric: %.5f; Runtime: %.1fs; Estimated Remaining Runtime: %.1fh' % (self.last_cost, self.last_reg_cost-self.last_cost,
-                                                                                                   self.anly.tf_unitary_scale.eval(),
+                                                                                                   self.anly.tf_unitary_scale.eval(feed_dict = self.anly.feed_dict),
                                                                                                  
                                                                                                   self.runtime,
-                                                                                                  self.estimated_runtime))
+                                                                                                  self.estimated_runtime,)+", jumps: "+str(self.j))
             
             index +=1
             plt.plot(np.array(self.iterations),np.array(self.costs),'bx-',label='Fidelity Error')
@@ -196,13 +196,21 @@ class Convergence:
             inter_vecs = self.inter_vecs
 
             inter_vecs_array = np.array(inter_vecs)
+            print np.shape(inter_vecs)
+            for ii in range(np.shape(inter_vecs)[0]):
+                plt.subplot(gs[index+ii, :],title="Evolution")
+
+                pop_inter_vecs = inter_vecs[ii]
+                
+                self.plot_inter_vecs_general(pop_inter_vecs,0)
+            '''
 
             for ii in range(len(self.concerned)):
                 plt.subplot(gs[index+ii, :],title="Evolution")
 
                 pop_inter_vecs = inter_vecs[ii]
                 self.plot_inter_vecs_general(pop_inter_vecs,self.concerned[ii])
-                
+              '''  
                 
         
         fig = plt.gcf()
@@ -212,7 +220,7 @@ class Convergence:
             plots = 3
         
         
-        fig.set_size_inches(15, int (plots+len(self.concerned)*18))
+        fig.set_size_inches(15, int (plots+np.shape(self.inter_vecs)[0]*18))
 	
         display.display(plt.gcf())
         display.clear_output(wait=True)

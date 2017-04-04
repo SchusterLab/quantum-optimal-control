@@ -10,7 +10,7 @@ from helper_functions.datamanagement import H5File
 class SystemParameters:
 
     def __init__(self,H0,Hops,Hnames,U,U0,total_time,steps,states_concerned_list,dressed_info,maxA, draw,initial_guess, show_plots,Unitary_error,state_transfer,no_scaling,reg_coeffs, save, file_path, Taylor_terms,use_gpu,use_inter_vecs,sparse_H,
-                sparse_U,sparse_K):
+                sparse_U,sparse_K, c_ops,trajectories):
         # Input variable
         self.sparse_U = sparse_U
         self.sparse_H = sparse_H
@@ -33,6 +33,10 @@ class SystemParameters:
         self.steps = steps
         self.show_plots = show_plots
         self.Unitary_error= Unitary_error
+        self.trajectories = trajectories
+        self.c_ops = c_ops
+        self.traj = False
+        
 
 
         if initial_guess is not None:
@@ -55,14 +59,7 @@ class SystemParameters:
         self.is_dressed = False
         self.U0_c = U0
         self.initial_unitary = c_to_r_mat(U0) #CtoRMat is converting complex matrices to their equivalent real (double the size) matrices
-        if self.state_transfer == False:
-            self.target_unitary = c_to_r_mat(U)
-        else:
-            self.target_vectors=[]
-
-            for target_vector_c in U:
-                self.target_vector = c_to_r_vec(target_vector_c)
-                self.target_vectors.append(self.target_vector)
+        
         
         if draw is not None:
             self.draw_list = draw[0]
@@ -81,6 +78,35 @@ class SystemParameters:
             
         self.init_system()
         self.init_vectors()
+        
+        if self.c_ops !=None:
+            self.traj = True
+            self.state_transfer = True
+            if len(U) != len(states_concerned_list):
+                full_U = U
+                U=[]
+                for ii in range(len(states_concerned_list)):
+                    U.append(np.dot(full_U,self.initial_vectors_c[ii]))
+        
+        if self.state_transfer == False:
+            self.target_unitary = c_to_r_mat(U)
+        else:
+            self.target_vectors=[]
+
+            for target_vector_c in U:
+                self.target_vector = c_to_r_vec(target_vector_c)
+                self.target_vectors.append(self.target_vector)
+                
+        if self.traj:
+            self.cdaggerc=[]
+            self.c_ops_real=[]
+            #ceating the effective hamiltonian that describes the evolution of states if no jumps occur
+            for ii in range (len(self.c_ops)):
+                cdaggerc_c = np.dot(np.transpose(np.conjugate(self.c_ops[ii])),self.c_ops[ii])
+                self.c_ops_real.append(c_to_r_mat(self.c_ops[ii]))
+                self.cdaggerc.append(c_to_r_mat(cdaggerc_c))
+                self.H0_c= self.H0_c + ((0-1j)/2)* ( cdaggerc_c)
+                
         self.init_operators()
         self.init_one_minus_gaussian_envelope()
         self.init_guess()
