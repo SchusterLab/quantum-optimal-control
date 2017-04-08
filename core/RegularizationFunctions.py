@@ -68,7 +68,6 @@ def get_reg_loss(tfs):
         
 
         # Limiting the access to forbidden states
-        '''
         if 'forbidden' in tfs.sys_para.reg_coeffs:
             inter_reg_alpha_coeff = tfs.sys_para.reg_coeffs['forbidden']
             inter_reg_alpha = inter_reg_alpha_coeff / float(tfs.sys_para.steps)
@@ -94,7 +93,7 @@ def get_reg_loss(tfs):
             
             target_vecs_inner_product = tfs.get_inner_product_3D(tfs.inter_vecs_packed,target_vecs_all_timestep)
             reg_loss = reg_loss + speed_up_reg_alpha * tf.nn.l2_loss(target_vecs_inner_product)
-            '''
+            
 
         return reg_loss
                     
