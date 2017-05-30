@@ -22,7 +22,7 @@ def get_reg_loss(tfs):
             reg_alpha_coeff = tfs.sys_para.reg_coeffs['envelope']
             reg_alpha = reg_alpha_coeff / float(tfs.sys_para.steps)
             reg_loss = reg_loss + reg_alpha * tf.nn.l2_loss(
-                tf.mul(tfs.tf_one_minus_gaussian_envelope, tfs.ops_weight))
+                tf.multiply(tfs.tf_one_minus_gaussian_envelope, tfs.ops_weight))
 
         # Limiting the dwdt of control pulse
         if 'dwdt' in tfs.sys_para.reg_coeffs:

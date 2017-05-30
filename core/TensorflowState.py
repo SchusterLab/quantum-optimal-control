@@ -59,10 +59,10 @@ class TensorflowState:
             ###
             
             for ii in range(1,input_num):
-                coeff_grad.append(tf.reduce_sum(tf.mul(grad,
+                coeff_grad.append(tf.reduce_sum(tf.multiply(grad,
                        tf.matmul(H_all[ii],matexp,a_is_sparse=self.sys_para.sparse_H,b_is_sparse=self.sys_para.sparse_U))))
 
-            return [tf.pack(coeff_grad), tf.zeros(tf.shape(H_all),dtype=tf.float32)]                                         
+            return [tf.stack(coeff_grad), tf.zeros(tf.shape(H_all),dtype=tf.float32)]                                         
 
         global matexp_op
         
@@ -110,7 +110,7 @@ class TensorflowState:
             
             
             for ii in range(1,input_num):
-                coeff_grad.append(tf.reduce_sum(tf.mul(grad,
+                coeff_grad.append(tf.reduce_sum(tf.multiply(grad,
                        tf.matmul(H_all[ii],matvecexp,a_is_sparse=self.sys_para.sparse_H,b_is_sparse=self.sys_para.sparse_K))))
                 
              
@@ -130,7 +130,7 @@ class TensorflowState:
                 vec_grad_n = tf.matmul(H,vec_grad_n,a_is_sparse=self.sys_para.sparse_H,b_is_sparse=self.sys_para.sparse_K)
                 vec_grad = vec_grad + vec_grad_n/factorial
 
-            return [tf.pack(coeff_grad), tf.zeros(tf.shape(H_all),dtype=tf.float32),vec_grad]                                         
+            return [tf.stack(coeff_grad), tf.zeros(tf.shape(H_all),dtype=tf.float32),vec_grad]                                         
         
         global matvecexp_op
         
@@ -153,7 +153,7 @@ class TensorflowState:
         for initial_vector in self.sys_para.initial_vectors:
             tf_initial_vector = tf.constant(initial_vector,dtype=tf.float32)
             self.tf_initial_vectors.append(tf_initial_vector)
-        self.packed_initial_vectors = tf.transpose(tf.pack(self.tf_initial_vectors))
+        self.packed_initial_vectors = tf.transpose(tf.stack(self.tf_initial_vectors))
     
     def init_tf_propagators(self):
         #tf initial and target propagator
@@ -178,7 +178,7 @@ class TensorflowState:
             self.weights_unpacked.append(self.sys_para.ops_max_amp[ii]*self.ops_weight[ii,:])
 
         #print len(self.sys_para.ops_max_amp)
-        self.H_weights = tf.pack(self.weights_unpacked,name="packed_weights")
+        self.H_weights = tf.stack(self.weights_unpacked,name="packed_weights")
            
 
 
@@ -236,8 +236,8 @@ class TensorflowState:
         for ii in np.arange(0,self.sys_para.steps):               
             inter_vec = tf.matmul(self.inter_states[ii],self.packed_initial_vectors,name="inter_vec_"+str(ii))
             self.inter_vecs_list.append(inter_vec)
-        self.inter_vecs_packed = tf.pack(self.inter_vecs_list, axis=1)
-        self.inter_vecs = tf.unpack(self.inter_vecs_packed, axis = 2)
+        self.inter_vecs_packed = tf.stack(self.inter_vecs_list, axis=1)
+        self.inter_vecs = tf.unstack(self.inter_vecs_packed, axis = 2)
             
         print "Vectors initialized."
         
@@ -254,8 +254,8 @@ class TensorflowState:
             psi = inter_vec               
             inter_vec = matvecexp_op(self.H_weights[:,ii],tf_matrix_list,psi)
             self.inter_vecs_list.append(inter_vec)
-        self.inter_vecs_packed = tf.pack(self.inter_vecs_list, axis=1)
-        self.inter_vecs = tf.unpack(self.inter_vecs_packed, axis = 2)
+        self.inter_vecs_packed = tf.stack(self.inter_vecs_list, axis=1)
+        self.inter_vecs = tf.unstack(self.inter_vecs_packed, axis = 2)
         
             
         print "Vectors initialized."
@@ -270,12 +270,12 @@ class TensorflowState:
         psi_2_imag = (psi2[state_num:2*state_num])
         # psi1 has a+ib, psi2 has c+id, we wanna get Sum ((ac+bd) + i (bc-ad)) magnitude
         with tf.name_scope('inner_product'):
-            ac = tf.mul(psi_1_real,psi_2_real)
-            bd = tf.mul(psi_1_imag,psi_2_imag)
-            bc = tf.mul(psi_1_imag,psi_2_real)
-            ad = tf.mul(psi_1_real,psi_2_imag)
+            ac = tf.multiply(psi_1_real,psi_2_real)
+            bd = tf.multiply(psi_1_imag,psi_2_imag)
+            bc = tf.multiply(psi_1_imag,psi_2_real)
+            ad = tf.multiply(psi_1_real,psi_2_imag)
             reals = tf.square(tf.add(tf.reduce_sum(ac),tf.reduce_sum(bd)))
-            imags = tf.square(tf.sub(tf.reduce_sum(bc),tf.reduce_sum(ad)))
+            imags = tf.square(tf.subtract(tf.reduce_sum(bc),tf.reduce_sum(ad)))
             norm = tf.add(reals,imags)
         return norm
         
@@ -290,12 +290,12 @@ class TensorflowState:
         psi_2_imag = (psi2[state_num:2*state_num,:])
         # psi1 has a+ib, psi2 has c+id, we wanna get Sum ((ac+bd) + i (bc-ad)) magnitude
         with tf.name_scope('inner_product'):
-            ac = tf.reduce_sum(tf.mul(psi_1_real,psi_2_real),0)
-            bd = tf.reduce_sum(tf.mul(psi_1_imag,psi_2_imag),0)
-            bc = tf.reduce_sum(tf.mul(psi_1_imag,psi_2_real),0)
-            ad = tf.reduce_sum(tf.mul(psi_1_real,psi_2_imag),0)
+            ac = tf.reduce_sum(tf.multiply(psi_1_real,psi_2_real),0)
+            bd = tf.reduce_sum(tf.multiply(psi_1_imag,psi_2_imag),0)
+            bc = tf.reduce_sum(tf.multiply(psi_1_imag,psi_2_real),0)
+            ad = tf.reduce_sum(tf.multiply(psi_1_real,psi_2_imag),0)
             reals = tf.square(tf.reduce_sum(tf.add(ac,bd))) # first trace inner product of all vectors, then squared
-            imags = tf.square(tf.reduce_sum(tf.sub(bc,ad)))
+            imags = tf.square(tf.reduce_sum(tf.subtract(bc,ad)))
             norm = (tf.add(reals,imags))/(len(self.sys_para.states_concerned_list)**2)
         return norm
     
@@ -310,13 +310,13 @@ class TensorflowState:
         psi_2_imag = (psi2[state_num:2*state_num,:])
         # psi1 has a+ib, psi2 has c+id, we wanna get Sum ((ac+bd) + i (bc-ad)) magnitude
         with tf.name_scope('inner_product'):
-            ac = tf.reduce_sum(tf.mul(psi_1_real,psi_2_real),0)
-            bd = tf.reduce_sum(tf.mul(psi_1_imag,psi_2_imag),0)
-            bc = tf.reduce_sum(tf.mul(psi_1_imag,psi_2_real),0)
-            ad = tf.reduce_sum(tf.mul(psi_1_real,psi_2_imag),0)
+            ac = tf.reduce_sum(tf.multiply(psi_1_real,psi_2_real),0)
+            bd = tf.reduce_sum(tf.multiply(psi_1_imag,psi_2_imag),0)
+            bc = tf.reduce_sum(tf.multiply(psi_1_imag,psi_2_real),0)
+            ad = tf.reduce_sum(tf.multiply(psi_1_real,psi_2_imag),0)
             reals = tf.reduce_sum(tf.square(tf.reduce_sum(tf.add(ac,bd),1)))
             # first trace inner product of all vectors, then squared, then sum contribution of all time steps
-            imags = tf.reduce_sum(tf.square(tf.reduce_sum(tf.sub(bc,ad),1)))
+            imags = tf.reduce_sum(tf.square(tf.reduce_sum(tf.subtract(bc,ad),1)))
             norm = (tf.add(reals,imags))/(len(self.sys_para.states_concerned_list)**2)
         return norm
     
@@ -347,10 +347,10 @@ class TensorflowState:
         #Here we extract the gradients of the pulses
         self.grad = self.opt.compute_gradients(self.reg_loss)
 
-        self.grad_pack = tf.pack([g for g, _ in self.grad])
+        self.grad_pack = tf.stack([g for g, _ in self.grad])
         
         self.grads =[tf.nn.l2_loss(g) for g, _ in self.grad]
-        self.grad_squared = tf.reduce_sum(tf.pack(self.grads))
+        self.grad_squared = tf.reduce_sum(tf.stack(self.grads))
         self.optimizer = self.opt.apply_gradients(self.grad)
         
         print "Optimizer initialized."

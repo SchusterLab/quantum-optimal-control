@@ -57,7 +57,7 @@ class Analysis:
             
         ii=0
         
-        inter_vecs = tf.pack(self.tf_inter_vecs).eval()
+        inter_vecs = tf.stack(self.tf_inter_vecs).eval()
         
         if self.sys_para.save:
             with H5File(self.sys_para.file_path) as hf:
