@@ -1,9 +1,9 @@
 import tensorflow as tf
 import numpy as np
 import scipy.linalg as la
-from quantum_optimal_control.core.TensorflowState import TensorflowState
-from quantum_optimal_control.core.SystemParameters import SystemParameters
-from quantum_optimal_control.core.Convergence import Convergence
+from quantum_optimal_control.core.tensorflow_state import TensorflowState
+from quantum_optimal_control.core.system_parameters import SystemParameters
+from quantum_optimal_control.core.convergence import Convergence
 from quantum_optimal_control.core.run_session import run_session
 
 
@@ -12,7 +12,7 @@ import random as rd
 import time
 from IPython import display
 
-from quantum_optimal_control.helper_functions.datamanagement import H5File
+from quantum_optimal_control.helper_functions.data_management import H5File
 import os
 
 

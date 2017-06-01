@@ -1,11 +1,11 @@
 import numpy as np
 import tensorflow as tf
-from Analysis import Analysis
+from analysis import Analysis
 import os
 import time
 from scipy.optimize import minimize
 
-from quantum_optimal_control.helper_functions.datamanagement import H5File
+from quantum_optimal_control.helper_functions.data_management import H5File
 
 
 class run_session:

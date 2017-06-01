@@ -3,7 +3,7 @@ from quantum_optimal_control.helper_functions.grape_functions import sort_ev,get
 import os
 import tensorflow as tf
 
-from quantum_optimal_control.helper_functions.datamanagement import H5File
+from quantum_optimal_control.helper_functions.data_management import H5File
 
 class Analysis:
     

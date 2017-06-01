@@ -5,7 +5,7 @@ from quantum_optimal_control.helper_functions.grape_functions import get_state_i
 import scipy.linalg as la
 from scipy.special import factorial
 
-from quantum_optimal_control.helper_functions.datamanagement import H5File
+from quantum_optimal_control.helper_functions.data_management import H5File
 
 class SystemParameters:
 
