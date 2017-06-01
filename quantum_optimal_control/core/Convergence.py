@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from IPython import display
-from helper_functions.grape_functions import sort_ev
+from quantum_optimal_control.helper_functions.grape_functions import sort_ev
 
 
 class Convergence:

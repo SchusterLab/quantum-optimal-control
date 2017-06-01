@@ -5,7 +5,7 @@ import os
 import time
 from scipy.optimize import minimize
 
-from helper_functions.datamanagement import H5File
+from quantum_optimal_control.helper_functions.datamanagement import H5File
 
 
 class run_session:

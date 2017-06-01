@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import math
 
-from helper_functions.grape_functions import c_to_r_mat, sort_ev
+from quantum_optimal_control.helper_functions.grape_functions import c_to_r_mat, sort_ev
 
 def get_reg_loss(tfs):
     

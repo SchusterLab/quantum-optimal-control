@@ -1,11 +1,11 @@
 import numpy as np
-from helper_functions.grape_functions import c_to_r_mat
-from helper_functions.grape_functions import c_to_r_vec
-from helper_functions.grape_functions import get_state_index
+from quantum_optimal_control.helper_functions.grape_functions import c_to_r_mat
+from quantum_optimal_control.helper_functions.grape_functions import c_to_r_vec
+from quantum_optimal_control.helper_functions.grape_functions import get_state_index
 import scipy.linalg as la
 from scipy.special import factorial
 
-from helper_functions.datamanagement import H5File
+from quantum_optimal_control.helper_functions.datamanagement import H5File
 
 class SystemParameters:
 

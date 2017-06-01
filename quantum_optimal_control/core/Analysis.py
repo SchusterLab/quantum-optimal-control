@@ -1,9 +1,9 @@
 import numpy as np
-from helper_functions.grape_functions import sort_ev,get_state_index
+from quantum_optimal_control.helper_functions.grape_functions import sort_ev,get_state_index
 import os
 import tensorflow as tf
 
-from helper_functions.datamanagement import H5File
+from quantum_optimal_control.helper_functions.datamanagement import H5File
 
 class Analysis:
     
