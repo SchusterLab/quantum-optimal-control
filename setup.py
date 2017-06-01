@@ -17,7 +17,7 @@ MAJOR = 0
 MINOR = 1 
 MICRO = 0 
 VERSION = '{0}.{1}.{2}'.format(MAJOR,MINOR,MICRO)
-NAME = 'quantum-optimal-control'
+NAME = 'quantum_optimal_control'
 URL = 'https://github.com/SchusterLab/quantum-optimal-control'
 AUTHOR = '''Nelson Leung, Mohamed Abdelhafez,
 			Jens Koch and David Schuster'''
@@ -50,9 +50,10 @@ INSTALL_REQUIRES = [
 			]
 
 PACKAGES = [
-		'main_grape',
-		'core',
-		'helper_functions'
+		'quantum_optimal_control',
+		'quantum_optimal_control/main_grape',
+		'quantum_optimal_control/core',
+		'quantum_optimal_control/helper_functions'
 		]
 
 #project needs a license 
