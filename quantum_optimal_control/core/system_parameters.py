@@ -171,11 +171,15 @@ class SystemParameters:
         self.initial_vectors_c=[]
 
         for state in self.states_concerned_list:
-            if self.is_dressed:
-                self.initial_vector_c= self.v_c[:,get_state_index(state,self.dressed_id)]
+            
+            if self.state_transfer:
+                self.initial_vector_c = np.array(state)
             else:
-                self.initial_vector_c=np.zeros(self.state_num)
-                self.initial_vector_c[state]=1
+                if self.is_dressed:
+                    self.initial_vector_c= self.v_c[:,get_state_index(state,self.dressed_id)]
+                else:
+                    self.initial_vector_c=np.zeros(self.state_num)
+                    self.initial_vector_c[state]=1
             
             self.initial_vectors_c.append(self.initial_vector_c)
             self.initial_vector = c_to_r_vec(self.initial_vector_c)
