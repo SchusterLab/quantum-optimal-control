@@ -68,9 +68,8 @@ def get_reg_loss(tfs):
         
 
         # Limiting the access to forbidden states
-        if 'forbidden' in tfs.sys_para.reg_coeffs:
-            inter_reg_alpha_coeff = tfs.sys_para.reg_coeffs['forbidden']
-            inter_reg_alpha = inter_reg_alpha_coeff / float(tfs.sys_para.steps)
+        if 'forbidden_coeff_list' in tfs.sys_para.reg_coeffs:
+            
             if tfs.sys_para.is_dressed:
                 v_sorted = tf.constant(c_to_r_mat(np.reshape(sort_ev(tfs.sys_para.v_c, tfs.sys_para.dressed_id),
                                                              [len(tfs.sys_para.dressed_id), len(tfs.sys_para.dressed_id)])),
@@ -79,7 +78,8 @@ def get_reg_loss(tfs):
             for inter_vec in tfs.inter_vecs:
                 if tfs.sys_para.is_dressed and ('forbid_dressed' in tfs.sys_para.reg_coeffs and tfs.sys_para.reg_coeffs['forbid_dressed']):
                     inter_vec = tf.matmul(tf.transpose(v_sorted), inter_vec)
-                for state in tfs.sys_para.reg_coeffs['states_forbidden_list']:
+                for inter_reg_alpha_coeff, state in zip(tfs.sys_para.reg_coeffs['forbidden_coeff_list'],tfs.sys_para.reg_coeffs['states_forbidden_list']):
+                    inter_reg_alpha = inter_reg_alpha_coeff / float(tfs.sys_para.steps)
                     forbidden_state_pop = tf.square(inter_vec[state, :]) + \
                                           tf.square(inter_vec[tfs.sys_para.state_num + state, :])
                     reg_loss = reg_loss + inter_reg_alpha * tf.nn.l2_loss(forbidden_state_pop)
