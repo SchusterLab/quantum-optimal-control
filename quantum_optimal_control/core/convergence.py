@@ -156,7 +156,11 @@ class Convergence:
             plt.plot(np.array(self.iterations),np.array(self.reg_costs),'go-',label='All Penalties')
             plt.ylabel('Error')
             plt.xlabel('Iteration')
-            plt.yscale('log')
+            try:
+                plt.yscale('log')
+            except:
+                plt.yscale('linear')
+                
             plt.legend()
         else:
             print "Error = %.9f"%self.last_cost
