@@ -163,7 +163,7 @@ class Convergence:
                 
             plt.legend()
         else:
-            print "Error = %.9f"%self.last_cost
+            print("Error = %.9f"%self.last_cost)
         ## unitary evolution
         if not self.sys_para.state_transfer:
             M = self.final_state

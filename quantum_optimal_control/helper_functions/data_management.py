@@ -33,7 +33,7 @@ class H5File(h5py.File):
         return branch
 
     def _my_assign_dset(self, dspath, ds, val):
-        print 'assigning', ds, val
+        print('assigning', ds, val)
         branch = self._my_ds_from_path(dspath)
         branch[ds] = val
 
@@ -73,7 +73,7 @@ class H5File(h5py.File):
             dataset.attrs["_axes_labels"] = (x_lab, y_lab)
 
     def append_line(self, dataset, line, axis=0):
-        if isinstance(dataset,unicode): dataset=str(dataset)
+        if isinstance(dataset,str): dataset=str(dataset)
         if isinstance(dataset, str):
             try:
                 dataset = self[dataset]
@@ -93,7 +93,7 @@ class H5File(h5py.File):
         self.flush()
 
     def append_pt(self, dataset, pt):
-        if isinstance(dataset,unicode): dataset=str(dataset)
+        if isinstance(dataset,str): dataset=str(dataset)
         if isinstance(dataset, str) :
             try:
                 dataset = self[dataset]
@@ -130,7 +130,7 @@ class H5File(h5py.File):
         except:
             notes = []
         if print_notes:
-            print '\n'.join(notes)
+            print('\n'.join(notes))
         if one_string:
             notes = '\n'.join(notes)
         return notes
@@ -189,12 +189,12 @@ class H5File(h5py.File):
     def save_dict(self, dict, group='/'):
         if group not in self:
             self.create_group(group)
-        for k in dict.keys():
+        for k in list(dict.keys()):
             self[group].attrs[k] = dict[k]
 
     def get_dict(self, group='/'):
         d = {}
-        for k in self[group].attrs.keys():
+        for k in list(self[group].attrs.keys()):
             d[k] = self[group].attrs[k]
         return d
 
@@ -209,7 +209,7 @@ class H5File(h5py.File):
         return self.get_dict(group)
 
     def load_config(self):
-        if 'config' in self.attrs.keys():
+        if 'config' in list(self.attrs.keys()):
             return AttrDict(json.loads(self.attrs['config']))
         else:
             return None

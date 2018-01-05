@@ -42,7 +42,7 @@ def qutip_verification(datafile,atol):
     # looping over each initial vector
     for init_vector_id in range(len(initial_vectors_c)):
         
-        print "Verifying init vector id: %d" %(init_vector_id)
+        print("Verifying init vector id: %d" %(init_vector_id))
         
         # initial vector
         psi0 = qt.Qobj(initial_vectors_c[init_vector_id])
@@ -79,8 +79,8 @@ def qutip_verification(datafile,atol):
         all_close = np.allclose(state_tlist,inter_vecs_raw[init_vector_id],atol=atol)        
         all_close_list.append(all_close)
     
-    print "QuTiP simulation verification result for each initial state"
-    print "================================================"
-    print "max abs diff: " + str(max_abs_diff_list)
-    print "all close: " + str(all_close_list)
-    print "================================================"
+    print("QuTiP simulation verification result for each initial state")
+    print("================================================")
+    print("max abs diff: " + str(max_abs_diff_list))
+    print("all close: " + str(all_close_list))
+    print("================================================")

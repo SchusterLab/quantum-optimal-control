@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 import math
 from quantum_optimal_control.helper_functions.grape_functions import c_to_r_mat, sort_ev
-from regularization_functions import get_reg_loss
+from .regularization_functions import get_reg_loss
 from tensorflow.python.framework import function
 from tensorflow.python.framework import ops
 
@@ -163,7 +163,7 @@ class TensorflowState:
             self.tf_initial_unitary = tf.constant(self.sys_para.initial_unitary,dtype=tf.float32, name = 'U0')
             self.tf_target_state = tf.constant(self.sys_para.target_unitary,dtype=tf.float32)
             self.target_vecs = tf.matmul(self.tf_target_state,self.packed_initial_vectors)
-        print "Propagators initialized."
+        print("Propagators initialized.")
     
     def init_tf_ops_weight(self):
        
@@ -182,7 +182,7 @@ class TensorflowState:
            
 
 
-        print "Operators weight initialized."
+        print("Operators weight initialized.")
                 
     def init_tf_inter_propagators(self):
         #initialize intermediate unitaries
@@ -190,7 +190,7 @@ class TensorflowState:
         for ii in range(self.sys_para.steps):
             self.inter_states.append(tf.zeros([2*self.sys_para.state_num,2*self.sys_para.state_num],
                                               dtype=tf.float32,name="inter_state_"+str(ii)))
-        print "Intermediate propagation variables initialized."
+        print("Intermediate propagation variables initialized.")
             
     def get_inter_state_op(self,layer):
         # build operator for intermediate state propagation
@@ -224,7 +224,7 @@ class TensorflowState:
         
         self.unitary_scale = (0.5/self.sys_para.state_num)*tf.reduce_sum(tf.matmul(tf.transpose(self.final_state),self.final_state))
         
-        print "Intermediate propagators initialized."
+        print("Intermediate propagators initialized.")
         
     def init_tf_inter_vectors(self):
         # inter vectors for unitary evolution, obtained by multiplying the propagation operator K_j with initial vector
@@ -239,7 +239,7 @@ class TensorflowState:
         self.inter_vecs_packed = tf.stack(self.inter_vecs_list, axis=1)
         self.inter_vecs = tf.unstack(self.inter_vecs_packed, axis = 2)
             
-        print "Vectors initialized."
+        print("Vectors initialized.")
         
     def init_tf_inter_vector_state(self): 
         # inter vectors for state transfer, obtained by evolving the initial vector
@@ -258,7 +258,7 @@ class TensorflowState:
         self.inter_vecs = tf.unstack(self.inter_vecs_packed, axis = 2)
         
             
-        print "Vectors initialized."
+        print("Vectors initialized.")
         
     def get_inner_product(self,psi1,psi2):
         #Take 2 states psi1,psi2, calculate their overlap, for single vector
@@ -337,7 +337,7 @@ class TensorflowState:
     
         self.reg_loss = get_reg_loss(self)
         
-        print "Training loss initialized."
+        print("Training loss initialized.")
             
     def init_optimizer(self):
         # Optimizer. Takes a variable learning rate.
@@ -353,13 +353,13 @@ class TensorflowState:
         self.grad_squared = tf.reduce_sum(tf.stack(self.grads))
         self.optimizer = self.opt.apply_gradients(self.grad)
         
-        print "Optimizer initialized."
+        print("Optimizer initialized.")
     
     def init_utilities(self):
         # Add ops to save and restore all the variables.
         self.saver = tf.train.Saver()
         
-        print "Utilities initialized."
+        print("Utilities initialized.")
         
       
             
@@ -368,7 +368,7 @@ class TensorflowState:
         graph = tf.Graph()
         with graph.as_default():
             
-            print "Building graph:"
+            print("Building graph:")
             
             self.init_defined_functions()
             self.init_variables()
@@ -389,6 +389,6 @@ class TensorflowState:
             self.init_utilities()
          
             
-            print "Graph built!"
+            print("Graph built!")
         
         return graph
