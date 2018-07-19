@@ -86,14 +86,13 @@ def get_reg_loss(tfs):
                     
         # Speeding up the gate time
         if 'speed_up' in tfs.sys_para.reg_coeffs:
-            speed_up_reg_alpha_coeff = - tfs.sys_para.reg_coeffs['speed_up']
+            speed_up_reg_alpha_coeff = tfs.sys_para.reg_coeffs['speed_up']
             speed_up_reg_alpha = speed_up_reg_alpha_coeff / float(tfs.sys_para.steps)
             
             target_vecs_all_timestep = tf.tile(tf.reshape(tfs.target_vecs,[2*tfs.sys_para.state_num,1,len(tfs.inter_vecs)]) , [1,tfs.sys_para.steps+1,1])
             
             target_vecs_inner_product = tfs.get_inner_product_3D(tfs.inter_vecs_packed,target_vecs_all_timestep)
-            reg_loss = reg_loss + speed_up_reg_alpha * tf.nn.l2_loss(target_vecs_inner_product)
-            
+            reg_loss = reg_loss + speed_up_reg_alpha * tf.nn.l2_loss(tfs.sys_para.steps+1 - target_vecs_inner_product)            
 
         return reg_loss
                     
