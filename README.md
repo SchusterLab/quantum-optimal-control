@@ -1,8 +1,11 @@
+An actively maintained version of this project, which offers GRAPE on open quantum systems, is available [here](https://github.com/SchusterLab/qoc).
+
+
 # GRAPE-Tensorflow
 
 This is the code repository of our recent publication "Speedup for quantum optimal control from automatic differentiation based on graphics processing units" https://journals.aps.org/pra/abstract/10.1103/PhysRevA.95.042318
 
-This is a software package that performs quantum optimal control using the automatic differentiation capabilities of [Tensorflow] (https://www.tensorflow.org/) and has full GPU support. Its main goal is to produce a set of optimal pulses to apply in a given period of time that will drive a quantum system to achieve a certain unitary gate or to reach a certain final quantum state with a fidelity as close as possible to unity. In addition, the user can add any penalties (cost functions) on either the control pulses or the quantum intermediate states and the code will automatically include this constraint in the optimization process without having to write down an analytical form for the gradient of the new cost function.    
+This is a software package that performs quantum optimal control using the automatic differentiation capabilities of [Tensorflow](https://www.tensorflow.org/) and has full GPU support. Its main goal is to produce a set of optimal pulses to apply in a given period of time that will drive a quantum system to achieve a certain unitary gate or to reach a certain final quantum state with a fidelity as close as possible to unity. In addition, the user can add any penalties (cost functions) on either the control pulses or the quantum intermediate states and the code will automatically include this constraint in the optimization process without having to write down an analytical form for the gradient of the new cost function.    
 
 As an example of what the package produces, here is its output in the example of a qubit pi pulse:  
 
@@ -15,7 +18,7 @@ You will just need to setup Tensorflow, Please follow the instructions [here] (h
 Currently only supports linux system and Python 2.7.
 
 # Currently Implemented Cost Functions  
-Refer to the [Regularization functions file] (https://github.com/SchusterLab/GRAPE-Tensorflow/blob/master/core/RegularizationFunctions.py) for details or to add a new cost function  
+Refer to the [Regularization functions file](https://github.com/SchusterLab/GRAPE-Tensorflow/blob/master/core/RegularizationFunctions.py) for details or to add a new cost function  
  **1) The fidelity cost function:** The overlap between the target unitary/final state and the achieved unitary/final state. In the code, it's referred to as tfs.loss.  
  **2) The gaussian envelope cost function:** A penalty if the control pulses do not have a gaussian envelope. The user supplies a coeffecient called **'envelope'** in the reg_coeffs input. A value of 0.01 is found to be a good statring value empirically.    
  **3) The first derivative cost function:** To make the control pulses smooth. The user supplies a coeffecient called **'dwdt'** in the reg_coeffs input. A value of 0.001 is found to be a good statring value empirically.  
@@ -40,7 +43,7 @@ reg_coeffs,dressed_info, maxA ,use_gpu, draw, initial_guess, show_plots, H_time_
 unitary_error, method,state_transfer, no_scaling, freq_unit, file_name, save, data_path) 
 ```
  
- You can follow the [examples] (https://github.com/SchusterLab/GRAPE-Tensorflow-Examples/tree/master) we are providing for details on defining the quantum system and then calling the function. We suggest starting with a simple example (e.g. spin Pi).
+ You can follow the [examples](https://github.com/SchusterLab/GRAPE-Tensorflow-Examples/tree/master) we are providing for details on defining the quantum system and then calling the function. We suggest starting with a simple example (e.g. spin Pi).
  
 # Returns:  
  **uks:** The optimized control pulses  ( a list of list of floats, each of them has length  = ctrl_steps(ctrl_op) ) same order as the input  
