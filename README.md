@@ -1,4 +1,4 @@
-An actively maintained version of this project, which offers GRAPE on open quantum systems, is available [here](https://github.com/SchusterLab/qoc).
+This work has been followed up [here](https://github.com/SchusterLab/rbqoc).
 
 
 # GRAPE-Tensorflow
