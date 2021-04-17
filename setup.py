@@ -109,6 +109,6 @@ setup(
 	keywords=KEYWORDS,
 	description=DESCRIPTION,
 	platforms=PLATFORMS,
-	install_requies=INSTALL_REQUIRES,
+	install_requires=INSTALL_REQUIRES,
 	classifiers=CLASSIFIERS
 	)
