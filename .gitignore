@@ -109,3 +109,6 @@ custom_kernels/build/temp/*
 
 #ipynb
 ipynb
+
+# binaries
+*.DS_Store

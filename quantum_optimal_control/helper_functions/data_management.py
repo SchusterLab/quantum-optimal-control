@@ -7,6 +7,7 @@ import numpy as np
 import h5py
 import json
 
+
 class H5File(h5py.File):
     def __init__(self, *args, **kwargs):
         h5py.File.__init__(self, *args, **kwargs)
@@ -24,7 +25,7 @@ class H5File(h5py.File):
         # self.save_script()
         self.flush()
 
-    # Methods for proxy use    
+    # Methods for proxy use
     def _my_ds_from_path(self, dspath):
         """returns the object (dataset or group) specified by dspath"""
         branch = self
@@ -33,7 +34,7 @@ class H5File(h5py.File):
         return branch
 
     def _my_assign_dset(self, dspath, ds, val):
-        print 'assigning', ds, val
+        print('assigning', ds, val)
         branch = self._my_ds_from_path(dspath)
         branch[ds] = val
 
@@ -73,15 +74,18 @@ class H5File(h5py.File):
             dataset.attrs["_axes_labels"] = (x_lab, y_lab)
 
     def append_line(self, dataset, line, axis=0):
-        if isinstance(dataset,unicode): dataset=str(dataset)
+        if isinstance(dataset, str):
+            dataset = str(dataset)
         if isinstance(dataset, str):
             try:
                 dataset = self[dataset]
             except:
                 shape, maxshape = (0, len(line)), (None, len(line))
                 if axis == 1:
-                    shape, maxshape = (shape[1], shape[0]), (maxshape[1], maxshape[0])
-                self.create_dataset(dataset, shape=shape, maxshape=maxshape, dtype='float64')
+                    shape, maxshape = (
+                        shape[1], shape[0]), (maxshape[1], maxshape[0])
+                self.create_dataset(dataset, shape=shape,
+                                    maxshape=maxshape, dtype='float64')
                 dataset = self[dataset]
         shape = list(dataset.shape)
         shape[axis] = shape[axis] + 1
@@ -93,12 +97,14 @@ class H5File(h5py.File):
         self.flush()
 
     def append_pt(self, dataset, pt):
-        if isinstance(dataset,unicode): dataset=str(dataset)
-        if isinstance(dataset, str) :
+        if isinstance(dataset, str):
+            dataset = str(dataset)
+        if isinstance(dataset, str):
             try:
                 dataset = self[dataset]
             except:
-                self.create_dataset(dataset, shape=(0,), maxshape=(None,), dtype='float64')
+                self.create_dataset(dataset, shape=(
+                    0,), maxshape=(None,), dtype='float64')
                 dataset = self[dataset]
         shape = list(dataset.shape)
         shape[0] = shape[0] + 1
@@ -112,7 +118,8 @@ class H5File(h5py.File):
         try:
             ds = self['notes']
         except:
-            ds = self.create_dataset('notes', (0,), maxshape=(None,), dtype=h5py.new_vlen(str))
+            ds = self.create_dataset('notes', (0,), maxshape=(
+                None,), dtype=h5py.new_vlen(str))
 
         shape = list(ds.shape)
         shape[0] = shape[0] + 1
@@ -130,7 +137,7 @@ class H5File(h5py.File):
         except:
             notes = []
         if print_notes:
-            print '\n'.join(notes)
+            print('\n'.join(notes))
         if one_string:
             notes = '\n'.join(notes)
         return notes
@@ -163,7 +170,8 @@ class H5File(h5py.File):
             if forceInit == True:
                 del f[key]
                 f.create_dataset(key, shape=tuple([1] + list(data.shape)),
-                                 maxshape=tuple([None] * (len(data.shape) + 1)),
+                                 maxshape=tuple(
+                                     [None] * (len(data.shape) + 1)),
                                  dtype=str(data.dtype))
             dataset = f[key]
             Shape = list(dataset.shape)
@@ -200,7 +208,6 @@ class H5File(h5py.File):
 
     get_attrs = get_dict
     save_attrs = save_dict
-
 
     def save_settings(self, dic, group='settings'):
         self.save_dict(dic, group)
