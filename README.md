@@ -24,9 +24,21 @@ As an example of what the package produces, here is its output in the example of
 ## Setup  
 [Install Anacoda](https://docs.anaconda.com/anaconda/install/index.html)
 
-To create the appropriate anaconda environment, run
+Navigate to the top-level directory
+```
+cd quantum-optimal-control
+```
+Create the appropriate environment
 ```
 conda env create -f environment.yml
+```
+Activate the environment
+```
+conda activate quantum_optimal_control
+```
+Install the package
+```
+pip install -e .
 ```
 
 ## Currently Implemented Cost Functions  
